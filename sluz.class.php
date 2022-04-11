@@ -2,15 +2,16 @@
 
 ////////////////////////////////////////////////////////
 
-if (!function_exists('krumo')) {
-	include("krumo/class.krumo.php");
-}
-
 class sluz {
 	private $tpl_vars = [];
 	public  $debug    = 0;
 
-	function __construct() { }
+	function __construct() {
+		// Load Krumo if debug is on
+		if ($this->debug && !function_exists('krumo')) {
+			include("krumo/class.krumo.php");
+		}
+	}
 	function __destruct()  { }
 
 	function assign($key, $val) {
