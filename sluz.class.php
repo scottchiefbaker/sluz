@@ -33,15 +33,19 @@ class sluz {
 			// Put the tpl_vars in the current scope so if works against them
 			extract($this->tpl_vars);
 
-			//k($m);
+			$test_var  = $m[1];
+			$payload   = $m[2];
+			$p         = explode("{else}", $payload);
+			$true_val  = $p[0] ?? "";
+			$false_val = $p[1] ?? "";
 
 			$cmd = '$ok = ' . $m[1] . ";";
 			eval($cmd);
 
 			if ($ok) {
-				$ret = $this->process_block($m[2]);
+				$ret = $this->process_block($true_val);
 			} else {
-				$ret = '';
+				$ret = $this->process_block($false_val);
 			}
 		} elseif (preg_match('/\{foreach \$(\w+) as \$(\w+)( => \$(\w+))?\}(.+)\{\/foreach\}/s', $str, $m)) {
 			$src   = $m[1];
