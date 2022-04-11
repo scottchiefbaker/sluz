@@ -28,9 +28,16 @@ class sluz {
 		if ($this->debug) { k("Input: " . $str); }
 
 		// Simple variable replacement
-		if (preg_match('/^\{\$(\w+)\}/', $str, $m)) {
+		if (preg_match('/^\{\$(\w.+?)\}/', $str, $m)) {
 			$key = $m[1];
-			$ret = $this->tpl_vars[$key] ?? "";
+			if (preg_match("/(.+?)\|(.+)/", $key, $m)) {
+				$key = $m[1];
+				$mod = $m[2];
+
+				$ret = call_user_func($mod, $this->tpl_vars[$key] ?? "");
+			} else {
+				$ret = $this->tpl_vars[$key] ?? "";
+			}
 		// If statement
 		} elseif (preg_match('/\{if (.+?)\}(.+)\{\/if\}/s', $str, $m)) {
 			// Put the tpl_vars in the current scope so if works against them

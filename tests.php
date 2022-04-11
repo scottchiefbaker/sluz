@@ -18,6 +18,7 @@ $sluz->assign('array'    , ['one', 'two', 'three']);
 sluz_test('Hello there', 'Hello there', 'Basic #1');
 sluz_test('{$first}', 'Scott', 'Basic #2');
 sluz_test('{$bogus_var}', '', 'Basic #3');
+sluz_test('{$animal|strtoupper}', 'KITTEN', 'Basic #4 - PHP Modifier');
 
 sluz_test('{if $debug}DEBUG{/if}', 'DEBUG', 'if #1');
 sluz_test('{if $debugz}DEBUG{/if}', '', 'if #2');
