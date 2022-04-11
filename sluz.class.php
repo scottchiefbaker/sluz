@@ -8,12 +8,11 @@ class sluz {
 
 	function __construct() {
 		// Load Krumo if debug is on
-		if (!function_exists('krumo')) {
-			include("krumo/class.krumo.php");
-		} else {
-			function k() { }; // Do nothing stub
+		if (!function_exists('k')) {
+			require_once("krumo/class.krumo.php");
 		}
 	}
+
 	function __destruct()  { }
 
 	function assign($key, $val) {
