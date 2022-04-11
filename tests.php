@@ -34,10 +34,19 @@ function sluz_test($input, $expected, $test_name) {
 	global $sluz;
 	$html = $sluz->process_block($input);
 
+	$lead = "Test '$test_name' ";
+	$pad  = str_repeat(" ", 80 - (strlen($lead)));
+
+	print "$lead $pad";
+
+	$ok    = "\033[32m";
+	$fail  = "\033[31m";
+	$reset = "\033[0m";
+
 	if ($html === $expected) {
-		print "Test '$test_name' OK\n";
+		print $ok . "OK" . $reset . "\n";
 	} else {
-		print "Test '$test_name' FAIL\n";
+		print $fail . "FAIL" . $reset . "\n";
 		print "  * Expected '$expected', got '$html'\n";
 	}
 }
