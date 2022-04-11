@@ -49,10 +49,10 @@ class sluz {
 				$ret = $this->process_block($false_val);
 			}
 		} elseif (preg_match('/\{foreach \$(\w+) as \$(\w+)( => \$(\w+))?\}(.+)\{\/foreach\}/s', $str, $m)) {
-			$src   = $m[1];
-			$okey  = $m[2];
-			$oval  = $m[4];
-			$block = $m[5];
+			$src   = $m[1]; // src array
+			$okey  = $m[2]; // orig key
+			$oval  = $m[4]; // orig val
+			$block = $m[5]; // code block to parse on iteration
 
 			extract($this->tpl_vars);
 
@@ -60,7 +60,7 @@ class sluz {
 
 			foreach ($src as $val) {
 				// Temp set a key so when we process this section it's correct
-				$this->tpls_vars[$okey] = $val;
+				$this->tpl_vars[$okey] = $val;
 
 				$ret .= $this->process_block($block);
 			}
