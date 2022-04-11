@@ -25,6 +25,8 @@ sluz_test('{if $debug}{$first}{/if}', 'Scott', 'if #3 (variable)');
 sluz_test('{if $debug}{if $debug}FOO{/if}{/if}', 'FOO', 'if #4 nested');
 sluz_test('{if $bogus_var}YES{else}NO{/if}', 'NO', 'if #5 else');
 
+sluz_test('{foreach $array as $num}{$num}{/foreach}', 'onetwothree', 'foreach #1');
+
 ////////////////////////////////////////////////////////
 
 function sluz_test($input, $expected, $test_name) {
