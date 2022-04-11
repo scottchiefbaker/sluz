@@ -7,13 +7,13 @@ include('sluz.class.php');
 $sluz = new sluz;
 $sluz->debug = 0;
 
-$sluz->assign('key'    , 'val');
-$sluz->assign('first'  , "Scott");
-$sluz->assign('last'   , "Baker");
-$sluz->assign('animal' , "Kitten");
-$sluz->assign('heading', "Test heading");
-$sluz->assign('debug'  , 1);
-$sluz->assign('array', ['one', 'two', 'three']);
+$sluz->assign('key'      , 'val');
+$sluz->assign('first'    , "Scott");
+$sluz->assign('last'     , "Baker");
+$sluz->assign('animal'   , "Kitten");
+$sluz->assign('heading'  , "Test heading");
+$sluz->assign('debug'    , 1);
+$sluz->assign('array'    , ['one', 'two', 'three']);
 
 sluz_test('Hello there', 'Hello there', 'Basic #1');
 sluz_test('{$first}', 'Scott', 'Basic #2');
