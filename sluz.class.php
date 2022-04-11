@@ -26,7 +26,7 @@ class sluz {
 		if ($this->debug) { k("Input: " . $str); }
 
 		// Simple variable replacement
-		if (preg_match('/\{\$(\w+)\}/', $str, $m)) {
+		if (preg_match('/^\{\$(\w+)\}/', $str, $m)) {
 			$key = $m[1];
 			$ret = $this->tpl_vars[$key] ?? "";
 		// If statement
@@ -68,7 +68,7 @@ class sluz {
 			$ret = $str;
 		}
 
-		if ($this->debug) { k("$str = $ret"); }
+		if ($this->debug) { k("Output: $ret"); }
 
 		error_reporting($cur); // Reset error reporting level
 
