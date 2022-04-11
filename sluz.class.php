@@ -2,7 +2,9 @@
 
 ////////////////////////////////////////////////////////
 
-include("krumo/class.krumo.php");
+if (!function_exists('krumo')) {
+	include("krumo/class.krumo.php");
+}
 
 class sluz {
 	private $tpl_vars = [];
