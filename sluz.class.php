@@ -8,8 +8,10 @@ class sluz {
 
 	function __construct() {
 		// Load Krumo if debug is on
-		if ($this->debug && !function_exists('krumo')) {
+		if (!function_exists('krumo')) {
 			include("krumo/class.krumo.php");
+		} else {
+			function k() { }; // Do nothing stub
 		}
 	}
 	function __destruct()  { }
@@ -78,10 +80,9 @@ class sluz {
 	function parse($file = "") {
 		$str = file_get_contents($file);
 
-		if ($this->debug) { print $str . "<hr>"; }
+		if ($this->debug) { print nl2br(htmlentities($str)) . "<hr>"; }
 
 		$out   = '';
-		$oc    = 0; // Open Count
 		$start = 0;
 
 		for ($i = 0; $i < strlen($str); $i++) {
@@ -91,7 +92,6 @@ class sluz {
 			$is_closed = $char === "}";
 
 			if ($is_open) {
-				$oc++;
 				$start = $i;
 				$next  = substr($str,$i + 1, 7);
 
@@ -99,50 +99,47 @@ class sluz {
 				if (preg_match("/^(if|foreach)/", $next, $m)) {
 					$cmd = $m[1];
 
-					if ($this->debug) { k("Found \"$cmd\" at $i ($oc)"); }
-					$oc++;
+					if ($this->debug) { k("Found \"$cmd\" at $i"); }
+					$of = 0; // Open function count
 
 					// We keep looking until we find the closing } for this
 					for ($j = $i + 1; $j < strlen($str); $j++) {
 						$closed = (substr($str, $j, 1) === "}");
-						$opened = (substr($str, $j, 1) === "{");
+						if ($closed) {
+							$tmp = substr($str, $start, $j - $start + 1);
 
-						if ($closed) { $oc--; }
-						//if ($opened) { $oc++; }
+							if ($this->debug > 1) { k("Found close bracket. Block is #$start -> #$j = '$tmp'"); }
 
-						//print("$j = $oc<br />");
+							$of = preg_match_all("/\{(if|foreach)/", $tmp, $m);
+							$cf = preg_match_all("/{\/\w+/", $tmp, $m);
 
-						if ($closed && $oc == 0) {
-							$end = $j;
-
-							$out .= $this->process_block(substr($str, $start, $end - $start + 1));
-
-							$i = $j;
-
-							// We found the closing } so we stop processing the command
-							break;
+							if ($of === $cf) {
+								$out .= $this->process_block($tmp);
+								$i = $j;
+								break;
+							}
 						}
 					}
+
+					if ($j === strlen($str)) {
+						die("Didn't find closing delimter '}' started at $start");
+					}
+				// Not a command just a normal variable block
 				} else {
 					// We keep looking until we find the closing } for this
 					for ($j = $i; $j < strlen($str); $j++) {
 						$closed = (substr($str, $j, 1) === "}");
 
-						if ($closed) { $oc--; }
-						//if ($opened) { $oc++; }
-
-						if ($closed && $oc == 0) {
-							$end = $j;
-
+						if ($closed) {
+							$end     = $j;
 							$section = substr($str, $start, $end - $start + 1);
 							$tmp     = $this->process_block($section);
 
-							//kd($out, $section, $tmp, $start);
 							$out .= $tmp;
 
 							$i = $j;
 
-							// We found the closing } so we stop processing the command
+							// We found the closing } so we stop processing the for loop
 							break;
 						}
 					}
