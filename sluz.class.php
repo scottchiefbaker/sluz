@@ -6,7 +6,7 @@ include("krumo/class.krumo.php");
 
 class sluz {
 	private $tpl_vars = [];
-	public  $debug    = 1;
+	public  $debug    = 0;
 
 	function __construct() { }
 	function __destruct()  { }
