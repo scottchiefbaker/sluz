@@ -37,7 +37,7 @@ class sluz {
 			eval($cmd);
 
 			if ($ok) {
-				$ret = $m[2];
+				$ret = $this->process_block($m[2]);
 			} else {
 				$ret = '';
 			}
