@@ -33,9 +33,10 @@ class sluz {
 				$key = $m[1];
 				$mod = $m[2];
 
-				$ret = call_user_func($mod, $this->tpl_vars[$key] ?? "");
+				$pre = $this->array_dive($key, $this->tpl_vars) ?? "";
+				$ret = call_user_func($mod, $pre);
 			} else {
-				$ret = $this->tpl_vars[$key] ?? "";
+				$ret = $this->array_dive($key, $this->tpl_vars) ?? "";
 			}
 		// If statement
 		} elseif (preg_match('/\{if (.+?)\}(.+)\{\/if\}/s', $str, $m)) {
@@ -166,6 +167,34 @@ class sluz {
 
 		return $html;
 	}
+
+	function array_dive(string $needle, array $haystack) {
+		// Split at the periods
+		$parts = explode(".", $needle);
+
+		// Loop through each level of the hash looking for elem
+		$arr = $haystack;
+		foreach ($parts as $elem) {
+			//print "Diving for $elem<br />";
+			$arr = $arr[$elem] ?? null;
+
+			// If we don't find anything stop looking
+			if ($arr === null) {
+				break;
+			}
+		}
+
+		// If we find a scalar it's the end of the line, anything else is just
+		// another branch, so it doesn't cound as finding something
+		if (is_scalar($arr)) {
+			$ret = $arr;
+		} else {
+			$ret = null;
+		}
+
+		return $ret;
+	}
+
 }
 
 ////////////////////////////////////////////////////////
