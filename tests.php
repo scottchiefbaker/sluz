@@ -14,11 +14,14 @@ $sluz->assign('animal'   , "Kitten");
 $sluz->assign('heading'  , "Test heading");
 $sluz->assign('debug'    , 1);
 $sluz->assign('array'    , ['one', 'two', 'three']);
+$sluz->assign('cust'     , ['first' => 'Scott', 'last' => 'Baker']);
 
 sluz_test('Hello there', 'Hello there', 'Basic #1');
 sluz_test('{$first}', 'Scott', 'Basic #2');
 sluz_test('{$bogus_var}', '', 'Basic #3');
 sluz_test('{$animal|strtoupper}', 'KITTEN', 'Basic #4 - PHP Modifier');
+sluz_test('{$cust.first}', 'Scott', 'Basic #5 - Hash Lookup');
+sluz_test('{$array.1}', 'two', 'Basic #6 - Array Lookup');
 
 sluz_test('{if $debug}DEBUG{/if}', 'DEBUG', 'if #1');
 sluz_test('{if $debugz}DEBUG{/if}', '', 'if #2');
@@ -47,7 +50,10 @@ function sluz_test($input, $expected, $test_name) {
 	if ($html === $expected) {
 		print $ok . "OK" . $reset . "\n";
 	} else {
+		$d = debug_backtrace();
+		$file = $d[0]['file'];
+		$line = $d[0]['line'];
 		print $fail . "FAIL" . $reset . "\n";
-		print "  * Expected '$expected', got '$html'\n";
+		print "  * Expected '$expected' but got '$html' (from: $file #$line)\n";
 	}
 }
