@@ -49,6 +49,7 @@ class sluz {
 			$true_val  = $p[0] ?? "";
 			$false_val = $p[1] ?? "";
 
+			// Remove the $ at the beginning
 			$test_var = substr($test_var, 1);
 			$test_var = $this->array_dive($test_var, $this->tpl_vars);
 
@@ -171,6 +172,10 @@ class sluz {
 	}
 
 	function array_dive(string $needle, array $haystack) {
+		// Allow normal $foo['bar'] or $foo[3] syntax also
+		$after  = preg_split("/(\['?|'?\])/", $needle, 0, PREG_SPLIT_NO_EMPTY);
+		$needle = join(".", $after);
+
 		// Split at the periods
 		$parts = explode(".", $needle);
 
