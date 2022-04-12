@@ -27,6 +27,7 @@ sluz_test('{if $debug}{if $debug}FOO{/if}{/if}', 'FOO', 'if #4 nested');
 sluz_test('{if $bogus_var}YES{else}NO{/if}', 'NO', 'if #5 else');
 
 sluz_test('{foreach $array as $num}{$num}{/foreach}', 'onetwothree', 'foreach #1');
+sluz_test('{foreach $array as $num}\n{$num}\n{/foreach}', '\none\n\ntwo\n\nthree\n', 'foreach #2');
 
 ////////////////////////////////////////////////////////
 

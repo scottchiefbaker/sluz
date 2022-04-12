@@ -27,7 +27,7 @@ class sluz {
 		if ($this->debug) { k("Input: " . $str); }
 
 		// Simple variable replacement
-		if (preg_match('/^\{\$(\w.+?)\}/', $str, $m)) {
+		if (preg_match('/^\{\$(\w.+?)\}$/', $str, $m)) {
 			$key = $m[1];
 			if (preg_match("/(.+?)\|(.+)/", $key, $m)) {
 				$key = $m[1];
@@ -60,7 +60,7 @@ class sluz {
 			$src   = $m[1]; // src array
 			$okey  = $m[2]; // orig key
 			$oval  = $m[4]; // orig val
-			$block = $m[5]; // code block to parse on iteration
+			$orig_t = $m[5]; // code block to parse on iteration
 
 			extract($this->tpl_vars);
 
@@ -69,8 +69,11 @@ class sluz {
 			foreach ($src as $val) {
 				// Temp set a key so when we process this section it's correct
 				$this->tpl_vars[$okey] = $val;
+				$blocks = $this->get_blocks($orig_t);
 
-				$ret .= $this->process_block($block);
+				foreach ($blocks as $block) {
+					$ret .= $this->process_block($block);
+				}
 			}
 		} else {
 			$ret = $str;
@@ -83,80 +86,85 @@ class sluz {
 		return $ret;
 	}
 
-	function parse($file = "") {
-		$str = file_get_contents($file);
+	function get_blocks($str) {
+		$start  = 0;
+		$blocks = [];
 
-		if ($this->debug) { print nl2br(htmlentities($str)) . "<hr>"; }
-
-		$out   = '';
-		$start = 0;
+		//k("INPUT: $str");
 
 		for ($i = 0; $i < strlen($str); $i++) {
 			$char = substr($str, $i, 1);
 
 			$is_open   = $char === "{";
 			$is_closed = $char === "}";
+			$has_len   = $start != $i;
 
-			if ($is_open) {
-				$start = $i;
-				$next  = substr($str,$i + 1, 7);
+			if ($is_open && $has_len) {
+				$len = $i - $start;
+				$block = substr($str, $start, $len);
+				//k("AddingOpen:$block $start $len");
 
-				// We found an open { now check if it's a command
-				if (preg_match("/^(if|foreach)/", $next, $m)) {
-					$cmd = $m[1];
+				$blocks[] = $block;
+				$start    += $len;
+			} elseif ($is_closed) {
+				$len         = $i - $start + 1;
+				$block       = substr($str, $start, $len);
+				$is_function = preg_match("/^\{\w+/", $block);
 
-					if ($this->debug) { k("Found \"$cmd\" at $i"); }
-					$of = 0; // Open function count
+				//k([$block, $is_function]);
 
-					// We keep looking until we find the closing } for this
+				// If we're in a function, loop until we find the end end
+				if ($is_function) {
 					for ($j = $i + 1; $j < strlen($str); $j++) {
 						$closed = (substr($str, $j, 1) === "}");
 						if ($closed) {
-							$tmp = substr($str, $start, $j - $start + 1);
+							$len = $j - $start + 1;
+							$tmp = substr($str, $start, $len);
 
-							if ($this->debug > 1) { k("Found close bracket. Block is #$start -> #$j = '$tmp'"); }
+							$of = preg_match_all("/\{(if|foreach)/", $tmp);
+							$cf = preg_match_all("/{\/\w+/", $tmp);
 
-							$of = preg_match_all("/\{(if|foreach)/", $tmp, $m);
-							$cf = preg_match_all("/{\/\w+/", $tmp, $m);
+							//k([$tmp, $of, $cf], KRUMO_EXPAND_ALL);
 
 							if ($of === $cf) {
-								$out .= $this->process_block($tmp);
-								$i = $j;
+								$block = $tmp;
 								break;
 							}
 						}
 					}
-
-					if ($j === strlen($str)) {
-						die("Didn't find closing delimter '}' started at $start");
-					}
-				// Not a command just a normal variable block
-				} else {
-					// We keep looking until we find the closing } for this
-					for ($j = $i; $j < strlen($str); $j++) {
-						$closed = (substr($str, $j, 1) === "}");
-
-						if ($closed) {
-							$end     = $j;
-							$section = substr($str, $start, $end - $start + 1);
-							$tmp     = $this->process_block($section);
-
-							$out .= $tmp;
-
-							$i = $j;
-
-							// We found the closing } so we stop processing the for loop
-							break;
-						}
-					}
-
 				}
-			} else {
-				$out .= $char;
+
+				//k("AddingClose: $block $start $len");
+
+				$blocks[]  = $block;
+				$start    += strlen($block);
+				$i         = $start;
+
+				//K([$block, $of, $cf], KRUMO_EXPAND_ALL);
 			}
 		}
 
-		return $out;
+		// If we're not at the end of the string, add the last block
+		if ($start != strlen($str)) {
+			$blocks[] = substr($str, $start);
+		}
+
+		return $blocks;
+	}
+
+	function parse($file = "") {
+		$str = file_get_contents($file);
+
+		if ($this->debug) { print nl2br(htmlentities($str)) . "<hr>"; }
+
+		$blocks = $this->get_blocks($str);
+		//kd($blocks);
+		$html = '';
+		foreach ($blocks as $block) {
+			$html .= $this->process_block($block);
+		}
+
+		return $html;
 	}
 }
 
