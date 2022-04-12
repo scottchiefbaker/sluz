@@ -28,9 +28,15 @@ sluz_test('{if $debugz}DEBUG{/if}', '', 'if #2');
 sluz_test('{if $debug}{$first}{/if}', 'Scott', 'if #3 (variable)');
 sluz_test('{if $debug}{if $debug}FOO{/if}{/if}', 'FOO', 'if #4 nested');
 sluz_test('{if $bogus_var}YES{else}NO{/if}', 'NO', 'if #5 else');
+sluz_test('{if $cust.first}{$cust.first}{/if}', 'Scott', 'if #6 hash lookup');
 
 sluz_test('{foreach $array as $num}{$num}{/foreach}', 'onetwothree', 'foreach #1');
 sluz_test('{foreach $array as $num}\n{$num}\n{/foreach}', '\none\n\ntwo\n\nthree\n', 'foreach #2');
+
+// Don't parse blocks that have whitespacing
+sluz_test(' {$first} ', ' {$first} ', 'Bad block #1');
+sluz_test('{$first + 3}', '', 'Bad block #2');
+sluz_test('{first}', '{first}', 'Bad block #3'); // Literal (no $)
 
 ////////////////////////////////////////////////////////
 

@@ -49,8 +49,10 @@ class sluz {
 			$true_val  = $p[0] ?? "";
 			$false_val = $p[1] ?? "";
 
-			$cmd = '$ok = ' . $m[1] . ";";
-			eval($cmd);
+			$test_var = substr($test_var, 1);
+			$test_var = $this->array_dive($test_var, $this->tpl_vars);
+
+			$ok = !is_null($test_var);
 
 			if ($ok) {
 				$ret = $this->process_block($true_val);
