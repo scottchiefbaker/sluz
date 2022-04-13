@@ -27,7 +27,7 @@ class sluz {
 		if ($this->debug) { k("Input: " . $str); }
 
 		// Simple variable replacement
-		if (preg_match('/^\{\$(\w.+?)\}$/', $str, $m)) {
+		if (preg_match('/^\{\s*\$(\w.+?)\s*\}$/', $str, $m)) {
 			$key = $m[1];
 			if (preg_match("/(.+?)\|(.+)/", $key, $m)) {
 				$key = $m[1];

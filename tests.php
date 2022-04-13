@@ -15,28 +15,32 @@ $sluz->assign('heading'  , "Test heading");
 $sluz->assign('debug'    , 1);
 $sluz->assign('array'    , ['one', 'two', 'three']);
 $sluz->assign('cust'     , ['first' => 'Scott', 'last' => 'Baker']);
+$sluz->assign('number'   , 15);
 
-sluz_test('Hello there', 'Hello there', 'Basic #1');
-sluz_test('{$first}', 'Scott', 'Basic #2');
-sluz_test('{$bogus_var}', '', 'Basic #3');
-sluz_test('{$animal|strtoupper}', 'KITTEN', 'Basic #4 - PHP Modifier');
-sluz_test('{$cust.first}', 'Scott', 'Basic #5 - Hash Lookup');
-sluz_test('{$array.1}', 'two', 'Basic #6 - Array Lookup');
+sluz_test('Hello there'         , 'Hello there', 'Basic #1');
+sluz_test('{$first}'            , 'Scott'      , 'Basic #2');
+sluz_test("{  \$first\t}"       , 'Scott'      , 'Basic #2a - whitespace');
+sluz_test('{$bogus_var}'        , ''           , 'Basic #3');
+sluz_test('{$animal|strtoupper}', 'KITTEN'     , 'Basic #4 - PHP Modifier');
+sluz_test('{$cust.first}'       , 'Scott'      , 'Basic #5 - Hash Lookup');
+sluz_test('{$array.1}'          , 'two'        , 'Basic #6 - Array Lookup');
 
-sluz_test('{if $debug}DEBUG{/if}', 'DEBUG', 'if #1');
-sluz_test('{if $debugz}DEBUG{/if}', '', 'if #2');
-sluz_test('{if $debug}{$first}{/if}', 'Scott', 'if #3 (variable)');
-sluz_test('{if $debug}{if $debug}FOO{/if}{/if}', 'FOO', 'if #4 nested');
-sluz_test('{if $bogus_var}YES{else}NO{/if}', 'NO', 'if #5 else');
-sluz_test('{if $cust.first}{$cust.first}{/if}', 'Scott', 'if #6 hash lookup');
+sluz_test('{if $debug}DEBUG{/if}'              , 'DEBUG'  , 'if #1');
+sluz_test('{if $debugz}DEBUG{/if}'             , ''       , 'if #2');
+sluz_test('{if $debug}{$first}{/if}'           , 'Scott'  , 'if #3 (variable)');
+sluz_test('{if $debug}{if $debug}FOO{/if}{/if}', 'FOO'    , 'if #4 nested');
+sluz_test('{if $bogus_var}YES{else}NO{/if}'    , 'NO'     , 'if #5 else');
+sluz_test('{if $cust.first}{$cust.first}{/if}' , 'Scott'  , 'if #6 hash lookup');
+sluz_test('{if $number > 10}GREATER{/if}'      , 'GREATER', 'if #7 comparison');
+sluz_test('{if $foo || $key}KEY{/if}'          , 'KEY'    , 'if #8 two var comparison');
 
-sluz_test('{foreach $array as $num}{$num}{/foreach}', 'onetwothree', 'foreach #1');
+sluz_test('{foreach $array as $num}{$num}{/foreach}'    , 'onetwothree'            , 'foreach #1');
 sluz_test('{foreach $array as $num}\n{$num}\n{/foreach}', '\none\n\ntwo\n\nthree\n', 'foreach #2');
 
 // Don't parse blocks that have whitespacing
-sluz_test(' {$first} ', ' {$first} ', 'Bad block #1');
-sluz_test('{$first + 3}', '', 'Bad block #2');
-sluz_test('{first}', '{first}', 'Bad block #3'); // Literal (no $)
+sluz_test(' {$first} '  , ' {$first} ', 'Bad block #1');
+sluz_test('{$first + 3}', ''          , 'Bad block #2');
+sluz_test('{first}'     , '{first}'   , 'Bad block #3'); // Literal (no $)
 
 ////////////////////////////////////////////////////////
 
