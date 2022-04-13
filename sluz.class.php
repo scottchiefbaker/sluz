@@ -93,28 +93,21 @@ class sluz {
 
 			$src = $this->tpl_vars[$src];
 
-			if ($oval) {
-				foreach ($src as $key => $val) {
-					// Temp set a key so when we process this section it's correct
+			// Temp set a key/val so when we process this section it's correct
+			foreach ($src as $key => $val) {
+				// This is a key/val pair: foreach $key => $val
+				if ($oval) {
 					$this->tpl_vars[$okey] = $key;
 					$this->tpl_vars[$oval] = $val;
-
-					//kd([$key,$val,$okey,$oval]);
-					$blocks = $this->get_blocks($orig_t);
-
-					foreach ($blocks as $block) {
-						$ret .= $this->process_block($block);
-					}
-				}
-			} else {
-				foreach ($src as $val) {
-					// Temp set a key so when we process this section it's correct
+				// This is: foreach $array as $item
+				} else {
 					$this->tpl_vars[$okey] = $val;
-					$blocks = $this->get_blocks($orig_t);
+				}
 
-					foreach ($blocks as $block) {
-						$ret .= $this->process_block($block);
-					}
+				$blocks = $this->get_blocks($orig_t);
+
+				foreach ($blocks as $block) {
+					$ret .= $this->process_block($block);
 				}
 			}
 		} else {
