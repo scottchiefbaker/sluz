@@ -84,22 +84,37 @@ class sluz {
 
 			//k([$ok, $cmd]);
 		} elseif (preg_match('/\{foreach \$(\w+) as \$(\w+)( => \$(\w+))?\}(.+)\{\/foreach\}/s', $str, $m)) {
-			$src   = $m[1];  // src array
-			$okey  = $m[2];  // orig key
-			$oval  = $m[4];  // orig val
+			$src    = $m[1]; // src array
+			$okey   = $m[2]; // orig key
+			$oval   = $m[4]; // orig val
 			$orig_t = $m[5]; // code block to parse on iteration
 
 			extract($this->tpl_vars);
 
 			$src = $this->tpl_vars[$src];
 
-			foreach ($src as $val) {
-				// Temp set a key so when we process this section it's correct
-				$this->tpl_vars[$okey] = $val;
-				$blocks = $this->get_blocks($orig_t);
+			if ($oval) {
+				foreach ($src as $key => $val) {
+					// Temp set a key so when we process this section it's correct
+					$this->tpl_vars[$okey] = $key;
+					$this->tpl_vars[$oval] = $val;
 
-				foreach ($blocks as $block) {
-					$ret .= $this->process_block($block);
+					//kd([$key,$val,$okey,$oval]);
+					$blocks = $this->get_blocks($orig_t);
+
+					foreach ($blocks as $block) {
+						$ret .= $this->process_block($block);
+					}
+				}
+			} else {
+				foreach ($src as $val) {
+					// Temp set a key so when we process this section it's correct
+					$this->tpl_vars[$okey] = $val;
+					$blocks = $this->get_blocks($orig_t);
+
+					foreach ($blocks as $block) {
+						$ret .= $this->process_block($block);
+					}
 				}
 			}
 		} else {
