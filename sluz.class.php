@@ -164,7 +164,7 @@ class sluz {
 							$len = $j - $start + 1;
 							$tmp = substr($str, $start, $len);
 
-							$of = preg_match_all("/\{(if|foreach)/", $tmp);
+							$of = preg_match_all("/\{(if|foreach|literal)/", $tmp);
 							$cf = preg_match_all("/{\/\w+/", $tmp);
 
 							//k([$tmp, $of, $cf], KRUMO_EXPAND_ALL);
