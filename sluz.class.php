@@ -4,7 +4,9 @@
 
 class sluz {
 	private $tpl_vars = [];
+	private $tpl_path = null;
 	public  $debug    = 0;
+	public  $version  = '0.1';
 
 	function __construct() {
 		// Load Krumo if debug is on
@@ -191,8 +193,16 @@ class sluz {
 		return $blocks;
 	}
 
-	function parse($file = "") {
-		$str = file_get_contents($file);
+	// Specify a path to the .stpl file, or pass nothing to let sluz 'guess'
+	// Guess is 'tpls/[scriptname_minus_dot_php].stpl
+	function parse($tpl_file = "") {
+		$tpl_file = $this->get_tpl_file($tpl_file);
+
+		if (!is_readable($tpl_file)) {
+			$this->error_out("Unable to load template file <code>$tpl_file</code>",42280);
+		}
+
+		$str = file_get_contents($tpl_file);
 
 		if ($this->debug) { print nl2br(htmlentities($str)) . "<hr>"; }
 
@@ -204,6 +214,19 @@ class sluz {
 		}
 
 		return $html;
+	}
+
+	function get_tpl_file($tpl_file) {
+		if (!$tpl_file) {
+			$dir       = $this->tpl_path ?? "tpls/";
+			$x         = debug_backtrace();
+			$orig_file = basename($x[1]['file']);
+			$tpl_file  = $dir . preg_replace("/.php$/", '', $orig_file) . ".stpl";
+
+			//k([$dir, $x, $orig_file, $tpl_file]);
+		}
+
+		return $tpl_file;
 	}
 
 	function array_dive(string $needle, array $haystack) {
