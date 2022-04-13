@@ -56,6 +56,12 @@ sluz_test(' {$first} '  , ' {$first} ', 'Bad block #1');
 sluz_test('{$first + 3}', ''          , 'Bad block #2');
 sluz_test('{first}'     , '{first}'   , 'Bad block #3'); // Literal (no $)
 
+sluz_test('{literal}{{/literal}'                  , '{'                  , 'Literal #1');
+sluz_test('{literal}}{/literal}'                  , '}'                  , 'Literal #2');
+sluz_test('{literal}{}{/literal}'                 , '{}'                 , 'Literal #3');
+sluz_test('{literal}{literal}{/literal}'          , '{literal}'          , 'Literal #4');
+sluz_test('{literal}{literal}{/literal}{/literal}', '{literal}{/literal}', 'Literal #5 - meta literal');
+
 ////////////////////////////////////////////////////////
 
 function sluz_test($input, $expected, $test_name) {

@@ -115,6 +115,8 @@ class sluz {
 					$ret .= $this->process_block($block);
 				}
 			}
+		} elseif (preg_match('/\{literal\}(.+)\{\/literal\}/s', $str, $m)) {
+			$ret = $m[1];
 		} else {
 			$ret = $str;
 			//$this->error_out("Unknown tag '$str'", 18933);
