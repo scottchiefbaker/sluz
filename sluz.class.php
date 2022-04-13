@@ -49,21 +49,44 @@ class sluz {
 			$true_val  = $p[0] ?? "";
 			$false_val = $p[1] ?? "";
 
-			// Remove the $ at the beginning
-			$test_var = substr($test_var, 1);
-			$test_var = $this->array_dive($test_var, $this->tpl_vars);
+			$callback = function($m) {
+				$key = $m[1] ?? "";
+				$ret = $this->array_dive($m[1], $this->tpl_vars);
+				//k(["Looking up: $key = $ret", $this->tpl_vars]);
 
-			$ok = !is_null($test_var);
+				$ret = var_export($ret, true);
+				return $ret;
+			};
+
+			// Process flat arrays in the test like $cust.name or $array[3]
+			$test_var = preg_replace_callback('/\b\$([\w\.]+?)\b/', $callback, $test_var);
+
+			$cmd      = '$ok = (' . $test_var . "); return true;";
+			$parse_ok = false;
+
+			try {
+				$parse_ok = @eval($cmd);
+			} catch (ParseError $e) {
+				$this->error_out("Error parsing block '$test_var'", 91917);
+			}
+
+			//k([$test_var, $ok]);
+
+			if (!$parse_ok) {
+				$this->error_out("Error parsing block '$test_var'", 91923);
+			}
 
 			if ($ok) {
 				$ret = $this->process_block($true_val);
 			} else {
 				$ret = $this->process_block($false_val);
 			}
+
+			//k([$ok, $cmd]);
 		} elseif (preg_match('/\{foreach \$(\w+) as \$(\w+)( => \$(\w+))?\}(.+)\{\/foreach\}/s', $str, $m)) {
-			$src   = $m[1]; // src array
-			$okey  = $m[2]; // orig key
-			$oval  = $m[4]; // orig val
+			$src   = $m[1];  // src array
+			$okey  = $m[2];  // orig key
+			$oval  = $m[4];  // orig val
 			$orig_t = $m[5]; // code block to parse on iteration
 
 			extract($this->tpl_vars);
@@ -193,13 +216,20 @@ class sluz {
 
 		// If we find a scalar it's the end of the line, anything else is just
 		// another branch, so it doesn't cound as finding something
-		if (is_scalar($arr)) {
+		if (is_scalar($arr) || is_array($arr)) {
 			$ret = $arr;
 		} else {
 			$ret = null;
 		}
 
 		return $ret;
+	}
+
+	function error_out($msg, int $err_num) {
+		print "<div>Error: $msg</div>";
+		print "<div>Number: $err_num</div>";
+
+		exit;
 	}
 
 }
