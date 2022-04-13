@@ -238,8 +238,44 @@ class sluz {
 	}
 
 	function error_out($msg, int $err_num) {
-		print "<div>Error: $msg</div>";
-		print "<div>Number: $err_num</div>";
+		$out = "<style>
+			.s_error {
+				font-family: sans;
+				border: 1px solid;
+				padding: 6px;
+				border-radius: 4px;
+			}
+
+			.s_error_head { margin-top: 0; }
+			.s_error_num { margin-top: 1em; }
+			.s_error_file {
+				margin-top: 1em;
+				padding-top: 0.5em;
+				font-size: .8em;
+				border-top: 1px solid;
+			}
+
+			.s_error code {
+				padding: .2rem .4rem;
+				font-size: 1.1em;
+				color: #fff;
+				background-color: #212529;
+				border-radius: .2rem;
+			}
+		</style>";
+
+		$d    = debug_backtrace();
+		$file = $d[1]['file'];
+		$line = $d[1]['line'];
+
+		$out .= "<div class=\"s_error\">\n";
+		$out .= "<h1 class=\"s_error_head\">Sluz Fatal Error</h1>";
+		$out .= "<div class=\"s_error_desc\"><b>Description:</b> $msg</div>";
+		$out .= "<div class=\"s_error_num\"><b>Number</b> #$err_num</div>";
+		$out .= "<div class=\"s_error_file\">Source: <code>$file</code> #$line</div>";
+		$out .= "</div>\n";
+
+		print $out;
 
 		exit;
 	}
