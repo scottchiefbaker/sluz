@@ -26,8 +26,11 @@ class sluz {
 		$ret = '';
 		if ($this->debug) { k("Input: " . $str); }
 
+		// If it doesn't start with a '{' it's plain text so we just return it
+		if (preg_match('/^(?!\{)/', $str, $m)) {
+			$ret = $str;
 		// Simple variable replacement
-		if (preg_match('/^\{\s*\$(\w.+?)\s*\}$/', $str, $m)) {
+		} elseif (preg_match('/^\{\s*\$(\w.+?)\s*\}$/', $str, $m)) {
 			$key = $m[1];
 			if (preg_match("/(.+?)\|(.+)/", $key, $m)) {
 				$key = $m[1];
@@ -112,6 +115,7 @@ class sluz {
 			}
 		} else {
 			$ret = $str;
+			//$this->error_out("Unknown tag '$str'", 18933);
 		}
 
 		if ($this->debug) { k("Output: $ret"); }

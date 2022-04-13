@@ -48,6 +48,9 @@ sluz_test('{foreach $arrayd as $x}{$x.1}{/foreach}'                   , '246'   
 sluz_test('{foreach $arrayd as $key => $val}{$key}:{$val.0}{/foreach}', '0:11:32:5'              , 'foreach #6 key/val array');
 sluz_test('{foreach $members as $id => $x}{$id}{$x.first}{/foreach}'  , '0Scott1Jason'           , 'foreach #3 key/val hash');
 
+sluz_test('Scott'           , 'Scott'           , 'Plain text #1');
+sluz_test('<div>Scott</div>', '<div>Scott</div>', 'Plain text #2 - HTML');
+
 // Don't parse blocks that have whitespacing
 sluz_test(' {$first} '  , ' {$first} ', 'Bad block #1');
 sluz_test('{$first + 3}', ''          , 'Bad block #2');
