@@ -325,14 +325,16 @@ class sluz {
 		}
 
 		$d    = debug_backtrace();
-		$file = $d[1]['file'];
-		$line = $d[1]['line'];
+		$file = $d[1]['file'] ?? "";
+		$line = $d[1]['line'] ?? 0;
 
 		$out .= "<div class=\"s_error\">\n";
 		$out .= "<h1 class=\"s_error_head\">Sluz Fatal Error</h1>";
 		$out .= "<div class=\"s_error_desc\"><b>Description:</b> $msg</div>";
 		$out .= "<div class=\"s_error_num\"><b>Number</b> #$err_num</div>";
-		$out .= "<div class=\"s_error_file\">Source: <code>$file</code> #$line</div>";
+		if ($file && $line) {
+			$out .= "<div class=\"s_error_file\">Source: <code>$file</code> #$line</div>";
+		}
 		$out .= "</div>\n";
 
 		print $out;
