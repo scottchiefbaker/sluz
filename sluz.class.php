@@ -98,6 +98,9 @@ class sluz {
 		// A {literal}Stuff here{/literal} block pair
 		} elseif (preg_match('/^\{literal\}(.+)\{\/literal\}$/s', $str, $m)) {
 			$ret = $m[1];
+		// A {* COMMENT *} block
+		} elseif (preg_match('/^{\*.*\*\}/s', $str, $m)) {
+			$ret = '';
 		// Catch all for other { $num + 3 } type of blocks
 		} elseif (preg_match('/^\{(.+)}$/s', $str, $m)) {
 			// Make sure the block has something parseble... at least a $ or "

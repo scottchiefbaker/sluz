@@ -36,7 +36,8 @@ $sluz->assign('empty'  , []);
 
 if ($_SERVER['SERVER_SOFTWARE'] === "Apache") {
 	$sluz->in_unit_test = 0;
-	kd($sluz->process_block('{foreach $bogus_var as $x}one{/foreach}'));
+	var_dump($sluz->process_block('{* Comment *}'));
+	die;
 }
 
 sluz_test('Hello there'         , 'Hello there', 'Basic #1');
@@ -90,6 +91,10 @@ sluz_test('{literal}}{/literal}'                  , '}'                  , 'Lite
 sluz_test('{literal}{}{/literal}'                 , '{}'                 , 'Literal #3');
 sluz_test('{literal}{literal}{/literal}'          , '{literal}'          , 'Literal #4');
 sluz_test('{literal}{literal}{/literal}{/literal}', '{literal}{/literal}', 'Literal #5 - meta literal');
+
+sluz_test('{* Comment *}'  , '', 'Comment #1');
+sluz_test('{* ********* *}', '', 'Comment #2');
+sluz_test('{**}'           , '', 'Comment #3');
 
 $total = $pass_count + $fail_count;
 
