@@ -76,6 +76,10 @@ class sluz {
 
 			$src = $this->peval($src);
 
+			if (!is_array($src)) {
+				return $this->error_out($m[1] . " is not an array", 85824);
+			}
+
 			// Temp set a key/val so when we process this section it's correct
 			foreach ($src as $key => $val) {
 				// This is a key/val pair: foreach $key => $val
