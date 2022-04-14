@@ -10,13 +10,7 @@ class sluz {
 	public  $in_unit_test = 0;
 	private $var_prefix   = "sluz_pfx";
 
-	function __construct() {
-		// Load Krumo if debug is on
-		if (!function_exists('k')) {
-			require_once("krumo/class.krumo.php");
-		}
-	}
-
+	function __construct() { }
 	function __destruct()  { }
 
 	function assign($key, $val) {
@@ -28,7 +22,6 @@ class sluz {
 		error_reporting(E_ALL & ~E_NOTICE); // Disable E_NOTICE
 
 		$ret = '';
-		if ($this->debug) { k("Input: " . $str); }
 
 		// If it doesn't start with a '{' it's plain text so we just return it
 		if (!preg_match('/^{/', $str, $m)) {
@@ -52,9 +45,9 @@ class sluz {
 
 			$test_var  = $this->convert_variables_in_string($m[1]);
 			$payload   = $m[2];
-			$p         = explode("{else}", $payload);
-			$true_val  = $p[0] ?? "";
-			$false_val = $p[1] ?? "";
+			$parts     = explode("{else}", $payload);
+			$true_val  = $parts[0] ?? "";
+			$false_val = $parts[1] ?? "";
 
 			$ok = $this->peval($test_var);
 
@@ -63,12 +56,7 @@ class sluz {
 			} else {
 				$ret = $this->process_block($false_val);
 			}
-
-			//k([$ok, $cmd, $ret, $payload]);
 		} elseif (preg_match('/\{foreach (\$\w[\w.]+) as \$(\w+)( => \$(\w+))?\}(.+)\{\/foreach\}/s', $str, $m)) {
-			// Put the tpl_vars in the current scope so if works against them
-			extract($this->tpl_vars, EXTR_PREFIX_ALL, $this->var_prefix);
-
 			$src     = $this->convert_variables_in_string($m[1]); // src array
 			$okey    = $m[2]; // orig key
 			$oval    = $m[4]; // orig val
@@ -101,32 +89,23 @@ class sluz {
 		} elseif (preg_match('/^\{literal\}(.+)\{\/literal\}$/s', $str, $m)) {
 			$ret = $m[1];
 		// Catch all for other { $num + 3 } type of blocks
-		} elseif (preg_match('/^\{.+}$/s', $str, $m)) {
+		} elseif (preg_match('/^\{(.+)}$/s', $str, $m)) {
 			// Make sure the block has something parseble... at least a $ or "
 			if (!preg_match("/[\"\d$]/", $str)) {
 				return $this->error_out("Unknown block type '$str'", 73467);
 			}
 
-			$after = $this->convert_variables_in_string($str);
-			// Process flat arrays in the test like $cust.name or $array[3]
-			$after = preg_replace("/^\{/",'',$after);
-			$after = preg_replace('/\}$/','',$after);
+			$blk   = $m[1];
+			$after = $this->convert_variables_in_string($blk);
+			$ret   = $this->peval($after);
 
-			$res = $this->peval($after);
-
-			//k($str, $after, $res, $cmd, $ok);
-			if ($res) {
-				$ret = $res;
-			} else {
+			if (!$ret) {
 				$ret = $str;
 				return $this->error_out("Unknown tag '$str'", 18933);
 			}
 		} else {
-			//$ret = $str;
 			$ret = "???";
 		}
-
-		if ($this->debug) { k("Output: $ret"); }
 
 		error_reporting($cur); // Reset error reporting level
 
@@ -136,8 +115,6 @@ class sluz {
 	function get_blocks($str) {
 		$start  = 0;
 		$blocks = [];
-
-		//k("INPUT: $str");
 
 		for ($i = 0; $i < strlen($str); $i++) {
 			$char = substr($str, $i, 1);
@@ -149,7 +126,6 @@ class sluz {
 			if ($is_open && $has_len) {
 				$len = $i - $start;
 				$block = substr($str, $start, $len);
-				//k("AddingOpen:$block $start $len");
 
 				$blocks[] = $block;
 				$start    += $len;
@@ -157,8 +133,6 @@ class sluz {
 				$len         = $i - $start + 1;
 				$block       = substr($str, $start, $len);
 				$is_function = preg_match("/^\{\w+/", $block);
-
-				//k([$block, $is_function]);
 
 				// If we're in a function, loop until we find the end end
 				if ($is_function) {
@@ -171,8 +145,6 @@ class sluz {
 							$of = preg_match_all("/\{(if|foreach|literal)/", $tmp);
 							$cf = preg_match_all("/{\/\w+/", $tmp);
 
-							//k([$tmp, $of, $cf], KRUMO_EXPAND_ALL);
-
 							if ($of === $cf) {
 								$block = $tmp;
 								break;
@@ -181,13 +153,9 @@ class sluz {
 					}
 				}
 
-				//k("AddingClose: $block $start $len");
-
 				$blocks[]  = $block;
 				$start    += strlen($block);
 				$i         = $start;
-
-				//K([$block, $of, $cf], KRUMO_EXPAND_ALL);
 			}
 		}
 
@@ -213,8 +181,7 @@ class sluz {
 		if ($this->debug) { print nl2br(htmlentities($str)) . "<hr>"; }
 
 		$blocks = $this->get_blocks($str);
-		//kd($blocks);
-		$html = '';
+		$html   = '';
 		foreach ($blocks as $block) {
 			$html .= $this->process_block($block);
 		}
@@ -222,31 +189,33 @@ class sluz {
 		return $html;
 	}
 
+	// If there is not template specified we "guess" based on the PHP filename
 	function get_tpl_file($tpl_file) {
 		if (!$tpl_file) {
-			$dir       = $this->tpl_path ?? "tpls/";
 			$x         = debug_backtrace();
 			$orig_file = basename($x[1]['file']);
-			$tpl_file  = $dir . preg_replace("/.php$/", '', $orig_file) . ".stpl";
-
-			//k([$dir, $x, $orig_file, $tpl_file]);
+			$tpl_file  = $this->guess_tpl_file($orig_file);
 		}
 
 		return $tpl_file;
 	}
 
-	function array_dive(string $needle, array $haystack) {
-		// Allow normal $foo['bar'] or $foo[3] syntax also
-		$after  = preg_split("/(\['?|'?\])/", $needle, 0, PREG_SPLIT_NO_EMPTY);
-		$needle = join(".", $after);
+	function guess_tpl_file(string $php_file) {
+		$php_file = preg_replace("/.php$/", '', $php_file);
+		$dir      = $this->tpl_path ?? "tpls/";
+		$tpl_file = $dir . $php_file . ".stpl";
 
+		return $tpl_file;
+	}
+
+
+	function array_dive(string $needle, array $haystack) {
 		// Split at the periods
 		$parts = explode(".", $needle);
 
 		// Loop through each level of the hash looking for elem
 		$arr = $haystack;
 		foreach ($parts as $elem) {
-			//print "Diving for $elem<br />";
 			$arr = $arr[$elem] ?? null;
 
 			// If we don't find anything stop looking
@@ -355,20 +324,6 @@ class sluz {
 			return null;
 		}
 
-		//k($str, $cmd);
-
 		return $ret;
 	}
-
-	function guess_tpl_file(string $php_file) {
-		$php_file = preg_replace("/.php$/", '', $php_file);
-		$dir      = $this->tpl_path ?? "tpls/";
-		$tpl_file = $dir . $php_file . ".stpl";
-
-		return $tpl_file;
-	}
-
 }
-
-////////////////////////////////////////////////////////
-
