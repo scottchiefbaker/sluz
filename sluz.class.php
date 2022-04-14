@@ -51,10 +51,15 @@ class sluz {
 
 			$ok = $this->peval($test_var);
 
+			// Figure out which we process
 			if ($ok) {
-				$ret = $this->process_block($true_val);
+				$blocks = $this->get_blocks($true_val);
 			} else {
-				$ret = $this->process_block($false_val);
+				$blocks = $this->get_blocks($false_val);
+			}
+
+			foreach ($blocks as $block) {
+				$ret .= $this->process_block($block);
 			}
 		} elseif (preg_match('/\{foreach (\$\w[\w.]+) as \$(\w+)( => \$(\w+))?\}(.+)\{\/foreach\}/s', $str, $m)) {
 			$src     = $this->convert_variables_in_string($m[1]); // src array
