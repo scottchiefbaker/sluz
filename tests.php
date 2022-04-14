@@ -18,6 +18,7 @@ $sluz->assign('array'  , ['one', 'two', 'three']);
 $sluz->assign('cust'   , ['first' => 'Scott', 'last' => 'Baker']);
 $sluz->assign('number' , 15);
 $sluz->assign('members', [['first' => 'Scott', 'last' => 'Baker'], ['first' => 'Jason', 'last' => 'Doolis']]);
+$sluz->assign('subarr' , ['one' => [2,4,6], 'two' => [3,6,9]]);
 $sluz->assign('arrayd' , [[1,2],[3,4],[5,6]]);
 
 sluz_test('Hello there'         , 'Hello there', 'Basic #1');
@@ -51,6 +52,7 @@ sluz_test('{foreach $members as $x}{$x.first}{/foreach}'              , 'ScottJa
 sluz_test('{foreach $arrayd as $x}{$x.1}{/foreach}'                   , '246'                    , 'foreach #4 hash');
 sluz_test('{foreach $arrayd as $key => $val}{$key}:{$val.0}{/foreach}', '0:11:32:5'              , 'foreach #6 key/val array');
 sluz_test('{foreach $members as $id => $x}{$id}{$x.first}{/foreach}'  , '0Scott1Jason'           , 'foreach #3 key/val hash');
+sluz_test('{foreach $subarr.one as $id}{$id}{/foreach}'               , '246'                    , 'foreach #3 key/val hash');
 
 sluz_test('Scott'           , 'Scott'           , 'Plain text #1');
 sluz_test('<div>Scott</div>', '<div>Scott</div>', 'Plain text #2 - HTML');

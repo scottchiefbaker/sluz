@@ -8,7 +8,7 @@ class sluz {
 	public  $debug        = 0;
 	public  $version      = '0.1';
 	public  $in_unit_test = 0;
-	private $var_prefix   = "pfx";
+	private $var_prefix   = "sluz_pfx";
 
 	function __construct() {
 		// Load Krumo if debug is on
@@ -56,20 +56,7 @@ class sluz {
 			$true_val  = $p[0] ?? "";
 			$false_val = $p[1] ?? "";
 
-			$cmd      = '$ok = (' . $test_var . "); return true;";
-			$parse_ok = false;
-
-			try {
-				$parse_ok = @eval($cmd);
-			} catch (ParseError $e) {
-				$this->error_out("Error parsing block '$test_var'", 91917);
-			}
-
-			//k([$test_var, $cmd, $ok]);
-
-			if (!$parse_ok) {
-				$this->error_out("Error parsing block '$test_var'", 91923);
-			}
+			$ok = $this->peval($test_var);
 
 			if ($ok) {
 				$ret = $this->process_block($true_val);
@@ -78,13 +65,16 @@ class sluz {
 			}
 
 			//k([$ok, $cmd, $ret, $payload]);
-		} elseif (preg_match('/\{foreach \$(\w+) as \$(\w+)( => \$(\w+))?\}(.+)\{\/foreach\}/s', $str, $m)) {
-			$src     = $m[1]; // src array
+		} elseif (preg_match('/\{foreach (\$\w[\w.]+) as \$(\w+)( => \$(\w+))?\}(.+)\{\/foreach\}/s', $str, $m)) {
+			// Put the tpl_vars in the current scope so if works against them
+			extract($this->tpl_vars, EXTR_PREFIX_ALL, $this->var_prefix);
+
+			$src     = $this->convert_variables_in_string($m[1]); // src array
 			$okey    = $m[2]; // orig key
 			$oval    = $m[4]; // orig val
 			$payload = $m[5]; // code block to parse on iteration
 
-			$src = $this->tpl_vars[$src];
+			$src = $this->peval($src);
 
 			// Temp set a key/val so when we process this section it's correct
 			foreach ($src as $key => $val) {
@@ -108,15 +98,12 @@ class sluz {
 			$ret = $m[1];
 		// Catch all for other { $num + 3 } type of blocks
 		} elseif (preg_match('/^\{.+}$/s', $str, $m)) {
-			extract($this->tpl_vars, EXTR_PREFIX_ALL, $this->var_prefix);
-
 			$after = $this->convert_variables_in_string($str);
 			// Process flat arrays in the test like $cust.name or $array[3]
 			$after = preg_replace("/^\{/",'',$after);
 			$after = preg_replace('/\}$/','',$after);
 
-			$cmd = '$res = (' . $after. "); return true;";
-			$ok  = @eval($cmd);
+			$res = $this->peval($after);
 
 			//k($str, $after, $res, $cmd, $ok);
 			if ($res) {
@@ -342,6 +329,24 @@ class sluz {
 		print $out;
 
 		exit;
+	}
+
+	function peval($str) {
+		extract($this->tpl_vars, EXTR_PREFIX_ALL, $this->var_prefix);
+
+		$ret      = '';
+		$cmd      = '$ret = (' . $str. "); return true;";
+		$parse_ok = false;
+
+		try {
+			$parse_ok = @eval($cmd);
+		} catch (ParseError $e) {
+			return null;
+		}
+
+		//k($str, $cmd);
+
+		return $ret;
 	}
 
 }
