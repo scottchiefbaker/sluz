@@ -34,5 +34,7 @@ print $s->parse();</pre>
 	</div>
 	{/literal}
 	</div>
+
+	<a href="docs/read.php?doc=001_basic_vars">More documentation</a>
   </body>
 </html>

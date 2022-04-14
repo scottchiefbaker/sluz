@@ -14,19 +14,18 @@ $str  = file_get_contents($doc_file);
 $phpc = highlight_string($str, true);
 
 $tpl_file = $s->guess_tpl_file($doc_file);
-$tplc = htmlentities(file_get_contents($tpl_file));
-
-$parsed = `php $doc_file`;
+$tplc     = htmlentities(file_get_contents($tpl_file));
 
 $doc_files = get_doc_file_list();
 
 $s->assign("doc_name", $doc_file);
 $s->assign("php_contents", $phpc);
 $s->assign("tpl_contents", $tplc);
-$s->assign("parsed_output", $parsed);
 $s->assign("doc_files", $doc_files);
 
 print $s->parse();
+
+/////////////////////////////////////////////////////////////////
 
 function get_doc_file_list() {
 	$files = glob("???_*.php");
