@@ -17,11 +17,16 @@ class sluz {
 		$this->tpl_vars[$key] = $val;
 	}
 
-	function process_block($str) {
+	function process_block(string $str) {
 		$cur = error_reporting(); // Save current level so we can restore it
 		error_reporting(E_ALL & ~E_NOTICE); // Disable E_NOTICE
 
 		$ret = '';
+
+		// Micro-optimization for "" input
+		if (strlen($str) === 0) {
+			return '';
+		}
 
 		// If it doesn't start with a '{' it's plain text so we just return it
 		if (!preg_match('/^{/', $str, $m)) {
