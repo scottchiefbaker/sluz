@@ -98,6 +98,11 @@ class sluz {
 			$ret = $m[1];
 		// Catch all for other { $num + 3 } type of blocks
 		} elseif (preg_match('/^\{.+}$/s', $str, $m)) {
+			// Make sure the block has something parseble... at least a $ or "
+			if (!preg_match("/[\"\d$]/", $str)) {
+				return $this->error_out("Unknown block type '$str'", 73467);
+			}
+
 			$after = $this->convert_variables_in_string($str);
 			// Process flat arrays in the test like $cust.name or $array[3]
 			$after = preg_replace("/^\{/",'',$after);
@@ -110,7 +115,7 @@ class sluz {
 				$ret = $res;
 			} else {
 				$ret = $str;
-				$this->error_out("Unknown tag '$str'", 18933);
+				return $this->error_out("Unknown tag '$str'", 18933);
 			}
 		} else {
 			//$ret = $str;
@@ -310,9 +315,9 @@ class sluz {
 		</style>";
 
 		if ($this->in_unit_test) {
-			print "Err: $msg\n#$err_num\n";
+			//print "Err: $msg\n#$err_num\n";
 
-			return false;
+			return null;
 		}
 
 		$d    = debug_backtrace();
