@@ -2,7 +2,8 @@
 
 ////////////////////////////////////////////////////////
 
-include('sluz.class.php');
+$dir = dirname(__FILE__);
+include("$dir/../sluz.class.php");
 
 $sluz = new sluz;
 $sluz->debug = 0;
