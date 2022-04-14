@@ -6,6 +6,7 @@ include('sluz.class.php');
 
 $sluz = new sluz;
 $sluz->debug = 0;
+$sluz->in_unit_test = 1;
 
 $sluz->assign('key'    , 'val');
 $sluz->assign('first'  , "Scott");
@@ -27,6 +28,9 @@ sluz_test('{$animal|strtoupper}', 'KITTEN'     , 'Basic #5 - PHP Modifier');
 sluz_test('{$cust.first}'       , 'Scott'      , 'Basic #6 - Hash Lookup');
 sluz_test('{$array.1}'          , 'two'        , 'Basic #7 - Array Lookup');
 sluz_test('{$array|count}'      , 3            , 'Basic #8 - PHP Modifier array');
+sluz_test('{$number + 3}'       , 18           , 'Basic #9 - Addition');
+sluz_test('{$first . "foo"}'    , "Scottfoo"   , 'Basic #10 - Concat');
+sluz_test('{$number * $debug}'  , 15           , 'Basic #11 - Multiplication of two vars');
 
 sluz_test('{if $debug}DEBUG{/if}'                , 'DEBUG'  , 'if #1');
 sluz_test('{if $bogus_var}DEBUG{/if}'            , ''       , 'if #2');
@@ -52,9 +56,8 @@ sluz_test('Scott'           , 'Scott'           , 'Plain text #1');
 sluz_test('<div>Scott</div>', '<div>Scott</div>', 'Plain text #2 - HTML');
 
 // Don't parse blocks that have whitespacing
-sluz_test(' {$first} '  , ' {$first} ', 'Bad block #1');
-sluz_test('{$first + 3}', ''          , 'Bad block #2');
-sluz_test('{first}'     , '{first}'   , 'Bad block #3'); // Literal (no $)
+sluz_test(' {$first} ', ' {$first} ', 'Bad block #1');
+sluz_test('{first}'   , '{first}'   , 'Bad block #2'); // Literal (no $)
 
 sluz_test('{literal}{{/literal}'                  , '{'                  , 'Literal #1');
 sluz_test('{literal}}{/literal}'                  , '}'                  , 'Literal #2');
