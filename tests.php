@@ -31,9 +31,11 @@ $sluz->assign('number' , 15);
 $sluz->assign('members', [['first' => 'Scott', 'last' => 'Baker'], ['first' => 'Jason', 'last' => 'Doolis']]);
 $sluz->assign('subarr' , ['one' => [2,4,6], 'two' => [3,6,9]]);
 $sluz->assign('arrayd' , [[1,2],[3,4],[5,6]]);
+$sluz->assign('empty'  , []);
 
 if ($_SERVER['SERVER_SOFTWARE'] === "Apache") {
-	kd($sluz->process_block('{foreach $subarr.one as $id}{$id}{/foreach}'));
+	$sluz->in_unit_test = 0;
+	kd($sluz->process_block('{foreach $bogus_var as $x}one{/foreach}'));
 }
 
 sluz_test('Hello there'         , 'Hello there', 'Basic #1');
@@ -69,8 +71,10 @@ sluz_test('{foreach $array as $num}\n{$num}\n{/foreach}'              , '\none\n
 sluz_test('{foreach $members as $x}{$x.first}{/foreach}'              , 'ScottJason'             , 'foreach #3 hash');
 sluz_test('{foreach $arrayd as $x}{$x.1}{/foreach}'                   , '246'                    , 'foreach #4 hash');
 sluz_test('{foreach $arrayd as $key => $val}{$key}:{$val.0}{/foreach}', '0:11:32:5'              , 'foreach #6 key/val array');
-sluz_test('{foreach $members as $id => $x}{$id}{$x.first}{/foreach}'  , '0Scott1Jason'           , 'foreach #3 key/val hash');
-sluz_test('{foreach $subarr.one as $id}{$id}{/foreach}'               , '246'                    , 'foreach #3 key/val hash');
+sluz_test('{foreach $members as $id => $x}{$id}{$x.first}{/foreach}'  , '0Scott1Jason'           , 'foreach #7 key/val hash');
+sluz_test('{foreach $subarr.one as $id}{$id}{/foreach}'               , '246'                    , 'foreach #8 key/val hash');
+sluz_test('{foreach $bogus_var as $x}one{/foreach}'                   , null                     , 'foreach #9 missing var');
+sluz_test('{foreach $empty as $x}one{/foreach}'                       , ''                       , 'foreach #10 empty array');
 
 sluz_test('Scott'           , 'Scott'           , 'Plain text #1');
 sluz_test('<div>Scott</div>', '<div>Scott</div>', 'Plain text #2 - HTML');
