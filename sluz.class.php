@@ -360,6 +360,14 @@ class sluz {
 		return $ret;
 	}
 
+	function guess_tpl_file(string $php_file) {
+		$php_file = preg_replace("/.php$/", '', $php_file);
+		$dir      = $this->tpl_path ?? "tpls/";
+		$tpl_file = $dir . $php_file . ".stpl";
+
+		return $tpl_file;
+	}
+
 }
 
 ////////////////////////////////////////////////////////
