@@ -1,0 +1,5 @@
+{if $weekday === "Wed"}
+<h1>It is Wednesday</h1>
+{else}
+<h1>It is not Wednesday</h1>
+{/if}
