@@ -3,10 +3,12 @@
 ////////////////////////////////////////////////////////
 
 class sluz {
-	private $tpl_vars = [];
-	private $tpl_path = null;
-	public  $debug    = 0;
-	public  $version  = '0.1';
+	private $tpl_vars     = [];
+	private $tpl_path     = null;
+	public  $debug        = 0;
+	public  $version      = '0.1';
+	public  $in_unit_test = 0;
+	private $var_prefix   = "pfx";
 
 	function __construct() {
 		// Load Krumo if debug is on
@@ -29,10 +31,10 @@ class sluz {
 		if ($this->debug) { k("Input: " . $str); }
 
 		// If it doesn't start with a '{' it's plain text so we just return it
-		if (preg_match('/^(?!\{)/', $str, $m)) {
+		if (!preg_match('/^{/', $str, $m)) {
 			$ret = $str;
 		// Simple variable replacement
-		} elseif (preg_match('/^\{\s*\$(\w.+?)\s*\}$/', $str, $m)) {
+		} elseif (preg_match('/^\{\s*\$(\w[\w\|\.]+?)\s*\}$/', $str, $m)) {
 			$key = $m[1];
 			if (preg_match("/(.+?)\|(.+)/", $key, $m)) {
 				$key = $m[1];
@@ -46,25 +48,13 @@ class sluz {
 		// If statement
 		} elseif (preg_match('/\{if (.+?)\}(.+)\{\/if\}/s', $str, $m)) {
 			// Put the tpl_vars in the current scope so if works against them
-			extract($this->tpl_vars);
+			extract($this->tpl_vars, EXTR_PREFIX_ALL, $this->var_prefix);
 
-			$test_var  = $m[1];
+			$test_var  = $this->convert_variables_in_string($m[1]);
 			$payload   = $m[2];
 			$p         = explode("{else}", $payload);
 			$true_val  = $p[0] ?? "";
 			$false_val = $p[1] ?? "";
-
-			$callback = function($m) {
-				$key = $m[1] ?? "";
-				$ret = $this->array_dive($m[1], $this->tpl_vars);
-				//k(["Looking up: $key = $ret", $this->tpl_vars]);
-
-				$ret = var_export($ret, true);
-				return $ret;
-			};
-
-			// Process flat arrays in the test like $cust.name or $array[3]
-			$test_var = preg_replace_callback('/\b\$([\w\.]+?)\b/', $callback, $test_var);
 
 			$cmd      = '$ok = (' . $test_var . "); return true;";
 			$parse_ok = false;
@@ -75,7 +65,7 @@ class sluz {
 				$this->error_out("Error parsing block '$test_var'", 91917);
 			}
 
-			//k([$test_var, $ok]);
+			//k([$test_var, $cmd, $ok]);
 
 			if (!$parse_ok) {
 				$this->error_out("Error parsing block '$test_var'", 91923);
@@ -87,14 +77,12 @@ class sluz {
 				$ret = $this->process_block($false_val);
 			}
 
-			//k([$ok, $cmd]);
+			//k([$ok, $cmd, $ret, $payload]);
 		} elseif (preg_match('/\{foreach \$(\w+) as \$(\w+)( => \$(\w+))?\}(.+)\{\/foreach\}/s', $str, $m)) {
-			$src    = $m[1]; // src array
-			$okey   = $m[2]; // orig key
-			$oval   = $m[4]; // orig val
-			$orig_t = $m[5]; // code block to parse on iteration
-
-			extract($this->tpl_vars);
+			$src     = $m[1]; // src array
+			$okey    = $m[2]; // orig key
+			$oval    = $m[4]; // orig val
+			$payload = $m[5]; // code block to parse on iteration
 
 			$src = $this->tpl_vars[$src];
 
@@ -109,17 +97,37 @@ class sluz {
 					$this->tpl_vars[$okey] = $val;
 				}
 
-				$blocks = $this->get_blocks($orig_t);
+				$blocks = $this->get_blocks($payload);
 
 				foreach ($blocks as $block) {
 					$ret .= $this->process_block($block);
 				}
 			}
-		} elseif (preg_match('/\{literal\}(.+)\{\/literal\}/s', $str, $m)) {
+		// A {literal}Stuff here{/literal} block pair
+		} elseif (preg_match('/^\{literal\}(.+)\{\/literal\}$/s', $str, $m)) {
 			$ret = $m[1];
+		// Catch all for other { $num + 3 } type of blocks
+		} elseif (preg_match('/^\{.+}$/s', $str, $m)) {
+			extract($this->tpl_vars, EXTR_PREFIX_ALL, $this->var_prefix);
+
+			$after = $this->convert_variables_in_string($str);
+			// Process flat arrays in the test like $cust.name or $array[3]
+			$after = preg_replace("/^\{/",'',$after);
+			$after = preg_replace('/\}$/','',$after);
+
+			$cmd = '$res = (' . $after. "); return true;";
+			$ok  = @eval($cmd);
+
+			//k($str, $after, $res, $cmd, $ok);
+			if ($res) {
+				$ret = $res;
+			} else {
+				$ret = $str;
+				$this->error_out("Unknown tag '$str'", 18933);
+			}
 		} else {
-			$ret = $str;
-			//$this->error_out("Unknown tag '$str'", 18933);
+			//$ret = $str;
+			$ret = "???";
 		}
 
 		if ($this->debug) { k("Output: $ret"); }
@@ -262,6 +270,31 @@ class sluz {
 		return $ret;
 	}
 
+	// Convert $cust.name.first -> $cust['name']['first'] and $num.0.3 -> $num[0][3]
+	function convert_variables_in_string($str) {
+		$dot_to_bracket_callback = function($m) {
+			$str   = $m[1];
+			$parts = explode(".", $str);
+
+			$ret = array_shift($parts);
+			$ret = "$" . $this->var_prefix . '_' . substr($ret,1);
+			foreach ($parts as $x) {
+				if (is_numeric($x)) {
+					$ret .= "[" . $x . "]";
+				} else {
+					$ret .= "['" . $x . "']";
+				}
+			}
+
+			return $ret;
+		};
+
+		// Process flat arrays in the test like $cust.name or $array[3]
+		$str = preg_replace_callback('/(\$\w[\w\.]+)/', $dot_to_bracket_callback, $str);
+
+		return $str;
+	}
+
 	function error_out($msg, int $err_num) {
 		$out = "<style>
 			.s_error {
@@ -288,6 +321,12 @@ class sluz {
 				border-radius: .2rem;
 			}
 		</style>";
+
+		if ($this->in_unit_test) {
+			print "Err: $msg\n#$err_num\n";
+
+			return false;
+		}
 
 		$d    = debug_backtrace();
 		$file = $d[1]['file'];
