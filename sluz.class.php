@@ -5,6 +5,7 @@
 class sluz {
 	private $tpl_vars     = [];
 	private $tpl_path     = null;
+	private $tpl_file     = null;
 	public  $debug        = 0;
 	public  $version      = '0.1';
 	public  $in_unit_test = 0;
@@ -183,13 +184,17 @@ class sluz {
 	// Specify a path to the .stpl file, or pass nothing to let sluz 'guess'
 	// Guess is 'tpls/[scriptname_minus_dot_php].stpl
 	function parse($tpl_file = "") {
-		$tpl_file = $this->get_tpl_file($tpl_file);
+		$tf             = $this->get_tpl_file($tpl_file);
+		$this->tpl_file = $tf;
 
-		if (!is_readable($tpl_file)) {
-			$this->error_out("Unable to load template file <code>$tpl_file</code>",42280);
+		if (!is_readable($tf)) {
+			$this->error_out("Unable to load template file <code>$tf</code>",42280);
 		}
 
-		$str = file_get_contents($tpl_file);
+		$str = file_get_contents($tf);
+
+		$callback = [$this, 'include_callback']; // Object callback syntax
+		$str      = preg_replace_callback("/\{include.+?\}/", $callback, $str);
 
 		if ($this->debug) { print nl2br(htmlentities($str)) . "<hr>"; }
 
@@ -200,6 +205,26 @@ class sluz {
 		}
 
 		return $html;
+	}
+
+	function include_callback(array $m) {
+		$str  = $m[0];
+		$file = '';
+		if (preg_match("/(file=)?'(.+?)'/", $str, $m)) {
+			$file = $m[2];
+		} else {
+			$this->error_out("Unable to find a template in include block <code>$str</code>", 18488);
+		}
+
+		$tpl_dir = dirname($this->tpl_file);
+		$inc_tpl = $tpl_dir . '/' . $file;
+
+		if ($file && is_readable($inc_tpl)) {
+			$ext_str = file_get_contents($inc_tpl);
+			return $ext_str;
+		} else {
+			$this->error_out("Unable to load include template <code>$inc_tpl</code>", 18485);
+		}
 	}
 
 	// If there is not template specified we "guess" based on the PHP filename
