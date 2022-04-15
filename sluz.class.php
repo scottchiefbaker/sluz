@@ -96,6 +96,15 @@ class sluz {
 					$ret .= $this->process_block($block);
 				}
 			}
+		// An {include file='my.stpl' number='99'} block
+		} elseif (preg_match('/^\{include.+?\}$/s', $str, $m)) {
+			$callback = [$this, 'include_callback']; // Object callback syntax
+			$str      = preg_replace_callback("/\{include.+?\}/", $callback, $str);
+			$blocks   = $this->get_blocks($str);
+
+			foreach ($blocks as $block) {
+				$ret .= $this->process_block($block);
+			}
 		// A {literal}Stuff here{/literal} block pair
 		} elseif (preg_match('/^\{literal\}(.+)\{\/literal\}$/s', $str, $m)) {
 			$ret = $m[1];
@@ -193,9 +202,6 @@ class sluz {
 
 		$str = file_get_contents($tf);
 
-		$callback = [$this, 'include_callback']; // Object callback syntax
-		$str      = preg_replace_callback("/\{include.+?\}/", $callback, $str);
-
 		if ($this->debug) { print nl2br(htmlentities($str)) . "<hr>"; }
 
 		$blocks = $this->get_blocks($str);
@@ -216,7 +222,20 @@ class sluz {
 			$this->error_out("Unable to find a template in include block <code>$str</code>", 18488);
 		}
 
+		// Extra variables to include sub templates
+		if (preg_match_all("/(\w+)='(.+?)'/", $str, $m)) {
+			for ($i = 0; $i < count($m[0]); $i++) {
+				$key = $m[1][$i] ?? "";
+				$val = $m[2][$i] ?? "";
+
+				$this->assign($key, $val);
+			}
+		}
+
 		$tpl_dir = dirname($this->tpl_file);
+		if ($this->in_unit_test) {
+			$tpl_dir = "tpls";
+		}
 		$inc_tpl = $tpl_dir . '/' . $file;
 
 		if ($file && is_readable($inc_tpl)) {
