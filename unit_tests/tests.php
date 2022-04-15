@@ -96,6 +96,10 @@ sluz_test('{* Comment *}'  , '', 'Comment #1');
 sluz_test('{* ********* *}', '', 'Comment #2');
 sluz_test('{**}'           , '', 'Comment #3');
 
+sluz_test('{include file=\'extra.stpl\'}', '/e1ab49cf/', 'Include #1');
+sluz_test('{include \'extra.stpl\'}'     , '/e1ab49cf/', 'Include #2');
+sluz_test('{include}'                    , NULL        , 'Include #3');
+
 $total = $pass_count + $fail_count;
 
 print "\n";
