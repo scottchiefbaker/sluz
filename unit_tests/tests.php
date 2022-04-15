@@ -131,10 +131,20 @@ function sluz_test($input, $expected, $test_name) {
 	$l = $white . "[" . $reset;
 	$r = $white . "]" . $reset;
 
-	$expected = var_export($expected, true);
-	$html     = var_export($html, true);
+	$is_regexp = preg_match("|^/(.+?)/$|", $expected);
+	$html      = var_export($html, true);
 
-	if ($html === $expected) {
+	if (!$is_regexp) { $expected = var_export($expected, true); }
+
+	if ($is_regexp && preg_match($expected, $html)) {
+		print $ok_str . "\n";
+		$pass_count++;
+	} elseif ($is_regexp && !preg_match($expected, $html)) {
+		print $fail_str . "\n";
+		print "  * Expected $expected but got $html (from: $file #$line)\n";
+
+		$fail_count++;
+	} elseif ($html === $expected) {
 		print $ok_str . "\n";
 		$pass_count++;
 	} else {
