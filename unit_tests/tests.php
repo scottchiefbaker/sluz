@@ -34,12 +34,6 @@ $sluz->assign('subarr' , ['one' => [2,4,6], 'two' => [3,6,9]]);
 $sluz->assign('arrayd' , [[1,2],[3,4],[5,6]]);
 $sluz->assign('empty'  , []);
 
-if ($_SERVER['SERVER_SOFTWARE'] === "Apache") {
-	$sluz->in_unit_test = 0;
-	var_dump($sluz->process_block('{* Comment *}'));
-	die;
-}
-
 sluz_test('Hello there'         , 'Hello there', 'Basic #1');
 sluz_test('{$first}'            , 'Scott'      , 'Basic #2');
 sluz_test("{  \$first\t}"       , 'Scott'      , 'Basic #3 - whitespace');
