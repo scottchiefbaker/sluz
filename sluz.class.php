@@ -232,7 +232,7 @@ class sluz {
 			}
 		}
 
-		$tpl_dir = dirname($this->tpl_file);
+		$tpl_dir = dirname($this->tpl_file ?? "");
 		if ($this->in_unit_test) {
 			$tpl_dir = "tpls";
 		}

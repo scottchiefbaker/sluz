@@ -129,7 +129,7 @@ function sluz_test($input, $expected, $test_name) {
 	$l = $white . "[" . $reset;
 	$r = $white . "]" . $reset;
 
-	$is_regexp = preg_match("|^/(.+?)/$|", $expected);
+	$is_regexp = preg_match("|^/(.+?)/$|", $expected ?? "");
 	$html      = var_export($html, true);
 
 	if (!$is_regexp) { $expected = var_export($expected, true); }
