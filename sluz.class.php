@@ -11,9 +11,16 @@ class sluz {
 	public  $version      = '0.2';
 	public  $in_unit_test = 0;
 	private $var_prefix   = "sluz_pfx";
+	private $simple_mode  = false;
+	private $parse_called = false;
 
 	function __construct() { }
-	function __destruct()  { }
+	function __destruct()  {
+		// In simple mode we auto print the output
+		if ($this->simple_mode && !$this->parse_called) {
+			print $this->parse();
+		}
+	}
 
 	function assign($key, $val = null) {
 		// Single item call (assign array at once)
@@ -243,6 +250,8 @@ class sluz {
 			$html .= $this->process_block($block);
 		}
 
+		$this->parse_called = true;
+
 		return $html;
 	}
 
@@ -291,6 +300,10 @@ class sluz {
 	}
 
 	function guess_tpl_file(string $php_file) {
+		if ($this->simple_mode && !$this->tpl_file) {
+			$php_file = $this->php_file;
+		}
+
 		$php_file = preg_replace("/.php$/", '', $php_file);
 		$dir      = $this->tpl_path ?? "tpls/";
 		$tpl_file = $dir . $php_file . ".stpl";
@@ -415,6 +428,29 @@ class sluz {
 
 		return $ret;
 	}
+
+	function enable_simple_mode($php_file) {
+		$this->php_file    = basename($php_file);
+		$this->tpl_path    = realpath(dirname($this->php_file) . "/tpls/") . "/";
+		$this->simple_mode = true;
+	}
+}
+
+function sluz($one, $two = null) {
+	static $s;
+
+	if (!$s) {
+		$s = new sluz();
+		$d    = debug_backtrace();
+		$last = array_shift($d);
+		$file = $last['file'];
+
+		$s->enable_simple_mode($file);
+	}
+
+	$s->assign($one, $two);
+
+	return $s;
 }
 
 // vim: tabstop=4 shiftwidth=4 noexpandtab autoindent softtabstop=4
