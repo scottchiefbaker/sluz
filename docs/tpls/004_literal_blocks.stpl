@@ -1,0 +1,11 @@
+<script>
+	var name = "{$name}";
+
+	{literal}
+	function hello_world() {
+		alert("Hi there " + name);
+	}
+	{/literal}
+</script>
+
+<button onclick="hello_world();">Click me</button>
