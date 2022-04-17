@@ -389,3 +389,5 @@ class sluz {
 		return $ret;
 	}
 }
+
+// vim: tabstop=4 shiftwidth=4 noexpandtab autoindent softtabstop=4

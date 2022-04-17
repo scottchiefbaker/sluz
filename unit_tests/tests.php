@@ -168,3 +168,5 @@ function sluz_test($input, $expected, $test_name) {
 		$fail_count++;
 	}
 }
+
+// vim: tabstop=4 shiftwidth=4 noexpandtab autoindent softtabstop=4
