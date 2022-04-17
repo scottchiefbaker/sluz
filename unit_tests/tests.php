@@ -9,6 +9,9 @@ $sluz = new sluz;
 $sluz->debug = 0;
 $sluz->in_unit_test = 1;
 
+// Check if there is a filter at the command line
+$filter = $argv[1] ?? "";
+
 // Test counters
 $pass_count = 0;
 $fail_count = 0;
@@ -31,16 +34,17 @@ $sluz->assign('debug'  , 1);
 $sluz->assign('array'  , ['one', 'two', 'three']);
 $sluz->assign('cust'   , ['first' => 'Scott', 'last' => 'Baker']);
 $sluz->assign('number' , 15);
+$sluz->assign('zero'   , 0);
 $sluz->assign('members', [['first' => 'Scott', 'last' => 'Baker'], ['first' => 'Jason', 'last' => 'Doolis']]);
 $sluz->assign('subarr' , ['one' => [2,4,6], 'two' => [3,6,9]]);
 $sluz->assign('arrayd' , [[1,2],[3,4],[5,6]]);
 $sluz->assign('empty'  , []);
 $sluz->assign($hash);
 
-sluz_test('Hello there'         , 'Hello there', 'Basic #1');
-sluz_test('{$first}'            , 'Scott'      , 'Basic #2');
-sluz_test("{  \$first\t}"       , 'Scott'      , 'Basic #3 - whitespace');
-sluz_test('{$bogus_var}'        , ''           , 'Basic #4 - missing variable');
+sluz_test('Hello there'         , 'Hello there', 'Basic #1 - Static string');
+sluz_test('{$first}'            , 'Scott'      , 'Basic #2 - Basic variable');
+sluz_test("{  \$first\t}"       , 'Scott'      , 'Basic #3 - Whitespace');
+sluz_test('{$bogus_var}'        , ''           , 'Basic #4 - Missing variable');
 sluz_test('{$animal|strtoupper}', 'KITTEN'     , 'Basic #5 - PHP Modifier');
 sluz_test('{$cust.first}'       , 'Scott'      , 'Basic #6 - Hash Lookup');
 sluz_test('{$array.1}'          , 'two'        , 'Basic #7 - Array Lookup');
@@ -53,50 +57,50 @@ sluz_test('{"Scott"}'           , "Scott"      , 'Basic #13 - String literall');
 sluz_test('{"Scott" . "Baker"}' , "ScottBaker" , 'Basic #14 - String concat');
 sluz_test('{$color . $age}'     , "yellow43"   , 'Basic #15 - Hash group assignment');
 
-sluz_test('{if $debug}DEBUG{/if}'                , 'DEBUG'   , 'if #1');
-sluz_test('{if $bogus_var}DEBUG{/if}'            , ''        , 'if #2');
-sluz_test('{if $debug}{$first}{/if}'             , 'Scott'   , 'if #3 (variable)');
-sluz_test('{if $debug}{if $debug}FOO{/if}{/if}'  , 'FOO'     , 'if #4 nested');
-sluz_test('{if $bogus_var}YES{else}NO{/if}'      , 'NO'      , 'if #5 else');
-sluz_test('{if $cust.first}{$cust.first}{/if}'   , 'Scott'   , 'if #6 hash lookup');
-sluz_test('{if $number > 10}GREATER{/if}'        , 'GREATER' , 'if #7 comparison');
-sluz_test('{if $bogus_var || $key}KEY{/if}'      , 'KEY'     , 'if #8 two var comparison');
-sluz_test('{if $number === 15 && $debug}YES{/if}', 'YES'     , 'if #9 two comparisons');
-sluz_test('{if !$verbose}QUIET{/if}'             , 'QUIET'   , 'if #10 negated comparison');
-sluz_test('{if ($debug || $number > 20)}YES{/if}', 'YES'     , 'if #11 parens');
-sluz_test('{if count($array) > 2}YES{/if}'       , 'YES'     , 'if #12 PHP function conditional');
-sluz_test('{if $debug}{$key}{$last}{/if}'        , 'valBaker', 'if #13 Two block payload');
+sluz_test('{if $debug}DEBUG{/if}'                , 'DEBUG'   , 'If #1 - Simple');
+sluz_test('{if $bogus_var}DEBUG{/if}'            , ''        , 'If #2 - Missing var');
+sluz_test('{if $debug}{$first}{/if}'             , 'Scott'   , 'If #3 - Variable as payload');
+sluz_test('{if $debug}{if $debug}FOO{/if}{/if}'  , 'FOO'     , 'If #4 - Nested');
+sluz_test('{if $bogus_var}YES{else}NO{/if}'      , 'NO'      , 'If #5 - Else');
+sluz_test('{if $cust.first}{$cust.first}{/if}'   , 'Scott'   , 'If #6 - Hash lookup');
+sluz_test('{if $number > 10}GREATER{/if}'        , 'GREATER' , 'If #7 - Comparison');
+sluz_test('{if $bogus_var || $key}KEY{/if}'      , 'KEY'     , 'If #8 - ||');
+sluz_test('{if $number === 15 && $debug}YES{/if}', 'YES'     , 'If #9 - Two comparisons');
+sluz_test('{if !$verbose}QUIET{/if}'             , 'QUIET'   , 'If #10 - Negated comparison');
+sluz_test('{if ($zero || $number > 10)}YES{/if}' , 'YES'     , 'If #11 - Parens');
+sluz_test('{if count($array) > 2}YES{/if}'       , 'YES'     , 'If #12 - PHP function conditional');
+sluz_test('{if $debug}{$key}{$last}{/if}'        , 'valBaker', 'If #13 - Two block payload');
 
-sluz_test('{foreach $array as $num}{$num}{/foreach}'                  , 'onetwothree'            , 'foreach #1');
-sluz_test('{foreach $array as $num}\n{$num}\n{/foreach}'              , '\none\n\ntwo\n\nthree\n', 'foreach #2');
-sluz_test('{foreach $members as $x}{$x.first}{/foreach}'              , 'ScottJason'             , 'foreach #3 hash');
-sluz_test('{foreach $arrayd as $x}{$x.1}{/foreach}'                   , '246'                    , 'foreach #4 hash');
-sluz_test('{foreach $arrayd as $key => $val}{$key}:{$val.0}{/foreach}', '0:11:32:5'              , 'foreach #6 key/val array');
-sluz_test('{foreach $members as $id => $x}{$id}{$x.first}{/foreach}'  , '0Scott1Jason'           , 'foreach #7 key/val hash');
-sluz_test('{foreach $subarr.one as $id}{$id}{/foreach}'               , '246'                    , 'foreach #8 key/val hash');
-sluz_test('{foreach $bogus_var as $x}one{/foreach}'                   , null                     , 'foreach #9 missing var');
-sluz_test('{foreach $empty as $x}one{/foreach}'                       , ''                       , 'foreach #10 empty array');
+sluz_test('{foreach $array as $num}{$num}{/foreach}'                  , 'onetwothree'            , 'Foreach #1 - Simple');
+sluz_test('{foreach $array as $num}\n{$num}\n{/foreach}'              , '\none\n\ntwo\n\nthree\n', 'Foreach #2 - Simple with whitespace');
+sluz_test('{foreach $members as $x}{$x.first}{/foreach}'              , 'ScottJason'             , 'Foreach #3 - Hash');
+sluz_test('{foreach $arrayd as $x}{$x.1}{/foreach}'                   , '246'                    , 'Foreach #4 - Array');
+sluz_test('{foreach $arrayd as $key => $val}{$key}:{$val.0}{/foreach}', '0:11:32:5'              , 'Foreach #6 - Key/val array');
+sluz_test('{foreach $members as $id => $x}{$id}{$x.first}{/foreach}'  , '0Scott1Jason'           , 'Foreach #7 - Key/val hash');
+sluz_test('{foreach $subarr.one as $id}{$id}{/foreach}'               , '246'                    , 'Foreach #8 - Hash key');
+sluz_test('{foreach $bogus_var as $x}one{/foreach}'                   , null                     , 'Foreach #9 - Missing var');
+sluz_test('{foreach $empty as $x}one{/foreach}'                       , ''                       , 'Foreach #10 - Empty array');
 
-sluz_test('Scott'           , 'Scott'           , 'Plain text #1');
+sluz_test('Scott'           , 'Scott'           , 'Plain text #1 - Static text');
 sluz_test('<div>Scott</div>', '<div>Scott</div>', 'Plain text #2 - HTML');
 
 // Don't parse blocks that have whitespacing
-sluz_test(' {$first} ', ' {$first} ', 'Bad block #1');
-sluz_test('{first}'   , NULL        , 'Bad block #2'); // Literal (no $)
+sluz_test(' {$first} ', ' {$first} ', 'Bad block #1 - Padding with whitespace');
+sluz_test('{first}'   , NULL        , 'Bad block #2 - {word}'); // Literal (no $)
 
-sluz_test('{literal}{{/literal}'                  , '{'                  , 'Literal #1');
-sluz_test('{literal}}{/literal}'                  , '}'                  , 'Literal #2');
-sluz_test('{literal}{}{/literal}'                 , '{}'                 , 'Literal #3');
-sluz_test('{literal}{literal}{/literal}'          , '{literal}'          , 'Literal #4');
-sluz_test('{literal}{literal}{/literal}{/literal}', '{literal}{/literal}', 'Literal #5 - meta literal');
+sluz_test('{literal}{{/literal}'                  , '{'                  , 'Literal #1 - {');
+sluz_test('{literal}}{/literal}'                  , '}'                  , 'Literal #2 - }');
+sluz_test('{literal}{}{/literal}'                 , '{}'                 , 'Literal #3 - {}');
+sluz_test('{literal}{literal}{/literal}'          , '{literal}'          , 'Literal #4 - {literal}');
+sluz_test('{literal}{literal}{/literal}{/literal}', '{literal}{/literal}', 'Literal #5 - Meta literal');
 
-sluz_test('{* Comment *}'  , '', 'Comment #1');
-sluz_test('{* ********* *}', '', 'Comment #2');
-sluz_test('{**}'           , '', 'Comment #3');
+sluz_test('{* Comment *}'  , '', 'Comment #1 - With text');
+sluz_test('{* ********* *}', '', 'Comment #2 - ******');
+sluz_test('{**}'           , '', 'Comment #3 - No whitespace');
 
-sluz_test('{include file=\'extra.stpl\'}', '/e1ab49cf/', 'Include #1');
-sluz_test('{include \'extra.stpl\'}'     , '/e1ab49cf/', 'Include #2');
-sluz_test('{include}'                    , NULL        , 'Include #3');
+sluz_test('{include file=\'extra.stpl\'}', '/e1ab49cf/', 'Include #1 - file=\'extra.stpl\'');
+sluz_test('{include \'extra.stpl\'}'     , '/e1ab49cf/', 'Include #2 - \'extra.stpl\'');
+sluz_test('{include}'                    , NULL        , 'Include #3 - No payload');
 
 $total = $pass_count + $fail_count;
 
@@ -117,6 +121,9 @@ function sluz_test($input, $expected, $test_name) {
 	global $fail_count;
 	global $ok_str;
 	global $fail_str;
+	global $filter;
+
+	if (!empty($filter) && !preg_match("/$filter/i", $test_name)) { return; }
 
 	$html = $sluz->process_block($input);
 
