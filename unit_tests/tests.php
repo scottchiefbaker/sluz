@@ -25,11 +25,11 @@ $fail_str = $white . "[" . $red   . " FAIL " . $reset . $white . "]" . $reset;
 
 $hash = ['color' => 'yellow', 'age' => 43, 'book' => 'Dark Tower'];
 
+$sluz->assign('x'      , '7');
 $sluz->assign('key'    , 'val');
 $sluz->assign('first'  , "Scott");
 $sluz->assign('last'   , "Baker");
 $sluz->assign('animal' , "Kitten");
-$sluz->assign('heading', "Test heading");
 $sluz->assign('debug'  , 1);
 $sluz->assign('array'  , ['one', 'two', 'three']);
 $sluz->assign('cust'   , ['first' => 'Scott', 'last' => 'Baker']);
@@ -56,6 +56,7 @@ sluz_test('{3}'                 , 3            , 'Basic #12 - Number literal');
 sluz_test('{"Scott"}'           , "Scott"      , 'Basic #13 - String literall');
 sluz_test('{"Scott" . "Baker"}' , "ScottBaker" , 'Basic #14 - String concat');
 sluz_test('{$color . $age}'     , "yellow43"   , 'Basic #15 - Hash group assignment');
+sluz_test('{$x}'                , "7"          , 'Basic #16 - Single Character variable');
 
 sluz_test('{if $debug}DEBUG{/if}'                , 'DEBUG'   , 'If #1 - Simple');
 sluz_test('{if $bogus_var}DEBUG{/if}'            , ''        , 'If #2 - Missing var');
@@ -80,6 +81,7 @@ sluz_test('{foreach $members as $id => $x}{$id}{$x.first}{/foreach}'  , '0Scott1
 sluz_test('{foreach $subarr.one as $id}{$id}{/foreach}'               , '246'                    , 'Foreach #8 - Hash key');
 sluz_test('{foreach $bogus_var as $x}one{/foreach}'                   , 'ERROR-85824'            , 'Foreach #9 - Missing var');
 sluz_test('{foreach $empty as $x}one{/foreach}'                       , ''                       , 'Foreach #10 - Empty array');
+sluz_test('{foreach $array as $i => $x}{$i}{$x}{/foreach}'            , '0one1two2three'         , 'Foreach #11 - One char variables');
 
 sluz_test('Scott'           , 'Scott'           , 'Plain text #1 - Static text');
 sluz_test('<div>Scott</div>', '<div>Scott</div>', 'Plain text #2 - HTML');
