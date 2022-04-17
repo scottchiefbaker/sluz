@@ -40,7 +40,7 @@ class sluz {
 		if (!preg_match('/^{/', $str, $m)) {
 			$ret = $str;
 		// Simple variable replacement
-		} elseif (preg_match('/^\{\s*\$(\w[\w\|\.]+?)\s*\}$/', $str, $m)) {
+		} elseif (preg_match('/^\{\s*\$(\w[\w\|\.]*?)\s*\}$/', $str, $m)) {
 			$key = $m[1];
 			if (preg_match("/(.+?)\|(.+)/", $key, $m)) {
 				$key = $m[1];
