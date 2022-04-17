@@ -331,6 +331,7 @@ class sluz {
 				border: 1px solid;
 				padding: 6px;
 				border-radius: 4px;
+				margin-bottom: 8px;
 			}
 
 			.s_error_head { margin-top: 0; }
