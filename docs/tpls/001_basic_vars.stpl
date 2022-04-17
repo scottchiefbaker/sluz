@@ -1,3 +1,7 @@
 <h1>Welcome</h1>
 
 <p>Hello {$first} {$last}</p>
+
+<p>The first month of the year is {$month.0}</p>
+
+<p>My favorite color is {$data.color}</p>
