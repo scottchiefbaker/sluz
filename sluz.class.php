@@ -352,9 +352,7 @@ class sluz {
 		</style>";
 
 		if ($this->in_unit_test) {
-			//print "Err: $msg\n#$err_num\n";
-
-			return null;
+			return "ERROR-$err_num";
 		}
 
 		$d    = debug_backtrace();

@@ -78,15 +78,15 @@ sluz_test('{foreach $arrayd as $x}{$x.1}{/foreach}'                   , '246'   
 sluz_test('{foreach $arrayd as $key => $val}{$key}:{$val.0}{/foreach}', '0:11:32:5'              , 'Foreach #6 - Key/val array');
 sluz_test('{foreach $members as $id => $x}{$id}{$x.first}{/foreach}'  , '0Scott1Jason'           , 'Foreach #7 - Key/val hash');
 sluz_test('{foreach $subarr.one as $id}{$id}{/foreach}'               , '246'                    , 'Foreach #8 - Hash key');
-sluz_test('{foreach $bogus_var as $x}one{/foreach}'                   , null                     , 'Foreach #9 - Missing var');
+sluz_test('{foreach $bogus_var as $x}one{/foreach}'                   , 'ERROR-85824'            , 'Foreach #9 - Missing var');
 sluz_test('{foreach $empty as $x}one{/foreach}'                       , ''                       , 'Foreach #10 - Empty array');
 
 sluz_test('Scott'           , 'Scott'           , 'Plain text #1 - Static text');
 sluz_test('<div>Scott</div>', '<div>Scott</div>', 'Plain text #2 - HTML');
 
 // Don't parse blocks that have whitespacing
-sluz_test(' {$first} ', ' {$first} ', 'Bad block #1 - Padding with whitespace');
-sluz_test('{first}'   , NULL        , 'Bad block #2 - {word}'); // Literal (no $)
+sluz_test(' {$first} ', ' {$first} ' , 'Bad block #1 - Padding with whitespace');
+sluz_test('{first}'   , 'ERROR-73467', 'Bad block #2 - {word}'); // Literal (no $)
 
 sluz_test('{literal}{{/literal}'                  , '{'                  , 'Literal #1 - {');
 sluz_test('{literal}}{/literal}'                  , '}'                  , 'Literal #2 - }');
@@ -98,9 +98,9 @@ sluz_test('{* Comment *}'  , '', 'Comment #1 - With text');
 sluz_test('{* ********* *}', '', 'Comment #2 - ******');
 sluz_test('{**}'           , '', 'Comment #3 - No whitespace');
 
-sluz_test('{include file=\'extra.stpl\'}', '/e1ab49cf/', 'Include #1 - file=\'extra.stpl\'');
-sluz_test('{include \'extra.stpl\'}'     , '/e1ab49cf/', 'Include #2 - \'extra.stpl\'');
-sluz_test('{include}'                    , NULL        , 'Include #3 - No payload');
+sluz_test('{include file=\'extra.stpl\'}', '/e1ab49cf/' , 'Include #1 - file=\'extra.stpl\'');
+sluz_test('{include \'extra.stpl\'}'     , '/e1ab49cf/' , 'Include #2 - \'extra.stpl\'');
+sluz_test('{include}'                    , 'ERROR-73467', 'Include #3 - No payload');
 
 $total = $pass_count + $fail_count;
 
