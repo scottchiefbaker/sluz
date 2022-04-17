@@ -29,14 +29,14 @@ File: `tpls/script.stpl`
 
 ## Requirements
 
-Sluz has no external library requirements. Only the `sluz.class.php` is 
+Sluz has no external library requirements. Only the `sluz.class.php` is
 needed for the library to function.
 
 ## Testing
 
 Sluz has an extensive test suite that is used to verify compatibility
-across PHP versions. As of this writing Sluz runs on PHP versions: 7.3, 7.4,
-8.0, and 8.1.
+across PHP versions. As of this writing Sluz passes all unit tests on
+PHP versions: 7.3, 7.4, 8.0, and 8.1.
 
 To run the tests issue this command at the CLI:
 
@@ -44,9 +44,12 @@ To run the tests issue this command at the CLI:
 php unit_tests/tests.php
 ```
 
+**Note:** Care was take to ensure that no `E_NOTICE` warnings are emitted
+to insure Sluz is `error_reporting(E_ALL)` compliant.
+
 ## Documentation
 
-There is extensive documentation in the `docs/` with real world examples of the syntax. 
+There is extensive documentation in the `docs/` with real world examples of the syntax.
 
 ## Naming
 
