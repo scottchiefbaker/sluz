@@ -20,6 +20,8 @@ $white    = "\033[38;5;15m";
 $ok_str   = $white . "[" . $green . "  OK  " . $reset . $white . "]" . $reset;
 $fail_str = $white . "[" . $red   . " FAIL " . $reset . $white . "]" . $reset;
 
+$hash = ['color' => 'yellow', 'age' => 43, 'book' => 'Dark Tower'];
+
 $sluz->assign('key'    , 'val');
 $sluz->assign('first'  , "Scott");
 $sluz->assign('last'   , "Baker");
@@ -33,6 +35,7 @@ $sluz->assign('members', [['first' => 'Scott', 'last' => 'Baker'], ['first' => '
 $sluz->assign('subarr' , ['one' => [2,4,6], 'two' => [3,6,9]]);
 $sluz->assign('arrayd' , [[1,2],[3,4],[5,6]]);
 $sluz->assign('empty'  , []);
+$sluz->assign($hash);
 
 sluz_test('Hello there'         , 'Hello there', 'Basic #1');
 sluz_test('{$first}'            , 'Scott'      , 'Basic #2');
@@ -48,6 +51,7 @@ sluz_test('{$number * $debug}'  , 15           , 'Basic #11 - Multiplication of 
 sluz_test('{3}'                 , 3            , 'Basic #12 - Number literal');
 sluz_test('{"Scott"}'           , "Scott"      , 'Basic #13 - String literall');
 sluz_test('{"Scott" . "Baker"}' , "ScottBaker" , 'Basic #14 - String concat');
+sluz_test('{$color . $age}'     , "yellow43"   , 'Basic #15 - Hash group assignment');
 
 sluz_test('{if $debug}DEBUG{/if}'                , 'DEBUG'   , 'if #1');
 sluz_test('{if $bogus_var}DEBUG{/if}'            , ''        , 'if #2');

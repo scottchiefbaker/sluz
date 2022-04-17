@@ -14,8 +14,15 @@ class sluz {
 	function __construct() { }
 	function __destruct()  { }
 
-	function assign($key, $val) {
-		$this->tpl_vars[$key] = $val;
+	function assign($key, $val = null) {
+		// Single item call (assign array at once)
+		if (is_null($val) && is_array($key)) {
+			foreach ($key as $k => $v) {
+				$this->tpl_vars[$k] = $v;
+			}
+		} else {
+			$this->tpl_vars[$key] = $val;
+		}
 	}
 
 	function process_block(string $str) {
