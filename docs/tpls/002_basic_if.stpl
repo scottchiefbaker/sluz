@@ -3,3 +3,9 @@
 {else}
 <h1>It is not Wednesday</h1>
 {/if}
+
+{if count($kittens) > 4}<p>You have a lot of kittens</p>{/if}
+
+{if !$quiet}<div>Here is some detailed information</div>{/if}
+
+{if $verbose && !$quiet}Since we are not quiet, here is even more information{/if}
