@@ -57,23 +57,48 @@ class sluz {
 			// Put the tpl_vars in the current scope so if works against them
 			extract($this->tpl_vars, EXTR_PREFIX_ALL, $this->var_prefix);
 
-			$test_var  = $this->convert_variables_in_string($m[1]);
-			$payload   = $m[2];
-			$parts     = explode("{else}", $payload);
-			$true_val  = $parts[0] ?? "";
-			$false_val = $parts[1] ?? "";
+			// We build a list of tests and their output value if true in $rules
+			// We extract the conditions in $cond and the true values in $parts
 
-			$ok = $this->peval($test_var);
+			// The first condition is the {if XXXX} var from above
+			$cond[]  = $m[1];
+			$payload = $m[2];
+			// This is the number of if/elseif/else blocks we need to find tests for
+			$part_count = preg_match_all("/\{(if|elseif|else\})/", $str, $m);
 
-			// Figure out which we process
-			if ($ok) {
-				$blocks = $this->get_blocks($true_val);
-			} else {
-				$blocks = $this->get_blocks($false_val);
+			// The middle conditions are the {elseif XXXX} stuff
+			preg_match_all("/\{elseif (.+?)\}/", $payload, $m);
+			foreach ($m[1] as $i) {
+				$cond[] = $i;
 			}
 
-			foreach ($blocks as $block) {
-				$ret .= $this->process_block($block);
+			// The last condition is the else and it's always true
+			$cond[] = 1;
+
+			// This gets us all the payload elements
+			$parts  = preg_split("/(\{elseif (.+?)\}|\{else\})/", $payload);
+
+			// Build all the rules and associated values
+			$rules  = [];
+			for ($i = 0; $i < $part_count; $i++) {
+				$rules[] = [$cond[$i],$parts[$i]];
+			}
+
+			foreach ($rules as $x) {
+				$test    = $x[0];
+				$payload = $x[1];
+				$testp   = $this->convert_variables_in_string($test);
+
+				if ($this->peval($testp)) {
+					$blocks = $this->get_blocks($payload);
+
+					foreach ($blocks as $block) {
+						$ret .= $this->process_block($block);
+					}
+
+					// One of the tests was true so we stop processing
+					break;
+				}
 			}
 		} elseif (preg_match('/^\{foreach (\$\w[\w.]+) as \$(\w+)( => \$(\w+))?\}(.+)\{\/foreach\}$/s', $str, $m)) {
 			$src     = $this->convert_variables_in_string($m[1]); // src array
