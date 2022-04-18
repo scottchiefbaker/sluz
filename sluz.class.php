@@ -52,7 +52,7 @@ class sluz {
 				$ret = $this->array_dive($key, $this->tpl_vars) ?? "";
 			}
 		// If statement
-		} elseif (preg_match('/\{if (.+?)\}(.+)\{\/if\}/s', $str, $m)) {
+		} elseif (preg_match('/^\{if (.+?)\}(.+)\{\/if\}$/s', $str, $m)) {
 			// Put the tpl_vars in the current scope so if works against them
 			extract($this->tpl_vars, EXTR_PREFIX_ALL, $this->var_prefix);
 
@@ -74,7 +74,7 @@ class sluz {
 			foreach ($blocks as $block) {
 				$ret .= $this->process_block($block);
 			}
-		} elseif (preg_match('/\{foreach (\$\w[\w.]+) as \$(\w+)( => \$(\w+))?\}(.+)\{\/foreach\}/s', $str, $m)) {
+		} elseif (preg_match('/^\{foreach (\$\w[\w.]+) as \$(\w+)( => \$(\w+))?\}(.+)\{\/foreach\}$/s', $str, $m)) {
 			$src     = $this->convert_variables_in_string($m[1]); // src array
 			$okey    = $m[2]; // orig key
 			$oval    = $m[4]; // orig val
