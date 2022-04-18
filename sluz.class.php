@@ -5,7 +5,8 @@
 class sluz {
 	private $tpl_vars     = [];
 	private $tpl_path     = null;
-	private $tpl_file     = null;
+	public  $tpl_file     = null;
+	private $php_file     = null;
 	public  $debug        = 0;
 	public  $version      = '0.2';
 	public  $in_unit_test = 0;

@@ -25,6 +25,8 @@ $fail_str = $white . "[" . $red   . " FAIL " . $reset . $white . "]" . $reset;
 
 $hash = ['color' => 'yellow', 'age' => 43, 'book' => 'Dark Tower'];
 
+$is_cli = (php_sapi_name() == "cli");
+
 $sluz->assign('x'      , '7');
 $sluz->assign('key'    , 'val');
 $sluz->assign('first'  , "Scott");
@@ -40,6 +42,8 @@ $sluz->assign('subarr' , ['one' => [2,4,6], 'two' => [3,6,9]]);
 $sluz->assign('arrayd' , [[1,2],[3,4],[5,6]]);
 $sluz->assign('empty'  , []);
 $sluz->assign($hash);
+
+$test_output = [];
 
 sluz_test('Hello there'         , 'Hello there', 'Basic #1 - Static string');
 sluz_test('{$first}'            , 'Scott'      , 'Basic #2 - Basic variable');
@@ -106,13 +110,19 @@ sluz_test('{include}'                    , 'ERROR-73467', 'Include #3 - No paylo
 
 $total = $pass_count + $fail_count;
 
-print "\n";
-if ($fail_count === 0) {
-	$msg = sprintf("All %d tests passed successfully", $total);
-	print $msg . str_repeat(" ", 81 - strlen($msg)) . $ok_str . "\n";
+if ($is_cli) {
+	print "\n";
+	if ($fail_count === 0) {
+		$msg = sprintf("All %d tests passed successfully", $total);
+		print $msg . str_repeat(" ", 81 - strlen($msg)) . $ok_str . "\n";
+	} else {
+		$msg = sprintf("%d tests failed (%.1f%% failure rate)", $fail_count, ($fail_count / $total) * 100);
+		print $msg . str_repeat(" ", 81 - strlen($msg)) . $fail_str . "\n";
+	}
 } else {
-	$msg = sprintf("%d tests failed (%.1f%% failure rate)", $fail_count, ($fail_count / $total) * 100);
-	print $msg . str_repeat(" ", 81 - strlen($msg)) . $fail_str . "\n";
+	$sluz->assign("tests", $test_output);
+	$sluz->tpl_file = "tpls/tests.stpl";
+	print $sluz->parse();
 }
 
 ////////////////////////////////////////////////////////
@@ -124,6 +134,8 @@ function sluz_test($input, $expected, $test_name) {
 	global $ok_str;
 	global $fail_str;
 	global $filter;
+	global $is_cli;
+	global $test_output;
 
 	if (!empty($filter) && !preg_match("/$filter/i", $test_name)) { return; }
 
@@ -132,7 +144,9 @@ function sluz_test($input, $expected, $test_name) {
 	$lead = "Test '$test_name' ";
 	$pad  = str_repeat(" ", 80 - (strlen($lead)));
 
-	print "$lead $pad";
+	if ($is_cli) {
+		print "$lead $pad";
+	}
 
 	$ok    = "\033[32m";
 	$fail  = "\033[31m";
@@ -148,22 +162,39 @@ function sluz_test($input, $expected, $test_name) {
 	if (!$is_regexp) { $expected = var_export($expected, true); }
 
 	if ($is_regexp && preg_match($expected, $html)) {
-		print $ok_str . "\n";
+		if ($is_cli) {
+			print $ok_str . "\n";
+		}
+		$test_output[] = [$lead,0];
 		$pass_count++;
 	} elseif ($is_regexp && !preg_match($expected, $html)) {
-		print $fail_str . "\n";
-		print "  * Expected $expected but got $html (from: $file #$line)\n";
+		if ($is_cli) {
+			print $fail_str . "\n";
+			print "  * Expected $expected but got $html (from: $file #$line)\n";
+		}
+
+		$test_output[] = [$lead,"Expected $expected but got $html (from: $file #$line)"];
 
 		$fail_count++;
 	} elseif ($html === $expected) {
-		print $ok_str . "\n";
+		if ($is_cli) {
+			print $ok_str . "\n";
+		}
+
+		$test_output[] = [$lead,0];
+
 		$pass_count++;
 	} else {
 		$d = debug_backtrace();
 		$file = $d[0]['file'];
 		$line = $d[0]['line'];
-		print $fail_str . "\n";
-		print "  * Expected $expected but got $html (from: $file #$line)\n";
+
+		if ($is_cli) {
+			print $fail_str . "\n";
+			print "  * Expected $expected but got $html (from: $file #$line)\n";
+		}
+
+		$test_output[] = [$lead,"Expected $expected but got $html (from: $file #$line)"];
 
 		$fail_count++;
 	}
