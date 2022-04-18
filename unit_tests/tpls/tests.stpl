@@ -20,7 +20,9 @@
   <body class="container">
 	<h1 class="mb-3">Sluz unit tests</h1>
 
-	{if $fail_count == 0}
+	{if $total === 0}
+	<div class="alert alert-warning"><b>Warning:</b> No tests were run</div>
+	{elseif $fail_count === 0}
 	<div class="alert alert-success"><b>Hooray!</b> All tests passed successfully</div>
 	{else}
 	<div class="alert alert-danger"><b>Warning:</b> {$fail_count} tests failed</div>
@@ -36,5 +38,7 @@
 		{/if}
 	</div>
 	{/foreach}
+
+	<div class="my-3"><b>{$pass_count}</b> tests passed and <b>{$fail_count}</b> tests failed</div>
   </body>
 </html>
