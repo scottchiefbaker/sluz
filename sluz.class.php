@@ -320,7 +320,7 @@ class sluz {
 		};
 
 		// Process flat arrays in the test like $cust.name or $array[3]
-		$str = preg_replace_callback('/(\$\w[\w\.]+)/', $dot_to_bracket_callback, $str);
+		$str = preg_replace_callback('/(\$\w[\w\.]*)/', $dot_to_bracket_callback, $str);
 
 		return $str;
 	}
