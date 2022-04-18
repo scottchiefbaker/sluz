@@ -86,8 +86,8 @@ sluz_test('{foreach $subarr.one as $id}{$id}{/foreach}'                , '246'  
 sluz_test('{foreach $bogus_var as $x}one{/foreach}'                    , 'ERROR-85824'            , 'Foreach #9 - Missing var');
 sluz_test('{foreach $empty as $x}one{/foreach}'                        , ''                       , 'Foreach #10 - Empty array');
 sluz_test('{foreach $array as $i => $x}{$i}{$x}{/foreach}'             , '0one1two2three'         , 'Foreach #11 - One char variables');
-sluz_test('{foreach $arrayd as $i => $x}{if $x.1}{$x.1}{/if}{/foreach}', '246'                    , 'Foreach #12 - Foreach with nested if (array)');
-sluz_test('{foreach $array as $i => $x}{if $x}{$x}{/if}{/foreach}'     , 'onetwothree'            , 'Foreach #13 - Foreach with nested if');
+sluz_test('{foreach $array as $i => $x}{if $x}{$x}{/if}{/foreach}'     , 'onetwothree'            , 'Foreach #12 - Foreach with nested if');
+sluz_test('{foreach $arrayd as $i => $x}{if $x.1}{$x.1}{/if}{/foreach}', '246'                    , 'Foreach #13 - Foreach with nested if (array)');
 
 sluz_test('Scott'           , 'Scott'           , 'Plain text #1 - Static text');
 sluz_test('<div>Scott</div>', '<div>Scott</div>', 'Plain text #2 - HTML');
