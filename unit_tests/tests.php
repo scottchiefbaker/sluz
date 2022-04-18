@@ -10,7 +10,7 @@ $sluz->debug = 0;
 $sluz->in_unit_test = 1;
 
 // Check if there is a filter at the command line
-$filter = $argv[1] ?? "";
+$filter = $argv[1] ?? $_GET['filter'] ?? "";
 
 // Test counters
 $pass_count = 0;
@@ -76,16 +76,18 @@ sluz_test('{if ($zero || $number > 10)}YES{/if}' , 'YES'     , 'If #11 - Parens'
 sluz_test('{if count($array) > 2}YES{/if}'       , 'YES'     , 'If #12 - PHP function conditional');
 sluz_test('{if $debug}{$key}{$last}{/if}'        , 'valBaker', 'If #13 - Two block payload');
 
-sluz_test('{foreach $array as $num}{$num}{/foreach}'                  , 'onetwothree'            , 'Foreach #1 - Simple');
-sluz_test('{foreach $array as $num}\n{$num}\n{/foreach}'              , '\none\n\ntwo\n\nthree\n', 'Foreach #2 - Simple with whitespace');
-sluz_test('{foreach $members as $x}{$x.first}{/foreach}'              , 'ScottJason'             , 'Foreach #3 - Hash');
-sluz_test('{foreach $arrayd as $x}{$x.1}{/foreach}'                   , '246'                    , 'Foreach #4 - Array');
-sluz_test('{foreach $arrayd as $key => $val}{$key}:{$val.0}{/foreach}', '0:11:32:5'              , 'Foreach #6 - Key/val array');
-sluz_test('{foreach $members as $id => $x}{$id}{$x.first}{/foreach}'  , '0Scott1Jason'           , 'Foreach #7 - Key/val hash');
-sluz_test('{foreach $subarr.one as $id}{$id}{/foreach}'               , '246'                    , 'Foreach #8 - Hash key');
-sluz_test('{foreach $bogus_var as $x}one{/foreach}'                   , 'ERROR-85824'            , 'Foreach #9 - Missing var');
-sluz_test('{foreach $empty as $x}one{/foreach}'                       , ''                       , 'Foreach #10 - Empty array');
-sluz_test('{foreach $array as $i => $x}{$i}{$x}{/foreach}'            , '0one1two2three'         , 'Foreach #11 - One char variables');
+sluz_test('{foreach $array as $num}{$num}{/foreach}'                   , 'onetwothree'            , 'Foreach #1 - Simple');
+sluz_test('{foreach $array as $num}\n{$num}\n{/foreach}'               , '\none\n\ntwo\n\nthree\n', 'Foreach #2 - Simple with whitespace');
+sluz_test('{foreach $members as $x}{$x.first}{/foreach}'               , 'ScottJason'             , 'Foreach #3 - Hash');
+sluz_test('{foreach $arrayd as $x}{$x.1}{/foreach}'                    , '246'                    , 'Foreach #4 - Array');
+sluz_test('{foreach $arrayd as $key => $val}{$key}:{$val.0}{/foreach}' , '0:11:32:5'              , 'Foreach #6 - Key/val array');
+sluz_test('{foreach $members as $id => $x}{$id}{$x.first}{/foreach}'   , '0Scott1Jason'           , 'Foreach #7 - Key/val hash');
+sluz_test('{foreach $subarr.one as $id}{$id}{/foreach}'                , '246'                    , 'Foreach #8 - Hash key');
+sluz_test('{foreach $bogus_var as $x}one{/foreach}'                    , 'ERROR-85824'            , 'Foreach #9 - Missing var');
+sluz_test('{foreach $empty as $x}one{/foreach}'                        , ''                       , 'Foreach #10 - Empty array');
+sluz_test('{foreach $array as $i => $x}{$i}{$x}{/foreach}'             , '0one1two2three'         , 'Foreach #11 - One char variables');
+sluz_test('{foreach $arrayd as $i => $x}{if $x.1}{$x.1}{/if}{/foreach}', '246'                    , 'Foreach #12 - Foreach with nested if (array)');
+sluz_test('{foreach $array as $i => $x}{if $x}{$x}{/if}{/foreach}'     , 'onetwothree'            , 'Foreach #13 - Foreach with nested if');
 
 sluz_test('Scott'           , 'Scott'           , 'Plain text #1 - Static text');
 sluz_test('<div>Scott</div>', '<div>Scott</div>', 'Plain text #2 - HTML');
@@ -112,14 +114,23 @@ $total = $pass_count + $fail_count;
 
 if ($is_cli) {
 	print "\n";
-	if ($fail_count === 0) {
+	if ($total === 0) {
+		print $red . "Warning:$reset no tests were run?\n";
+		exit(3);
+	} elseif ($fail_count === 0) {
 		$msg = sprintf("All %d tests passed successfully", $total);
 		print $msg . str_repeat(" ", 81 - strlen($msg)) . $ok_str . "\n";
+		exit(0);
 	} else {
 		$msg = sprintf("%d tests failed (%.1f%% failure rate)", $fail_count, ($fail_count / $total) * 100);
 		print $msg . str_repeat(" ", 81 - strlen($msg)) . $fail_str . "\n";
+		exit(1);
 	}
 } else {
+	$sluz->assign("fail_count", $fail_count);
+	$sluz->assign("pass_count", $pass_count);
+	$sluz->assign("total", $total);
+
 	$sluz->assign("tests", $test_output);
 	$sluz->tpl_file = "tpls/tests.stpl";
 	print $sluz->parse();
@@ -165,7 +176,7 @@ function sluz_test($input, $expected, $test_name) {
 		if ($is_cli) {
 			print $ok_str . "\n";
 		}
-		$test_output[] = [$lead,0];
+		$test_output[] = [$test_name,0];
 		$pass_count++;
 	} elseif ($is_regexp && !preg_match($expected, $html)) {
 		if ($is_cli) {
@@ -173,7 +184,7 @@ function sluz_test($input, $expected, $test_name) {
 			print "  * Expected $expected but got $html (from: $file #$line)\n";
 		}
 
-		$test_output[] = [$lead,"Expected $expected but got $html (from: $file #$line)"];
+		$test_output[] = [$test_name,"Expected $expected but got $html<br />(from: $file #$line)"];
 
 		$fail_count++;
 	} elseif ($html === $expected) {
@@ -181,7 +192,7 @@ function sluz_test($input, $expected, $test_name) {
 			print $ok_str . "\n";
 		}
 
-		$test_output[] = [$lead,0];
+		$test_output[] = [$test_name,0];
 
 		$pass_count++;
 	} else {
@@ -194,7 +205,7 @@ function sluz_test($input, $expected, $test_name) {
 			print "  * Expected $expected but got $html (from: $file #$line)\n";
 		}
 
-		$test_output[] = [$lead,"Expected $expected but got $html (from: $file #$line)"];
+		$test_output[] = [$test_name,"Expected $expected but got $html<br />(from: $file #$line)"];
 
 		$fail_count++;
 	}
