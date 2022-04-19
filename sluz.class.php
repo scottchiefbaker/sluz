@@ -81,7 +81,7 @@ class sluz {
 			// Build all the rules and associated values
 			$rules  = [];
 			for ($i = 0; $i < $part_count; $i++) {
-				$rules[] = [$cond[$i],$parts[$i]];
+				$rules[] = [$cond[$i] ?? null,$parts[$i] ?? null];
 			}
 
 			foreach ($rules as $x) {
@@ -178,6 +178,14 @@ class sluz {
 			$is_open   = $char === "{";
 			$is_closed = $char === "}";
 			$has_len   = $start != $i;
+
+			$prev_c = substr($str, $i - 1, 1);
+			$next_c = substr($str, $i + 1, 1);
+			$chunk  = $prev_c . $char . $next_c;
+
+			if ($is_open && preg_match("/\s[\{\}]\s/", $chunk)) {
+				$is_open = false;
+			}
 
 			if ($is_open && $has_len) {
 				$len = $i - $start;
