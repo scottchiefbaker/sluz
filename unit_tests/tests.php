@@ -103,6 +103,7 @@ sluz_test('{literal}}{/literal}'                  , '}'                  , 'Lite
 sluz_test('{literal}{}{/literal}'                 , '{}'                 , 'Literal #3 - {}');
 sluz_test('{literal}{literal}{/literal}'          , '{literal}'          , 'Literal #4 - {literal}');
 sluz_test('{literal}{literal}{/literal}{/literal}', '{literal}{/literal}', 'Literal #5 - Meta literal');
+sluz_test(' { '                                   , ' { '                , 'Literal #6 - { with whitespace');
 
 sluz_test('{* Comment *}'  , '', 'Comment #1 - With text');
 sluz_test('{* ********* *}', '', 'Comment #2 - ******');
@@ -111,6 +112,11 @@ sluz_test('{**}'           , '', 'Comment #3 - No whitespace');
 sluz_test('{include file=\'extra.stpl\'}', '/e1ab49cf/' , 'Include #1 - file=\'extra.stpl\'');
 sluz_test('{include \'extra.stpl\'}'     , '/e1ab49cf/' , 'Include #2 - \'extra.stpl\'');
 sluz_test('{include}'                    , 'ERROR-73467', 'Include #3 - No payload');
+
+sluz_test(['{$a}{$b}{$c}']              , 3, 'Get blocks #1 - Basic variables');
+sluz_test(['{if $a}{$a}{/if}']          , 1, 'Get blocks #2 - Basic variables');
+sluz_test(['Jason{$a}Baker{$b}']        , 4, 'Get blocks #3 - Basic variables');
+sluz_test(['function(foo) { $i = 10; }'], 1, 'Get blocks #4 - javascript function');
 
 $total = $pass_count + $fail_count;
 
@@ -152,7 +158,12 @@ function sluz_test($input, $expected, $test_name) {
 
 	if (!empty($filter) && !preg_match("/$filter/i", $test_name)) { return; }
 
-	$html = $sluz->process_block($input);
+	if (is_array($input)) {
+		$res  = $sluz->get_blocks($input[0]);
+		$html = count($res);
+	} else {
+		$html = $sluz->process_block($input);
+	}
 
 	$lead = "Test '$test_name' ";
 	$pad  = str_repeat(" ", 80 - (strlen($lead)));
