@@ -35,7 +35,7 @@
 			{if $x.1}
 			<div class="test_result_fail text-danger text-end">{$x.1}</div>
 			{else}
-			<div class="test_result_pass text-success text-end">Success</div>
+			<div class="test_result_pass text-success text-end">Passed</div>
 			{/if}
 		</div>
 		{/foreach}
