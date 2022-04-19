@@ -57,7 +57,7 @@ sluz_test('{$number + 3}'       , 18           , 'Basic #9 - Addition');
 sluz_test('{$first . "foo"}'    , "Scottfoo"   , 'Basic #10 - Concat');
 sluz_test('{$number * $debug}'  , 15           , 'Basic #11 - Multiplication of two vars');
 sluz_test('{3}'                 , 3            , 'Basic #12 - Number literal');
-sluz_test('{"Scott"}'           , "Scott"      , 'Basic #13 - String literall');
+sluz_test('{"Scott"}'           , "Scott"      , 'Basic #13 - String literal');
 sluz_test('{"Scott" . "Baker"}' , "ScottBaker" , 'Basic #14 - String concat');
 sluz_test('{$color . $age}'     , "yellow43"   , 'Basic #15 - Hash group assignment');
 sluz_test('{$x}'                , "7"          , 'Basic #16 - Single Character variable');
