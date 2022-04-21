@@ -88,7 +88,7 @@ class sluz {
 			// Build all the rules and associated values
 			$rules  = [];
 			for ($i = 0; $i < $part_count; $i++) {
-				$rules[] = [$cond[$i],$parts[$i]];
+				$rules[] = [$cond[$i] ?? null,$parts[$i] ?? null];
 			}
 
 			foreach ($rules as $x) {
@@ -186,6 +186,14 @@ class sluz {
 			$is_closed = $char === "}";
 			$has_len   = $start != $i;
 
+			$prev_c = substr($str, $i - 1, 1);
+			$next_c = substr($str, $i + 1, 1);
+			$chunk  = $prev_c . $char . $next_c;
+
+			if ($is_open && preg_match("/\s[\{\}]\s/", $chunk)) {
+				$is_open = false;
+			}
+
 			if ($is_open && $has_len) {
 				$len = $i - $start;
 				$block = substr($str, $start, $len);
@@ -236,11 +244,13 @@ class sluz {
 		$tf             = $this->get_tpl_file($tpl_file);
 		$this->tpl_file = $tf;
 
-		if (!is_readable($tf)) {
+		if ($tpl_file === "INLINE") {
+			$str = $this->get_inline_content($this->php_file);
+		} elseif (!is_readable($tf)) {
 			$this->error_out("Unable to load template file <code>$tf</code>",42280);
+		} else {
+			$str = file_get_contents($tf);
 		}
-
-		$str = file_get_contents($tf);
 
 		if ($this->debug) { print nl2br(htmlentities($str)) . "<hr>"; }
 
@@ -253,6 +263,18 @@ class sluz {
 		$this->parse_called = true;
 
 		return $html;
+	}
+
+	private function get_inline_content($file) {
+		$str    = file_get_contents($file);
+		$offset = stripos($str, '__halt_compiler();');
+
+		if ($offset === false) {
+			return null;
+		}
+
+		$str = substr($str, $offset + 19);
+		return $str;
 	}
 
 	function include_callback(array $m) {
@@ -290,10 +312,14 @@ class sluz {
 
 	// If there is not template specified we "guess" based on the PHP filename
 	function get_tpl_file($tpl_file) {
-		if (!$tpl_file) {
-			$x         = debug_backtrace();
-			$orig_file = basename($x[1]['file']);
-			$tpl_file  = $this->guess_tpl_file($orig_file);
+		$x              = debug_backtrace();
+		$orig_file      = basename($x[1]['file']);
+		$this->php_file = $orig_file;
+
+		if ($tpl_file === "INLINE") {
+			$tpl_file = null;
+		} elseif (!$tpl_file) {
+			$tpl_file = $this->guess_tpl_file($orig_file);
 		}
 
 		return $tpl_file;
