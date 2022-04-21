@@ -5,7 +5,7 @@
 	}
 	.header { font-weight: bold; }
 
-	.tpl { margin-top: 1em; }
+	.tpl, .out { margin-top: 1em; }
 
 	.tpl_file, .php_file, .output {
 		border: 1px solid;
@@ -41,13 +41,16 @@
 		Template:
 	</div>
 	<div class="tpl_file">
-<pre class="m-0">{$tpl_contents}</pre>
+		<pre class="m-0">{$tpl_contents}</pre>
 	</div>
 </div>
 {/if}
 
-<div class="" style="margin-top: 1em;">
-	<a href="{$doc_name}">View output</a>
+<div class="header out">
+	<a href="{$doc_name}">Output:</a>
+</div>
+<div class="output" style="margin-top: 0em;">
+	<iframe style="border: 0px; width: 100%; height: 15em;" src="{$doc_name}"></iframe>
 </div>
 
 <hr />
