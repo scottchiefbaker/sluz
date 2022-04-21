@@ -312,9 +312,12 @@ class sluz {
 
 	// If there is not template specified we "guess" based on the PHP filename
 	function get_tpl_file($tpl_file) {
-		$x              = debug_backtrace();
-		$orig_file      = basename($x[1]['file']);
-		$this->php_file = $orig_file;
+		$x         = debug_backtrace();
+		$orig_file = basename($x[1]['file']);
+
+		if (!$this->php_file) {
+			$this->php_file = $orig_file;
+		}
 
 		if ($tpl_file === "INLINE") {
 			$tpl_file = null;
