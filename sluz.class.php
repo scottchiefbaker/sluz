@@ -237,11 +237,13 @@ class sluz {
 		$tf             = $this->get_tpl_file($tpl_file);
 		$this->tpl_file = $tf;
 
-		if (!is_readable($tf)) {
+		if ($tpl_file === "INLINE") {
+			$str = $this->get_inline_content($this->php_file);
+		} elseif (!is_readable($tf)) {
 			$this->error_out("Unable to load template file <code>$tf</code>",42280);
+		} else {
+			$str = file_get_contents($tf);
 		}
-
-		$str = file_get_contents($tf);
 
 		if ($this->debug) { print nl2br(htmlentities($str)) . "<hr>"; }
 
@@ -252,6 +254,18 @@ class sluz {
 		}
 
 		return $html;
+	}
+
+	private function get_inline_content($file) {
+		$str    = file_get_contents($file);
+		$offset = stripos($str, '__halt_compiler();');
+
+		if ($offset === false) {
+			return null;
+		}
+
+		$str = substr($str, $offset + 19);
+		return $str;
 	}
 
 	function include_callback(array $m) {
@@ -289,10 +303,14 @@ class sluz {
 
 	// If there is not template specified we "guess" based on the PHP filename
 	function get_tpl_file($tpl_file) {
-		if (!$tpl_file) {
-			$x         = debug_backtrace();
-			$orig_file = basename($x[1]['file']);
-			$tpl_file  = $this->guess_tpl_file($orig_file);
+		$x              = debug_backtrace();
+		$orig_file      = basename($x[1]['file']);
+		$this->php_file = $orig_file;
+
+		if ($tpl_file === "INLINE") {
+			$tpl_file = null;
+		} elseif (!$tpl_file) {
+			$tpl_file = $this->guess_tpl_file($orig_file);
 		}
 
 		return $tpl_file;
