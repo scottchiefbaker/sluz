@@ -35,6 +35,7 @@
 	</div>
 </div>
 
+{if $tpl_contents}
 <div class="tpl">
 	<div class="header">
 		Template:
@@ -43,6 +44,7 @@
 <pre class="m-0">{$tpl_contents}</pre>
 	</div>
 </div>
+{/if}
 
 <div class="" style="margin-top: 1em;">
 	<a href="{$doc_name}">View output</a>

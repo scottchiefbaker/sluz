@@ -14,7 +14,11 @@ $str  = file_get_contents($doc_file);
 $phpc = highlight_string($str, true);
 
 $tpl_file = $s->guess_tpl_file($doc_file);
-$tplc     = htmlentities(file_get_contents($tpl_file));
+if (is_readable($tpl_file)) {
+	$tplc = htmlentities(file_get_contents($tpl_file));
+} else {
+	$tplc = '';
+}
 
 $doc_files = get_doc_file_list();
 
