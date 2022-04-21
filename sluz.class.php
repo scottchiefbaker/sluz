@@ -244,7 +244,10 @@ class sluz {
 		$tf             = $this->get_tpl_file($tpl_file);
 		$this->tpl_file = $tf;
 
-		if ($tpl_file === "INLINE") {
+		// If we're in simple mode and we have a __halt_compiler() we can assume inline mode
+		$inline_simple = $this->simple_mode && $this->get_inline_content($this->php_file);
+
+		if ($tpl_file === "INLINE" || $inline_simple) {
 			$str = $this->get_inline_content($this->php_file);
 		} elseif (!is_readable($tf)) {
 			$this->error_out("Unable to load template file <code>$tf</code>",42280);
@@ -274,6 +277,7 @@ class sluz {
 		}
 
 		$str = substr($str, $offset + 19);
+
 		return $str;
 	}
 
@@ -333,7 +337,7 @@ class sluz {
 			$php_file = $this->php_file;
 		}
 
-		$php_file = preg_replace("/.php$/", '', $php_file);
+		$php_file = preg_replace("/.php$/", '', basename($php_file));
 		$dir      = $this->tpl_path ?? "tpls/";
 		$tpl_file = $dir . $php_file . ".stpl";
 
@@ -459,7 +463,7 @@ class sluz {
 	}
 
 	function enable_simple_mode($php_file) {
-		$this->php_file    = basename($php_file);
+		$this->php_file    = $php_file;
 		$this->tpl_path    = realpath(dirname($this->php_file) . "/tpls/") . "/";
 		$this->simple_mode = true;
 	}
