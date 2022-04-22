@@ -35,6 +35,13 @@ print $s->parse();</pre>
 	{/literal}
 	</div>
 
-	<a href="docs/read.php?doc=001_basic_vars">More documentation</a>
+	<div class="row">
+		<div class="col">
+			<a href="docs/read.php?doc=001_basic_vars">More documentation</a>
+		</div>
+		<div class="col text-end">
+			<a href="unit_tests/tests.php">Run unit tests</a>
+		</div>
+	</div>
   </body>
 </html>
