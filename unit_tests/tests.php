@@ -27,20 +27,21 @@ $hash = ['color' => 'yellow', 'age' => 43, 'book' => 'Dark Tower'];
 
 $is_cli = (php_sapi_name() == "cli");
 
-$sluz->assign('x'      , '7');
-$sluz->assign('key'    , 'val');
-$sluz->assign('first'  , "Scott");
-$sluz->assign('last'   , "Baker");
-$sluz->assign('animal' , "Kitten");
-$sluz->assign('debug'  , 1);
-$sluz->assign('array'  , ['one', 'two', 'three']);
-$sluz->assign('cust'   , ['first' => 'Scott', 'last' => 'Baker']);
-$sluz->assign('number' , 15);
-$sluz->assign('zero'   , 0);
-$sluz->assign('members', [['first' => 'Scott', 'last' => 'Baker'], ['first' => 'Jason', 'last' => 'Doolis']]);
-$sluz->assign('subarr' , ['one' => [2,4,6], 'two' => [3,6,9]]);
-$sluz->assign('arrayd' , [[1,2],[3,4],[5,6]]);
-$sluz->assign('empty'  , []);
+$sluz->assign('x'          , '7');
+$sluz->assign('key'        , 'val');
+$sluz->assign('first'      , "Scott");
+$sluz->assign('last'       , "Baker");
+$sluz->assign('animal'     , "Kitten");
+$sluz->assign('debug'      , 1);
+$sluz->assign('array'      , ['one', 'two', 'three']);
+$sluz->assign('cust'       , ['first' => 'Scott', 'last' => 'Baker']);
+$sluz->assign('number'     , 15);
+$sluz->assign('zero'       , 0);
+$sluz->assign('members'    , [['first' => 'Scott', 'last' => 'Baker'], ['first' => 'Jason', 'last' => 'Doolis']]);
+$sluz->assign('subarr'     , ['one' => [2,4,6], 'two' => [3,6,9]]);
+$sluz->assign('arrayd'     , [[1,2],[3,4],[5,6]]);
+$sluz->assign('empty'      , []);
+$sluz->assign('php_version', phpversion());
 $sluz->assign($hash);
 
 $test_output = [];
@@ -122,6 +123,7 @@ $total = $pass_count + $fail_count;
 
 if ($is_cli) {
 	print "\n";
+	printf("Tests run on PHP %s\n", phpversion());
 	if ($total === 0) {
 		print $red . "Warning:$reset no tests were run?\n";
 		exit(3);
