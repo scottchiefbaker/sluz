@@ -194,6 +194,10 @@ function sluz_test($input, $expected, $test_name) {
 		$test_output[] = [$test_name,0];
 		$pass_count++;
 	} elseif ($is_regexp && !preg_match($expected, $html)) {
+		$d = debug_backtrace();
+		$file = $d[0]['file'];
+		$line = $d[0]['line'];
+
 		if ($is_cli) {
 			print $fail_str . "\n";
 			print "  * Expected $expected but got $html (from: $file #$line)\n";
