@@ -6,7 +6,7 @@ class sluz {
 	public  $version      = '0.2';
 	public  $tpl_file     = null;
 	public  $debug        = 0;
-	public  $in_unit_test = true;
+	public  $in_unit_test = false;
 
 	private $tpl_path     = null;
 	private $tpl_vars     = [];
@@ -15,15 +15,15 @@ class sluz {
 	private $simple_mode  = false;
 	private $parse_called = false;
 
-	function __construct() { }
-	function __destruct()  {
+	public function __construct() { }
+	public function __destruct()  {
 		// In simple mode we auto print the output
 		if ($this->simple_mode && !$this->parse_called) {
 			print $this->parse();
 		}
 	}
 
-	function assign($key, $val = null) {
+	public function assign($key, $val = null) {
 		// Single item call (assign array at once)
 		if (is_null($val) && is_array($key)) {
 			foreach ($key as $k => $v) {
@@ -34,7 +34,7 @@ class sluz {
 		}
 	}
 
-	function process_block(string $str) {
+	public function process_block(string $str) {
 		$cur = error_reporting(); // Save current level so we can restore it
 		error_reporting(E_ALL & ~E_NOTICE); // Disable E_NOTICE
 
@@ -176,7 +176,7 @@ class sluz {
 		return $ret;
 	}
 
-	function get_blocks($str) {
+	public function get_blocks($str) {
 		$start  = 0;
 		$blocks = [];
 
@@ -241,7 +241,7 @@ class sluz {
 
 	// Specify a path to the .stpl file, or pass nothing to let sluz 'guess'
 	// Guess is 'tpls/[scriptname_minus_dot_php].stpl
-	function parse($tpl_file = "") {
+	public function parse($tpl_file = "") {
 		$tf             = $this->get_tpl_file($tpl_file);
 		$this->tpl_file = $tf;
 
@@ -282,7 +282,7 @@ class sluz {
 		return $str;
 	}
 
-	function include_callback(array $m) {
+	private function include_callback(array $m) {
 		$str  = $m[0];
 		$file = '';
 		if (preg_match("/(file=)?'(.+?)'/", $str, $m)) {
@@ -316,7 +316,7 @@ class sluz {
 	}
 
 	// If there is not template specified we "guess" based on the PHP filename
-	function get_tpl_file($tpl_file) {
+	private function get_tpl_file($tpl_file) {
 		$x         = debug_backtrace();
 		$orig_file = basename($x[1]['file']);
 
@@ -333,7 +333,7 @@ class sluz {
 		return $tpl_file;
 	}
 
-	function guess_tpl_file(string $php_file) {
+	private function guess_tpl_file(string $php_file) {
 		if ($this->simple_mode && !$this->tpl_file) {
 			$php_file = $this->php_file;
 		}
@@ -346,7 +346,7 @@ class sluz {
 	}
 
 
-	function array_dive(string $needle, array $haystack) {
+	public function array_dive(string $needle, array $haystack) {
 		// Split at the periods
 		$parts = explode(".", $needle);
 
@@ -373,7 +373,7 @@ class sluz {
 	}
 
 	// Convert $cust.name.first -> $cust['name']['first'] and $num.0.3 -> $num[0][3]
-	function convert_variables_in_string($str) {
+	private function convert_variables_in_string($str) {
 		$dot_to_bracket_callback = function($m) {
 			$str   = $m[1];
 			$parts = explode(".", $str);
@@ -397,7 +397,7 @@ class sluz {
 		return $str;
 	}
 
-	function error_out($msg, int $err_num) {
+	public function error_out($msg, int $err_num) {
 		$out = "<style>
 			.s_error {
 				font-family: sans;
@@ -447,7 +447,7 @@ class sluz {
 		exit;
 	}
 
-	function peval($str) {
+	private function peval($str) {
 		extract($this->tpl_vars, EXTR_PREFIX_ALL, $this->var_prefix);
 
 		$ret      = '';
@@ -463,13 +463,15 @@ class sluz {
 		return $ret;
 	}
 
-	function enable_simple_mode($php_file) {
+	private function enable_simple_mode($php_file) {
 		$this->php_file    = $php_file;
 		$this->tpl_path    = realpath(dirname($this->php_file) . "/tpls/") . "/";
 		$this->simple_mode = true;
 	}
 }
 
+// This function is *OUTSIDE* of the class so it can be called separately with
+// instantiating the class
 function sluz($one, $two = null) {
 	static $s;
 

@@ -5,9 +5,9 @@
 $dir = dirname(__FILE__);
 include("$dir/../sluz.class.php");
 
-$sluz = new sluz;
-$sluz->debug = 0;
-$sluz->in_unit_test = 1;
+$sluz               = new sluz;
+$sluz->debug        = 0;
+$sluz->in_unit_test = true;
 
 // Check if there is a filter at the command line
 $filter = $argv[1] ?? $_GET['filter'] ?? "";
