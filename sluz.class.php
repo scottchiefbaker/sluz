@@ -3,13 +3,14 @@
 ////////////////////////////////////////////////////////
 
 class sluz {
-	private $tpl_vars     = [];
-	private $tpl_path     = null;
-	public  $tpl_file     = null;
-	private $php_file     = null;
-	public  $debug        = 0;
 	public  $version      = '0.2';
-	public  $in_unit_test = 0;
+	public  $tpl_file     = null;
+	public  $debug        = 0;
+	public  $in_unit_test = true;
+
+	private $tpl_path     = null;
+	private $tpl_vars     = [];
+	private $php_file     = null;
 	private $var_prefix   = "sluz_pfx";
 	private $simple_mode  = false;
 	private $parse_called = false;
