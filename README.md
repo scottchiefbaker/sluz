@@ -5,7 +5,8 @@ syntax similar to [Smarty](https://www.smarty.net/). This allows
 you to separate your logic (`.php`) and your presentation (`.stpl`)
 files.
 
-The goal of Sluz is to be a **small** single PHP source file.
+The goal of Sluz is to be a **small**, single PHP source file, that
+emulates simple Smarty-like syntax.
 
 ## Getting started
 
@@ -15,7 +16,7 @@ include('/path/to/sluz/sluz.class.php');
 $s = new sluz();
 
 $s->assign("name", "Jason");
-$s->assign("version", "0.2");
+$s->assign("version", "0.3");
 
 print $s->parse();
 ```
@@ -29,7 +30,7 @@ File: `tpls/script.stpl`
 
 ## Requirements
 
-Sluz has no external library requirements. Only the `sluz.class.php` is
+Sluz has no external library requirements. **Only** the `sluz.class.php` is
 needed for the library to function.
 
 ## Testing
