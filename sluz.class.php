@@ -3,7 +3,7 @@
 ////////////////////////////////////////////////////////
 
 class sluz {
-	public  $version      = '0.2';
+	public  $version      = '0.3';
 	public  $tpl_file     = null;
 	public  $debug        = 0;
 	public  $in_unit_test = false;
