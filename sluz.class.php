@@ -301,11 +301,7 @@ class sluz {
 			}
 		}
 
-		$tpl_dir = dirname($this->tpl_file ?? "");
-		if ($this->in_unit_test) {
-			$tpl_dir = "tpls";
-		}
-		$inc_tpl = $tpl_dir . '/' . $file;
+		$inc_tpl = ($this->tpl_dir ?? "tpls/") . $file;
 
 		if ($file && is_readable($inc_tpl)) {
 			$ext_str = file_get_contents($inc_tpl);
