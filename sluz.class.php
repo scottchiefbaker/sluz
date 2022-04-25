@@ -329,7 +329,7 @@ class sluz {
 		return $tpl_file;
 	}
 
-	private function guess_tpl_file(string $php_file) {
+	public function guess_tpl_file(string $php_file) {
 		if ($this->simple_mode && !$this->tpl_file) {
 			$php_file = $this->php_file;
 		}
