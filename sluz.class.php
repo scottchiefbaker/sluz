@@ -459,7 +459,7 @@ class sluz {
 		return $ret;
 	}
 
-	private function enable_simple_mode($php_file) {
+	public function enable_simple_mode($php_file) {
 		$this->php_file    = $php_file;
 		$this->tpl_path    = realpath(dirname($this->php_file) . "/tpls/") . "/";
 		$this->simple_mode = true;
