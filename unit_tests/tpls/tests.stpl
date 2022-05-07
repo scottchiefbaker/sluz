@@ -18,7 +18,7 @@
 	{/literal}
   </head>
   <body class="container">
-	<h1 class="mb-3">Sluz unit tests on PHP {$php_version}</h1>
+	<h1 class="mb-3">Sluz {$sluz_version} unit tests on PHP {$php_version}</h1>
 
 	{if $total === 0}
 	<div class="alert alert-warning"><b>Warning:</b> No tests were run</div>
