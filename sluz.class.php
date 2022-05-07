@@ -26,9 +26,7 @@ class sluz {
 	public function assign($key, $val = null) {
 		// Single item call (assign array at once)
 		if (is_null($val) && is_array($key)) {
-			foreach ($key as $k => $v) {
-				$this->tpl_vars[$k] = $v;
-			}
+			$this->tpl_vars = array_merge($this->tpl_vars, $key);
 		} else {
 			$this->tpl_vars[$key] = $val;
 		}
