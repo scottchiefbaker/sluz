@@ -80,7 +80,8 @@ class sluz {
 		$blocks = [];
 
 		for ($i = 0; $i < strlen($str); $i++) {
-			$char = substr($str, $i, 1);
+			//$char = substr($str, $i, 1);
+			$char = $str[$i];
 
 			$is_open   = $char === "{";
 			$is_closed = $char === "}";
@@ -88,8 +89,8 @@ class sluz {
 
 			// Check to see if it's a real {} block
 			if ($is_open) {
-				$prev_c = substr($str, $i - 1, 1);
-				$next_c = substr($str, $i + 1, 1);
+				$prev_c = $str[$i - 1];
+				$next_c = $str[$i + 1];
 				$chunk  = $prev_c . $char . $next_c;
 
 				// If the { is surrounded by whitespace it's not a block
@@ -112,7 +113,7 @@ class sluz {
 				// If we're in a function, loop until we find the end end
 				if ($is_function) {
 					for ($j = $i + 1; $j < strlen($str); $j++) {
-						$closed = (substr($str, $j, 1) === "}");
+						$closed = ($str[$j] === "}");
 						if ($closed) {
 							$len = $j - $start + 1;
 							$tmp = substr($str, $start, $len);
