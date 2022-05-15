@@ -48,102 +48,15 @@ class sluz {
 			$ret = $str;
 		// Simple variable replacement
 		} elseif (preg_match('/^\{\s*\$(\w[\w\|\.]*?)\s*\}$/', $str, $m)) {
-			$key = $m[1];
-			if (preg_match("/(.+?)\|(.+)/", $key, $m)) {
-				$key = $m[1];
-				$mod = $m[2];
-
-				$pre = $this->array_dive($key, $this->tpl_vars) ?? "";
-				$ret = call_user_func($mod, $pre);
-			} else {
-				$ret = $this->array_dive($key, $this->tpl_vars) ?? "";
-			}
+			$ret = $this->variable_block($m[1]);
 		// If statement
 		} elseif (preg_match('/^\{if (.+?)\}(.+)\{\/if\}$/s', $str, $m)) {
-			// Put the tpl_vars in the current scope so if works against them
-			extract($this->tpl_vars, EXTR_PREFIX_ALL, $this->var_prefix);
-
-			// We build a list of tests and their output value if true in $rules
-			// We extract the conditions in $cond and the true values in $parts
-
-			// The first condition is the {if XXXX} var from above
-			$cond[]  = $m[1];
-			$payload = $m[2];
-			// This is the number of if/elseif/else blocks we need to find tests for
-			$part_count = preg_match_all("/\{(if|elseif|else\})/", $str, $m);
-
-			// The middle conditions are the {elseif XXXX} stuff
-			preg_match_all("/\{elseif (.+?)\}/", $payload, $m);
-			foreach ($m[1] as $i) {
-				$cond[] = $i;
-			}
-
-			// The last condition is the else and it's always true
-			$cond[] = 1;
-
-			// This gets us all the payload elements
-			$parts  = preg_split("/(\{elseif (.+?)\}|\{else\})/", $payload);
-
-			// Build all the rules and associated values
-			$rules  = [];
-			for ($i = 0; $i < $part_count; $i++) {
-				$rules[] = [$cond[$i] ?? null,$parts[$i] ?? null];
-			}
-
-			foreach ($rules as $x) {
-				$test    = $x[0];
-				$payload = $x[1];
-				$testp   = $this->convert_variables_in_string($test);
-
-				if ($this->peval($testp)) {
-					$blocks = $this->get_blocks($payload);
-
-					foreach ($blocks as $block) {
-						$ret .= $this->process_block($block);
-					}
-
-					// One of the tests was true so we stop processing
-					break;
-				}
-			}
+			$ret = $this->if_block($str, $m);
 		} elseif (preg_match('/^\{foreach (\$\w[\w.]+) as \$(\w+)( => \$(\w+))?\}(.+)\{\/foreach\}$/s', $str, $m)) {
-			$src     = $this->convert_variables_in_string($m[1]); // src array
-			$okey    = $m[2]; // orig key
-			$oval    = $m[4]; // orig val
-			$payload = $m[5]; // code block to parse on iteration
-
-			$src = $this->peval($src);
-
-			if (!is_array($src)) {
-				return $this->error_out($m[1] . " is not an array", 85824);
-			}
-
-			// Temp set a key/val so when we process this section it's correct
-			foreach ($src as $key => $val) {
-				// This is a key/val pair: foreach $key => $val
-				if ($oval) {
-					$this->tpl_vars[$okey] = $key;
-					$this->tpl_vars[$oval] = $val;
-				// This is: foreach $array as $item
-				} else {
-					$this->tpl_vars[$okey] = $val;
-				}
-
-				$blocks = $this->get_blocks($payload);
-
-				foreach ($blocks as $block) {
-					$ret .= $this->process_block($block);
-				}
-			}
+			$ret = $this->foreach_block($m);
 		// An {include file='my.stpl' number='99'} block
 		} elseif (preg_match('/^\{include.+?\}$/s', $str, $m)) {
-			$callback = [$this, 'include_callback']; // Object callback syntax
-			$str      = preg_replace_callback("/\{include.+?\}/", $callback, $str);
-			$blocks   = $this->get_blocks($str);
-
-			foreach ($blocks as $block) {
-				$ret .= $this->process_block($block);
-			}
+			$ret = $this->include_block($str);
 		// A {literal}Stuff here{/literal} block pair
 		} elseif (preg_match('/^\{literal\}(.+)\{\/literal\}$/s', $str, $m)) {
 			$ret = $m[1];
@@ -152,19 +65,7 @@ class sluz {
 			$ret = '';
 		// Catch all for other { $num + 3 } type of blocks
 		} elseif (preg_match('/^\{(.+)}$/s', $str, $m)) {
-			// Make sure the block has something parseble... at least a $ or "
-			if (!preg_match("/[\"\d$]/", $str)) {
-				return $this->error_out("Unknown block type '$str'", 73467);
-			}
-
-			$blk   = $m[1];
-			$after = $this->convert_variables_in_string($blk);
-			$ret   = $this->peval($after);
-
-			if (!$ret) {
-				$ret = $str;
-				return $this->error_out("Unknown tag '$str'", 18933);
-			}
+			$ret = $this->expression_block($str, $m);
 		} else {
 			$ret = "???";
 		}
@@ -455,6 +356,139 @@ class sluz {
 		$this->php_file    = $php_file;
 		$this->tpl_path    = realpath(dirname($this->php_file) . "/tpls/") . "/";
 		$this->simple_mode = true;
+	}
+
+	private function variable_block($str) {
+		if (preg_match("/(.+?)\|(.+)/", $str, $m)) {
+			$key = $m[1];
+			$mod = $m[2];
+
+			$pre = $this->array_dive($key, $this->tpl_vars) ?? "";
+			$ret = call_user_func($mod, $pre);
+		} else {
+			$ret = $this->array_dive($str, $this->tpl_vars) ?? "";
+		}
+
+		return $ret;
+	}
+
+	private function if_block($str, $m) {
+		// Put the tpl_vars in the current scope so if works against them
+		extract($this->tpl_vars, EXTR_PREFIX_ALL, $this->var_prefix);
+
+		$cond[]  = $m[1];
+		$payload = $m[2];
+
+		// We build a list of tests and their output value if true in $rules
+		// We extract the conditions in $cond and the true values in $parts
+
+		// This is the number of if/elseif/else blocks we need to find tests for
+		$part_count = preg_match_all("/\{(if|elseif|else\})/", $str, $m);
+
+		// The middle conditions are the {elseif XXXX} stuff
+		preg_match_all("/\{elseif (.+?)\}/", $payload, $m);
+		foreach ($m[1] as $i) {
+			$cond[] = $i;
+		}
+
+		// The last condition is the else and it's always true
+		$cond[] = 1;
+
+		// This gets us all the payload elements
+		$parts  = preg_split("/(\{elseif (.+?)\}|\{else\})/", $payload);
+
+		// Build all the rules and associated values
+		$rules  = [];
+		for ($i = 0; $i < $part_count; $i++) {
+			$rules[] = [$cond[$i] ?? null,$parts[$i] ?? null];
+		}
+
+		$ret = "";
+		foreach ($rules as $x) {
+			$test    = $x[0];
+			$payload = $x[1];
+			$testp   = $this->convert_variables_in_string($test);
+
+			if ($this->peval($testp)) {
+				$blocks = $this->get_blocks($payload);
+
+				foreach ($blocks as $block) {
+					$ret .= $this->process_block($block);
+				}
+
+				// One of the tests was true so we stop processing
+				break;
+			}
+		}
+
+		return $ret;
+	}
+
+	private function include_block($str) {
+		$callback = [$this, 'include_callback']; // Object callback syntax
+		$str      = preg_replace_callback("/\{include.+?\}/", $callback, $str);
+		$blocks   = $this->get_blocks($str);
+
+		$ret = '';
+		foreach ($blocks as $block) {
+			$ret .= $this->process_block($block);
+		}
+
+		return $ret;
+	}
+
+	private function foreach_block($m) {
+		$src     = $this->convert_variables_in_string($m[1]); // src array
+		$okey    = $m[2]; // orig key
+		$oval    = $m[4]; // orig val
+		$payload = $m[5]; // code block to parse on iteration
+
+		$src = $this->peval($src);
+
+		if (!is_array($src)) {
+			return $this->error_out($m[1] . " is not an array", 85824);
+		}
+
+		$ret = '';
+		// Temp set a key/val so when we process this section it's correct
+		foreach ($src as $key => $val) {
+			// This is a key/val pair: foreach $key => $val
+			if ($oval) {
+				$this->tpl_vars[$okey] = $key;
+				$this->tpl_vars[$oval] = $val;
+				// This is: foreach $array as $item
+			} else {
+				$this->tpl_vars[$okey] = $val;
+			}
+
+			$blocks = $this->get_blocks($payload);
+
+			foreach ($blocks as $block) {
+				$ret .= $this->process_block($block);
+			}
+		}
+
+		return $ret;
+	}
+
+	private function expression_block($str, $m) {
+		$ret = "";
+
+		// Make sure the block has something parseble... at least a $ or "
+		if (!preg_match("/[\"\d$]/", $str)) {
+			return $this->error_out("Unknown block type '$str'", 73467);
+		}
+
+		$blk   = $m[1];
+		$after = $this->convert_variables_in_string($blk);
+		$ret   = $this->peval($after);
+
+		if (!$ret) {
+			$ret = $str;
+			return $this->error_out("Unknown tag '$str'", 18933);
+		}
+
+		return $ret;
 	}
 }
 
