@@ -86,12 +86,16 @@ class sluz {
 			$is_closed = $char === "}";
 			$has_len   = $start != $i;
 
-			$prev_c = substr($str, $i - 1, 1);
-			$next_c = substr($str, $i + 1, 1);
-			$chunk  = $prev_c . $char . $next_c;
+			// Check to see if it's a real {} block
+			if ($is_open) {
+				$prev_c = substr($str, $i - 1, 1);
+				$next_c = substr($str, $i + 1, 1);
+				$chunk  = $prev_c . $char . $next_c;
 
-			if ($is_open && preg_match("/\s[\{\}]\s/", $chunk)) {
-				$is_open = false;
+				// If the { is surrounded by whitespace it's not a block
+				if (preg_match("/\s[\{\}]\s/", $chunk)) {
+					$is_open = false;
+				}
 			}
 
 			if ($is_open && $has_len) {
