@@ -32,6 +32,7 @@ class sluz {
 		}
 	}
 
+	// Convert template blocks in to output strings
 	public function process_block(string $str) {
 		$ret = '';
 
@@ -43,26 +44,28 @@ class sluz {
 		// If it doesn't start with a '{' it's plain text so we just return it
 		if ($str[0] !== "{") {
 			$ret = $str;
-		// Simple variable replacement
+		// Simple variable replacement {$foo}
 		} elseif (preg_match('/^\{\s*\$(\w[\w\|\.]*?)\s*\}$/', $str, $m)) {
 			$ret = $this->variable_block($m[1]);
-		// If statement
+		// If statement {if $foo}{/if}
 		} elseif (preg_match('/^\{if (.+?)\}(.+)\{\/if\}$/s', $str, $m)) {
 			$ret = $this->if_block($str, $m);
+		// Foreach {foreach $foo as $x}{/foreach}
 		} elseif (preg_match('/^\{foreach (\$\w[\w.]+) as \$(\w+)( => \$(\w+))?\}(.+)\{\/foreach\}$/s', $str, $m)) {
 			$ret = $this->foreach_block($m);
-		// An {include file='my.stpl' number='99'} block
+		// Include {include file='my.stpl' number='99'}
 		} elseif (preg_match('/^\{include.+?\}$/s', $str, $m)) {
 			$ret = $this->include_block($str);
-		// A {literal}Stuff here{/literal} block pair
+		// Liternal {literal}Stuff here{/literal}
 		} elseif (preg_match('/^\{literal\}(.+)\{\/literal\}$/s', $str, $m)) {
 			$ret = $m[1];
-		// A {* COMMENT *} block
+		// Comment {* info here *}
 		} elseif (preg_match('/^{\*.*\*\}/s', $str, $m)) {
 			$ret = '';
 		// Catch all for other { $num + 3 } type of blocks
 		} elseif (preg_match('/^\{(.+)}$/s', $str, $m)) {
 			$ret = $this->expression_block($str, $m);
+		// Something went WAY wrong
 		} else {
 			$ret = "???";
 		}
@@ -70,12 +73,13 @@ class sluz {
 		return $ret;
 	}
 
+	// Break the text up in to tokens/blocks to process by process_block()
 	public function get_blocks($str) {
 		$start  = 0;
 		$blocks = [];
+		$slen   = strlen($str);
 
-		for ($i = 0; $i < strlen($str); $i++) {
-			//$char = substr($str, $i, 1);
+		for ($i = 0; $i < $slen; $i++) {
 			$char = $str[$i];
 
 			$is_open   = $char === "{";
@@ -94,28 +98,35 @@ class sluz {
 				}
 			}
 
+			// if it's a "{" then the block is every from the last $start to here
 			if ($is_open && $has_len) {
-				$len = $i - $start;
+				$len   = $i - $start;
 				$block = substr($str, $start, $len);
 
 				$blocks[] = $block;
-				$start    += $len;
+				$start    = $i;
+			// If it's a "}" it's a closing block that starts at $start
 			} elseif ($is_closed) {
 				$len         = $i - $start + 1;
 				$block       = substr($str, $start, $len);
 				$is_function = preg_match("/^\{\w+/", $block);
 
-				// If we're in a function, loop until we find the end end
+				// If we're in a function, loop until we find the closing tag
 				if ($is_function) {
 					for ($j = $i + 1; $j < strlen($str); $j++) {
 						$closed = ($str[$j] === "}");
+
+						// If we find a close tag we check to see if it's the final closed tag
 						if ($closed) {
 							$len = $j - $start + 1;
 							$tmp = substr($str, $start, $len);
 
+							// Count the number of open functions
 							$of = preg_match_all("/\{(if|foreach|literal)/", $tmp);
+							// Count the number of closed functions
 							$cf = preg_match_all("/{\/\w+/", $tmp);
 
+							// If the open and closed are the same number we found the final tag
 							if ($of === $cf) {
 								$block = $tmp;
 								break;
@@ -131,7 +142,7 @@ class sluz {
 		}
 
 		// If we're not at the end of the string, add the last block
-		if ($start != strlen($str)) {
+		if ($start != $slen) {
 			$blocks[] = substr($str, $start);
 		}
 
@@ -173,6 +184,7 @@ class sluz {
 		return $html;
 	}
 
+	// Get the text after __halt_compiler()
 	private function get_inline_content($file) {
 		$str    = file_get_contents($file);
 		$offset = stripos($str, '__halt_compiler();');
@@ -186,6 +198,7 @@ class sluz {
 		return $str;
 	}
 
+	// The callback to do the include string replacement stuff
 	private function include_callback(array $m) {
 		$str  = $m[0];
 		$file = '';
@@ -245,7 +258,7 @@ class sluz {
 		return $tpl_file;
 	}
 
-
+	// Extract data from an array in the form of $foo.key.baz
 	public function array_dive(string $needle, array $haystack) {
 		// Split at the periods
 		$parts = explode(".", $needle);
@@ -363,6 +376,10 @@ class sluz {
 		$this->simple_mode = true;
 	}
 
+	///////////////////////////////////////////////////////////////////////////////
+	///////////////////////////////////////////////////////////////////////////////
+
+	// parse a simple variable
 	private function variable_block($str) {
 		if (preg_match("/(.+?)\|(.+)/", $str, $m)) {
 			$key = $m[1];
@@ -377,6 +394,7 @@ class sluz {
 		return $ret;
 	}
 
+	// parse an if statement
 	private function if_block($str, $m) {
 		// Put the tpl_vars in the current scope so if works against them
 		extract($this->tpl_vars, EXTR_PREFIX_ALL, $this->var_prefix);
@@ -429,6 +447,7 @@ class sluz {
 		return $ret;
 	}
 
+	// Parse an include block
 	private function include_block($str) {
 		$callback = [$this, 'include_callback']; // Object callback syntax
 		$str      = preg_replace_callback("/\{include.+?\}/", $callback, $str);
@@ -442,6 +461,7 @@ class sluz {
 		return $ret;
 	}
 
+	// Parse a foreach block
 	private function foreach_block($m) {
 		$src     = $this->convert_variables_in_string($m[1]); // src array
 		$okey    = $m[2]; // orig key
@@ -476,6 +496,7 @@ class sluz {
 		return $ret;
 	}
 
+	// Parse a simple expression block
 	private function expression_block($str, $m) {
 		$ret = "";
 
@@ -497,7 +518,7 @@ class sluz {
 	}
 }
 
-// This function is *OUTSIDE* of the class so it can be called separately with
+// This function is *OUTSIDE* of the class so it can be called separately without
 // instantiating the class
 function sluz($one, $two = null) {
 	static $s;
