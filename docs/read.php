@@ -27,7 +27,7 @@ $s->assign("php_contents", $phpc);
 $s->assign("tpl_contents", $tplc);
 $s->assign("doc_files", $doc_files);
 
-print $s->parse();
+print $s->fetch();
 
 /////////////////////////////////////////////////////////////////
 

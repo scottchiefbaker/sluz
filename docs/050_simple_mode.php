@@ -12,6 +12,6 @@ require('../sluz.class.php');
 $s = sluz("weather", "Sure is sunny today");
 $s = sluz("temperature", 75);
 
-# Note: parse() is automatically called in simple mode as part of the destructor.
-# If you need an alternate template you have to call parse() manually like:
-# print $s->parse("tpls/special.stpl");
+# Note: fetch() is automatically called in simple mode as part of the destructor.
+# If you need an alternate template you have to call fetch() manually like:
+# print $s->fetch("tpls/special.stpl");

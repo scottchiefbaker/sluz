@@ -145,7 +145,7 @@ if ($is_cli) {
 
 	$sluz->assign("tests", $test_output);
 	$sluz->tpl_file = "tpls/tests.stpl";
-	print $sluz->parse();
+	print $sluz->fetch();
 }
 
 ////////////////////////////////////////////////////////

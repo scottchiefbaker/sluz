@@ -18,7 +18,7 @@ $s = new sluz();
 $s->assign("name", "Jason");
 $s->assign("version", "0.3");
 
-print $s->parse();
+print $s->fetch();
 ```
 
 File: `tpls/script.stpl`

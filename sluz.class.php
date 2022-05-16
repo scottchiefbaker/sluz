@@ -13,13 +13,13 @@ class sluz {
 	private $php_file     = null;
 	private $var_prefix   = "sluz_pfx";
 	private $simple_mode  = false;
-	private $parse_called = false;
+	private $fetch_called = false;
 
 	public function __construct() { }
 	public function __destruct()  {
 		// In simple mode we auto print the output
-		if ($this->simple_mode && !$this->parse_called) {
-			print $this->parse();
+		if ($this->simple_mode && !$this->fetch_called) {
+			print $this->fetch();
 		}
 	}
 
@@ -239,7 +239,7 @@ class sluz {
 
 	// Specify a path to the .stpl file, or pass nothing to let sluz 'guess'
 	// Guess is 'tpls/[scriptname_minus_dot_php].stpl
-	public function parse($tpl_file = "") {
+	public function fetch($tpl_file = "") {
 		$tf             = $this->get_tpl_file($tpl_file);
 		$this->tpl_file = $tf;
 
@@ -262,7 +262,7 @@ class sluz {
 			$html .= $this->process_block($block);
 		}
 
-		$this->parse_called = true;
+		$this->fetch_called = true;
 
 		return $html;
 	}
@@ -444,15 +444,9 @@ class sluz {
 	private function peval($str) {
 		extract($this->tpl_vars, EXTR_PREFIX_ALL, $this->var_prefix);
 
-		$ret      = '';
-		$cmd      = '$ret = (' . $str. "); return true;";
-		$parse_ok = false;
-
-		try {
-			$parse_ok = @eval($cmd);
-		} catch (ParseError $e) {
-			return null;
-		}
+		$ret = '';
+		$cmd = '$ret = (' . $str. ");";
+		@eval($cmd);
 
 		return $ret;
 	}
