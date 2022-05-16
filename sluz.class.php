@@ -467,6 +467,7 @@ class sluz {
 		$okey    = $m[2]; // orig key
 		$oval    = $m[4]; // orig val
 		$payload = $m[5]; // code block to parse on iteration
+		$blocks  = $this->get_blocks($payload);
 
 		$src = $this->peval($src);
 
@@ -481,12 +482,10 @@ class sluz {
 			if ($oval) {
 				$this->tpl_vars[$okey] = $key;
 				$this->tpl_vars[$oval] = $val;
-				// This is: foreach $array as $item
+			// This is: foreach $array as $item
 			} else {
 				$this->tpl_vars[$okey] = $val;
 			}
-
-			$blocks = $this->get_blocks($payload);
 
 			foreach ($blocks as $block) {
 				$ret .= $this->process_block($block);
