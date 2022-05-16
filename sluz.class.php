@@ -33,9 +33,6 @@ class sluz {
 	}
 
 	public function process_block(string $str) {
-		$cur = error_reporting(); // Save current level so we can restore it
-		error_reporting(E_ALL & ~E_NOTICE); // Disable E_NOTICE
-
 		$ret = '';
 
 		// Micro-optimization for "" input
@@ -69,8 +66,6 @@ class sluz {
 		} else {
 			$ret = "???";
 		}
-
-		error_reporting($cur); // Reset error reporting level
 
 		return $ret;
 	}
@@ -146,6 +141,9 @@ class sluz {
 	// Specify a path to the .stpl file, or pass nothing to let sluz 'guess'
 	// Guess is 'tpls/[scriptname_minus_dot_php].stpl
 	public function fetch($tpl_file = "") {
+		$cur = error_reporting(); // Save current level so we can restore it
+		error_reporting(E_ALL & ~E_NOTICE); // Disable E_NOTICE
+
 		$tf             = $this->get_tpl_file($tpl_file);
 		$this->tpl_file = $tf;
 
@@ -169,6 +167,8 @@ class sluz {
 		}
 
 		$this->fetch_called = true;
+
+		error_reporting($cur); // Reset error reporting level
 
 		return $html;
 	}
