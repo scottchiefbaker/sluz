@@ -44,7 +44,7 @@ class sluz {
 		}
 
 		// If it doesn't start with a '{' it's plain text so we just return it
-		if (!preg_match('/^{/', $str, $m)) {
+		if ($str[0] !== "{") {
 			$ret = $str;
 		// Simple variable replacement
 		} elseif (preg_match('/^\{\s*\$(\w[\w\|\.]*?)\s*\}$/', $str, $m)) {
