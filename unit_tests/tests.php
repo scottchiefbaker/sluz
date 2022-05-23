@@ -62,8 +62,10 @@ sluz_test('{$number * $debug}'  , 15           , 'Basic #11 - Multiplication of 
 sluz_test('{3}'                 , 3            , 'Basic #12 - Number literal');
 sluz_test('{"Scott"}'           , "Scott"      , 'Basic #13 - String literal');
 sluz_test('{"Scott" . "Baker"}' , "ScottBaker" , 'Basic #14 - String concat');
-sluz_test('{$color . $age}'     , "yellow43"   , 'Basic #15 - Hash group assignment');
+sluz_test('{$color . $age}'     , "yellow43"   , 'Basic #15 - Variable concat');
 sluz_test('{$x}'                , "7"          , 'Basic #16 - Single Character variable');
+sluz_test('{$array[1]}'         , 'two'        , 'Basic #17 - Array Lookup - PHP Syntax');
+sluz_test('{$cust["last"]}'     , 'Baker'      , 'Basic #18 - Hash Lookup - PHP Syntax');
 
 sluz_test('{if $debug}DEBUG{/if}'                  , 'DEBUG'   , 'If #1 - Simple');
 sluz_test('{if $bogus_var}DEBUG{/if}'              , ''        , 'If #2 - Missing var');
@@ -93,6 +95,10 @@ sluz_test('{foreach $empty as $x}one{/foreach}'                        , ''     
 sluz_test('{foreach $array as $i => $x}{$i}{$x}{/foreach}'             , '0one1two2three'         , 'Foreach #11 - One char variables');
 sluz_test('{foreach $array as $i => $x}{if $x}{$x}{/if}{/foreach}'     , 'onetwothree'            , 'Foreach #12 - Foreach with nested if');
 sluz_test('{foreach $arrayd as $i => $x}{if $x.1}{$x.1}{/if}{/foreach}', '246'                    , 'Foreach #13 - Foreach with nested if (array)');
+
+// These tests make sure that the foreach above that sets $i and $x don't persist after
+sluz_test('{$x}', '7', 'Foreach NOT overwrite variable - previously set');
+sluz_test('{$i}', '' , 'Foreach NOT overwrite variable - no initial value');
 
 sluz_test('Scott'           , 'Scott'           , 'Plain text #1 - Static text');
 sluz_test('<div>Scott</div>', '<div>Scott</div>', 'Plain text #2 - HTML');
