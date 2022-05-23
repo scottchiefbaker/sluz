@@ -1,0 +1,8 @@
+<div class="row">
+	<div class="col text-start">
+		<a href="https://github.com/scottchiefbaker/sluz"><img style="width: 48px;" src="../tpls/github-logo.svg"></a>
+	</div>
+	<div class="col text-end">
+		Thank you for choose Sluz - {$name|initials}
+	</div>
+</div>

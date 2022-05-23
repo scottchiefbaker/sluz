@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		{*
+		This page just serves as a repeatable script that utilizes all the features in Sluz
+		to give a general idea of a benchmarking system. It is suitable to be run to compare
+		different version of Sluz against each other to see if things speed up or slow down.
+		*}
+
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<title>Sluz benchmark</title>
+		<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
+
+		{literal}
+		<style>
+			.orange { background-color: #f75c00; color: #1e1e1e ;}
+			.purple { background-color: purple; color: white    ;}
+			.blue   { background-color: blue; color: white      ;}
+			.red    { background-color: red; color: #1e1e1e     ;}
+
+			.dark  { background: gray; color: white; }
+			.light { background: #ececec; color: #2b2b2b; }
+		</style>
+		{/literal}
+	</head>
+	<body class="container-lg {if $hour > 17}dark{else}light{/if}">
+		<h1>Welcome to the Sluz v{$sluz_version} benchmark</h1>
+	</body>
+
+	<div class="alert alert-success">Render successful in {$millis} ms</div>
+
+	<hr />
+
+	<div class="row">
+	{foreach $fruits as $fruit}
+	<div class="col-lg">{$lorem}<br /><br />{$fruit|strtoupper} - {$fruit|strlen}</div>
+	{/foreach}
+	</div>
+
+	<hr />
+
+	{foreach $turtles as $name => $color}
+	<div class="{$color} my-1 p-2 rounded">
+		{$name}
+	</div>
+	{/foreach}
+
+	<hr />
+
+	{if !$hide_footer}
+	{include file='footer.stpl'}
+	{/if}
+</html>
