@@ -122,10 +122,13 @@ sluz_test('{include file=\'extra.stpl\'}', '/e1ab49cf/' , 'Include #1 - file=\'e
 sluz_test('{include \'extra.stpl\'}'     , '/e1ab49cf/' , 'Include #2 - \'extra.stpl\'');
 sluz_test('{include}'                    , 'ERROR-73467', 'Include #3 - No payload');
 
-sluz_test(['{$a}{$b}{$c}']              , 3, 'Get blocks #1 - Basic variables');
-sluz_test(['{if $a}{$a}{/if}']          , 1, 'Get blocks #2 - Basic variables');
-sluz_test(['Jason{$a}Baker{$b}']        , 4, 'Get blocks #3 - Basic variables');
-sluz_test(['function(foo) { $i = 10; }'], 1, 'Get blocks #4 - javascript function');
+sluz_test(['{$a}{$b}{$c}']                                            , 3, 'Get blocks #1 - Basic variables');
+sluz_test(['{if $a}{$a}{/if}']                                        , 1, 'Get blocks #2 - Basic variables');
+sluz_test(['Jason{$a}Baker{$b}']                                      , 4, 'Get blocks #3 - Basic variables');
+sluz_test(['function(foo) { $i = 10; }']                              , 1, 'Get blocks #4 - javascript function');
+sluz_test(['{* Comment *}ABC{* Comment *}']                           , 3, 'Get blocks #5 - Comments');
+sluz_test(['   {$x}   ']                                              , 3, 'Get blocks #6 - Whitespace around variable');
+sluz_test(['{foreach $arr as $i => $x}{if $x.1}{$x.1}{/if}{/foreach}'], 1, 'Get blocks #7 - Lots of brackets');
 
 $total = $pass_count + $fail_count;
 
