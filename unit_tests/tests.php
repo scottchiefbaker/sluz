@@ -97,8 +97,8 @@ sluz_test('{foreach $array as $i => $x}{if $x}{$x}{/if}{/foreach}'     , 'onetwo
 sluz_test('{foreach $arrayd as $i => $x}{if $x.1}{$x.1}{/if}{/foreach}', '246'                    , 'Foreach #13 - Foreach with nested if (array)');
 
 // These tests make sure that the foreach above that sets $i and $x don't persist after
-sluz_test('{$x}', '7', 'Foreach NOT overwrite variable - previously set');
-sluz_test('{$i}', '' , 'Foreach NOT overwrite variable - no initial value');
+sluz_test('{$x}', '7', 'Foreach #14 - NOT overwrite variable - previously set');
+sluz_test('{$i}', '' , 'Foreach #15 - NOT overwrite variable - no initial value');
 
 sluz_test('Scott'           , 'Scott'           , 'Plain text #1 - Static text');
 sluz_test('<div>Scott</div>', '<div>Scott</div>', 'Plain text #2 - HTML');
