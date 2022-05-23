@@ -149,6 +149,18 @@ class sluz {
 		return $blocks;
 	}
 
+	// This is just a wrapper function because early versions of Sluz used parse() instead of fetch()
+	public function parse($tpl_file = "") {
+		$ret = $this->fetch($tpl_file);
+
+		return $ret;
+	}
+
+	// Wrapper function to make us more compatible with Smarty
+	public function display($tpl_file = "") {
+		print $this->fetch($tpl_file);
+	}
+
 	// Specify a path to the .stpl file, or pass nothing to let sluz 'guess'
 	// Guess is 'tpls/[scriptname_minus_dot_php].stpl
 	public function fetch($tpl_file = "") {
