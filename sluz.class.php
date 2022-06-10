@@ -243,7 +243,8 @@ class sluz {
 	// If there is not template specified we "guess" based on the PHP filename
 	private function get_tpl_file($tpl_file) {
 		$x         = debug_backtrace();
-		$orig_file = basename($x[1]['file']);
+		$last      = count($x) - 1;
+		$orig_file = basename($x[$last]['file'] ?? "");
 
 		if (!$this->php_file) {
 			$this->php_file = $orig_file;
