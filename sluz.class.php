@@ -171,7 +171,7 @@ class sluz {
 		$this->tpl_file = $tf;
 
 		// If we're in simple mode and we have a __halt_compiler() we can assume inline mode
-		$inline_simple = $this->simple_mode && $this->get_inline_content($this->php_file);
+		$inline_simple = $this->simple_mode && !$tpl_file && $this->get_inline_content($this->php_file);
 
 		if ($tpl_file === "INLINE" || $inline_simple) {
 			$str = $this->get_inline_content($this->php_file);
