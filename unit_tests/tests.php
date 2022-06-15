@@ -44,6 +44,8 @@ $sluz->assign('arrayd'      , [[1,2],[3,4],[5,6]]);
 $sluz->assign('empty'       , []);
 $sluz->assign('php_version' , phpversion());
 $sluz->assign('sluz_version', $sluz->version);
+$sluz->assign('empty_string', '');
+$sluz->assign('null'        , null);
 $sluz->assign($hash);
 
 $test_output = [];
@@ -66,6 +68,11 @@ sluz_test('{$color . $age}'     , "yellow43"   , 'Basic #15 - Variable concat');
 sluz_test('{$x}'                , "7"          , 'Basic #16 - Single Character variable');
 sluz_test('{$array[1]}'         , 'two'        , 'Basic #17 - Array Lookup - PHP Syntax');
 sluz_test('{$cust["last"]}'     , 'Baker'      , 'Basic #18 - Hash Lookup - PHP Syntax');
+
+sluz_test('{$last|default:\'123\'}'        , 'Baker', 'Basic #19 - Default - Not Used');
+sluz_test('{$zero|default:\'123\'}'        , 0      , 'Basic #20 - Default - Zero Not Used');
+sluz_test('{$empty_string|default:\'123\'}', '123'  , 'Basic #21 - Default - Empty String');
+sluz_test('{$null|default:\'123\'}'        , '123'  , 'Basic #22 - Default - Null');
 
 sluz_test('{if $debug}DEBUG{/if}'                  , 'DEBUG'   , 'If #1 - Simple');
 sluz_test('{if $bogus_var}DEBUG{/if}'              , ''        , 'If #2 - Missing var');
