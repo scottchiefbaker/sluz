@@ -45,7 +45,7 @@ class sluz {
 		if ($str[0] !== "{") {
 			$ret = $str;
 		// Simple variable replacement {$foo}
-		} elseif (preg_match('/^\{\s*\$(\w[\w\|\.]*?)\s*\}$/', $str, $m)) {
+		} elseif (preg_match('/^\{\s*\$(\w[\w\|\.\'":]*)\s*\}$/', $str, $m)) {
 			$ret = $this->variable_block($m[1]);
 		// If statement {if $foo}{/if}
 		} elseif (preg_match('/^\{if (.+?)\}(.+)\{\/if\}$/s', $str, $m)) {
@@ -394,12 +394,27 @@ class sluz {
 
 	// parse a simple variable
 	private function variable_block($str) {
-		if (preg_match("/(.+?)\|(.+)/", $str, $m)) {
+		// If it has a '|' it's either a function call or 'default'
+		if (preg_match("/(.+?)\|(.+?)(:|$)/", $str, $m)) {
 			$key = $m[1];
 			$mod = $m[2];
 
-			$pre = $this->array_dive($key, $this->tpl_vars) ?? "";
-			$ret = call_user_func($mod, $pre);
+			$tmp        = $this->tpl_vars[$key] ?? null;
+			$is_nothing = ($tmp === null || $tmp === "");
+
+			// Empty with a default value
+			if ($is_nothing && $mod === "default") {
+				$p    = explode("default:", $str, 2);
+				$dval = $p[1] ?? "";
+				$ret  = $this->peval($dval);
+			// Non-empty, but has a default value
+			} elseif (!$is_nothing && $mod === "default") {
+				$ret = $this->array_dive($key, $this->tpl_vars) ?? "";
+			// User function
+			} else {
+				$pre = $this->array_dive($key, $this->tpl_vars) ?? "";
+				$ret = call_user_func($mod, $pre);
+			}
 		} else {
 			$ret = $this->array_dive($str, $this->tpl_vars) ?? "";
 		}
