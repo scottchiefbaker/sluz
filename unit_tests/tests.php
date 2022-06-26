@@ -121,9 +121,10 @@ sluz_test('{literal}{literal}{/literal}'          , '{literal}'          , 'Lite
 sluz_test('{literal}{literal}{/literal}{/literal}', '{literal}{/literal}', 'Literal #5 - Meta literal');
 sluz_test(' { '                                   , ' { '                , 'Literal #6 - { with whitespace');
 
-sluz_test('{* Comment *}'  , '', 'Comment #1 - With text');
-sluz_test('{* ********* *}', '', 'Comment #2 - ******');
-sluz_test('{**}'           , '', 'Comment #3 - No whitespace');
+sluz_test('{* Comment *}'     , '', 'Comment #1 - With text');
+sluz_test('{* ********* *}'   , '', 'Comment #2 - ******');
+sluz_test('{**}'              , '', 'Comment #3 - No whitespace');
+sluz_test('{*{$array|count}*}', '', 'Comment #4 - Variable inside');
 
 sluz_test('{include file=\'extra.stpl\'}', '/e1ab49cf/' , 'Include #1 - file=\'extra.stpl\'');
 sluz_test('{include \'extra.stpl\'}'     , '/e1ab49cf/' , 'Include #2 - \'extra.stpl\'');
@@ -136,6 +137,8 @@ sluz_test(['function(foo) { $i = 10; }']                              , 1, 'Get 
 sluz_test(['{* Comment *}ABC{* Comment *}']                           , 3, 'Get blocks #5 - Comments');
 sluz_test(['   {$x}   ']                                              , 3, 'Get blocks #6 - Whitespace around variable');
 sluz_test(['{foreach $arr as $i => $x}{if $x.1}{$x.1}{/if}{/foreach}'], 1, 'Get blocks #7 - Lots of brackets');
+sluz_test(['{*{$first}*}']                                            , 1, 'Get blocks #8 - Comment with variable');
+sluz_test(['{*{$first} {$last}*}']                                    , 1, 'Get blocks #9 - Comments with variables');
 
 $total = $pass_count + $fail_count;
 
