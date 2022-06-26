@@ -82,9 +82,10 @@ class sluz {
 		for ($i = 0; $i < $slen; $i++) {
 			$char = $str[$i];
 
-			$is_open   = $char === "{";
-			$is_closed = $char === "}";
-			$has_len   = $start != $i;
+			$is_open    = $char === "{";
+			$is_closed  = $char === "}";
+			$has_len    = $start != $i;
+			$is_comment = false;
 
 			// Check to see if it's a real {} block
 			if ($is_open) {
@@ -95,6 +96,10 @@ class sluz {
 				// If the { is surrounded by whitespace it's not a block
 				if (preg_match("/\s[\{\}]\s/", $chunk)) {
 					$is_open = false;
+				}
+
+				if ($next_c === "*") {
+					$is_comment = true;
 				}
 			}
 
@@ -135,6 +140,17 @@ class sluz {
 					}
 				}
 
+				$blocks[]  = $block;
+				$start    += strlen($block);
+				$i         = $start;
+			// If it's a comment we slurp all the chars until the first '*}' and make that the block
+			} elseif ($is_comment) {
+				$end = strpos($str, "*}");
+				if ($end === false) {
+					$this->error_out("Missing closing \"*}\" for comment");
+				}
+
+				$block     = substr($str, $start, $end + 2);
 				$blocks[]  = $block;
 				$start    += strlen($block);
 				$i         = $start;
