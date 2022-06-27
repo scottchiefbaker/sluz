@@ -139,6 +139,7 @@ sluz_test(['   {$x}   ']                                              , 3, 'Get 
 sluz_test(['{foreach $arr as $i => $x}{if $x.1}{$x.1}{/if}{/foreach}'], 1, 'Get blocks #7 - Lots of brackets');
 sluz_test(['{*{$first}*}']                                            , 1, 'Get blocks #8 - Comment with variable');
 sluz_test(['{*{$first} {$last}*}']                                    , 1, 'Get blocks #9 - Comments with variables');
+sluz_test([' {* {$foo} *} ']                                          , 3, 'Get blocks #10 - Comments with variables and whitespace');
 
 $total = $pass_count + $fail_count;
 
