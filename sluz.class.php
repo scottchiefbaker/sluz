@@ -110,6 +110,19 @@ class sluz {
 
 				$blocks[] = $block;
 				$start    = $i;
+
+				if ($is_comment) {
+					$end = strpos($str, "*}", $i);
+					if ($end === false) {
+						$this->error_out("Missing closing \"*}\" for comment", 84982);
+					}
+
+					$block    = substr($str, $start, $end + 2);
+					$blocks[] = $block;
+
+					$i     = $end + 2;
+					$start = $i;
+				}
 			// If it's a "}" it's a closing block that starts at $start
 			} elseif ($is_closed) {
 				$len         = $i - $start + 1;
@@ -145,9 +158,9 @@ class sluz {
 				$i         = $start;
 			// If it's a comment we slurp all the chars until the first '*}' and make that the block
 			} elseif ($is_comment) {
-				$end = strpos($str, "*}");
+				$end = strpos($str, "*}", $i);
 				if ($end === false) {
-					$this->error_out("Missing closing \"*}\" for comment");
+					$this->error_out("Missing closing \"*}\" for comment", 48724);
 				}
 
 				$block     = substr($str, $start, $end + 2);
