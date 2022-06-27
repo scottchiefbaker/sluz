@@ -8,8 +8,8 @@ class sluz {
 	public $debug        = 0;
 	public $in_unit_test = false;
 	public $tpl_vars     = [];
+	public $tpl_path     = null;
 
-	private $tpl_path     = null;
 	private $php_file     = null;
 	private $var_prefix   = "sluz_pfx";
 	private $simple_mode  = false;
@@ -249,7 +249,7 @@ class sluz {
 			}
 		}
 
-		$inc_tpl = ($this->tpl_dir ?? "tpls/") . $file;
+		$inc_tpl = ($this->tpl_path ?? "tpls/") . $file;
 
 		if ($file && is_readable($inc_tpl)) {
 			$ext_str = file_get_contents($inc_tpl);
