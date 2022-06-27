@@ -6,7 +6,8 @@ $start        = microtime(1);
 $loops = 0;
 while (microtime(1) - $start < $runtime_secs) {
 	$lstart = microtime(1);
-	require_once("../sluz.class.php");
+
+	require_once(__DIR__ . "/../sluz.class.php");
 	$s = new sluz();
 
 	///////////////////////////////////////////////////////////////////////////////
@@ -27,6 +28,7 @@ while (microtime(1) - $start < $runtime_secs) {
 	$total = sprintf("%.2f", (microtime(1) - $lstart) * 1000);
 	$s->assign('millis', $total);
 
+	$s->tpl_path = __DIR__ . "/tpls/";
 	$output = $s->fetch();
 	$loops++;
 }
