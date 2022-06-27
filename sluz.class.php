@@ -67,7 +67,7 @@ class sluz {
 			$ret = $this->expression_block($str, $m);
 		// Something went WAY wrong
 		} else {
-			$ret = "???";
+			$ret = $str;
 		}
 
 		return $ret;
