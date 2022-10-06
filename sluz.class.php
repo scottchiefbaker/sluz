@@ -44,7 +44,7 @@ class sluz {
 		// If it doesn't start with a '{' it's plain text so we just return it
 		if ($str[0] !== "{") {
 			$ret = $str;
-		// Simple variable replacement {$foo}
+		// Simple variable replacement {$foo} or {$foo|default:"123"}
 		} elseif (preg_match('/^\{\s*\$(\w[\w\|\.\'":]*)\s*\}$/', $str, $m)) {
 			$ret = $this->variable_block($m[1]);
 		// If statement {if $foo}{/if}
@@ -143,9 +143,9 @@ class sluz {
 				$blocks[]  = $block;
 				$start    += strlen($block);
 				$i         = $start;
-			// If it's a comment we slurp all the chars until the first '*}' and make that the block
 			}
 
+			// If it's a comment we slurp all the chars until the first '*}' and make that the block
 			if ($is_comment) {
 				$end = strpos($str, "*}", $start);
 				if ($end === false) {
