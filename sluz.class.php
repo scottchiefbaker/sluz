@@ -413,12 +413,13 @@ class sluz {
 
 	// parse a simple variable
 	private function variable_block($str) {
+
 		// If it has a '|' it's either a function call or 'default'
 		if (preg_match("/(.+?)\|(.+?)(:|$)/", $str, $m)) {
 			$key = $m[1];
 			$mod = $m[2];
 
-			$tmp        = $this->tpl_vars[$key] ?? null;
+			$tmp        = $this->array_dive($key, $this->tpl_vars) ?? "";
 			$is_nothing = ($tmp === null || $tmp === "");
 
 			// Empty with a default value
