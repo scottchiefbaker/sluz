@@ -45,7 +45,7 @@ class sluz {
 		if ($str[0] !== "{") {
 			$ret = $str;
 		// Simple variable replacement {$foo} or {$foo|default:"123"}
-		} elseif (preg_match('/^\{\s*\$(\w[\w\|\.\'":]*)\s*\}$/', $str, $m)) {
+		} elseif (preg_match('/^\{\$(\w[\w\|\.\'":]*)\s*\}$/', $str, $m)) {
 			$ret = $this->variable_block($m[1]);
 		// If statement {if $foo}{/if}
 		} elseif (preg_match('/^\{if (.+?)\}(.+)\{\/if\}$/s', $str, $m)) {
