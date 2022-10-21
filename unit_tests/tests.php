@@ -77,6 +77,7 @@ sluz_test('{foo'                           , '{foo'   , 'Basic #23 - Unclosed bl
 sluz_test('{$first'                        , '{$first', 'Basic #24 - Unclosed block variable');
 sluz_test('{$cust.first|default:\'Jason\'}', 'Scott'  , 'Basic #25 - Hash with default value, not used');
 sluz_test('{$cust.foo|default:\'Jason\'}'  , 'Jason'  , 'Basic #26 - Hash with default value, used');
+sluz_test('{$array}'                       , 'Array'  , 'Basic #28 - Array used as a scalar');
 
 sluz_test('{if $debug}DEBUG{/if}'                  , 'DEBUG'   , 'If #1 - Simple');
 sluz_test('{if $bogus_var}DEBUG{/if}'              , ''        , 'If #2 - Missing var');
