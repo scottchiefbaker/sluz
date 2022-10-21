@@ -439,6 +439,11 @@ class sluz {
 			$ret = $this->array_dive($str, $this->tpl_vars) ?? "";
 		}
 
+		// Array used as a scalar should silently convert to a string
+		if (is_array($ret)) {
+			return 'Array';
+		}
+
 		return $ret;
 	}
 
