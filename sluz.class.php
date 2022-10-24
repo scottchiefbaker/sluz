@@ -524,8 +524,12 @@ class sluz {
 
 		$src = $this->peval($src);
 
-		if (!is_array($src)) {
-			return $this->error_out($m[1] . " is not an array", 85824);
+		// If $src isn't an array we convert it to one so foreach doesn't barf
+		if (isset($src) && !is_array($src)) {
+			$src = [$src];
+		// This prevents an E_WARNING on null (but doesn't output anything)
+		} elseif (is_null($src)) {
+			$src = [];
 		}
 
 		$ret = '';
