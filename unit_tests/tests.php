@@ -102,11 +102,13 @@ sluz_test('{foreach $arrayd as $x}{$x.1}{/foreach}'                    , '246'  
 sluz_test('{foreach $arrayd as $key => $val}{$key}:{$val.0}{/foreach}' , '0:11:32:5'              , 'Foreach #6 - Key/val array');
 sluz_test('{foreach $members as $id => $x}{$id}{$x.first}{/foreach}'   , '0Scott1Jason'           , 'Foreach #7 - Key/val hash');
 sluz_test('{foreach $subarr.one as $id}{$id}{/foreach}'                , '246'                    , 'Foreach #8 - Hash key');
-sluz_test('{foreach $bogus_var as $x}one{/foreach}'                    , 'ERROR-85824'            , 'Foreach #9 - Missing var');
+sluz_test('{foreach $bogus_var as $x}one{/foreach}'                    , ''                       , 'Foreach #9 - Missing var');
 sluz_test('{foreach $empty as $x}one{/foreach}'                        , ''                       , 'Foreach #10 - Empty array');
 sluz_test('{foreach $array as $i => $x}{$i}{$x}{/foreach}'             , '0one1two2three'         , 'Foreach #11 - One char variables');
 sluz_test('{foreach $array as $i => $x}{if $x}{$x}{/if}{/foreach}'     , 'onetwothree'            , 'Foreach #12 - Foreach with nested if');
 sluz_test('{foreach $arrayd as $i => $x}{if $x.1}{$x.1}{/if}{/foreach}', '246'                    , 'Foreach #13 - Foreach with nested if (array)');
+sluz_test('{foreach $null as $x}one{/foreach}'                         , ''                       , 'Foreach #14 - Null');
+sluz_test('{foreach $first as $x}{$first}{/foreach}'                   , 'Scott'                  , 'Foreach #15 - Scalar');
 
 // These tests make sure that the foreach above that sets $i and $x don't persist after
 sluz_test('{$x}', '7', 'Foreach #14 - NOT overwrite variable - previously set');
