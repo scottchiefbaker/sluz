@@ -12,7 +12,7 @@
 
 	{literal}
 	<style>
-		.test_result_fail, .test_result_pass { width: 50%; }
+		.test_result_fail, .test_result_pass { }
 		.test_desc { width: 50%; }
 	</style>
 	{/literal}
@@ -31,7 +31,7 @@
 	<div class="px-2">
 		{foreach $tests as $x}
 		<div class="d-flex test">
-			<div class="test_desc">{$x.0}</div>
+			<div class="test_desc flex-grow-1">{$x.0}</div>
 			{if $x.1}
 			<div class="test_result_fail text-danger text-end">{$x.1}</div>
 			{else}
