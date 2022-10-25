@@ -12,7 +12,7 @@ $s = new sluz;
 $s->assign("name", "Jason Doolis");
 $s->assign("turtles", ["Michelangeo", "Donatello", "Leonardo", "Raphael"]);
 
-print $s->fetch("INLINE");
+print $s->fetch(SLUZ_INLINE);
 
 ////////////////////////////////////////////////////
 

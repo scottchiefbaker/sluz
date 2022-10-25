@@ -2,6 +2,8 @@
 
 ////////////////////////////////////////////////////////
 
+define('SLUZ_INLINE', 987123654); // Just a random number
+
 class sluz {
 	public $version      = '0.6';
 	public $tpl_file     = null;
@@ -192,7 +194,7 @@ class sluz {
 		// If we're in simple mode and we have a __halt_compiler() we can assume inline mode
 		$inline_simple = $this->simple_mode && !$tpl_file && $this->get_inline_content($this->php_file);
 
-		if ($tpl_file === "INLINE" || $inline_simple) {
+		if ($tpl_file === SLUZ_INLINE || $inline_simple) {
 			$str = $this->get_inline_content($this->php_file);
 		} elseif (!is_readable($tf)) {
 			$this->error_out("Unable to load template file <code>$tf</code>",42280);
