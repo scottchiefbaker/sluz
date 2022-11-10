@@ -41,6 +41,17 @@
 		{/foreach}
 	</div>
 
-	<div class="my-3"><b>{$pass_count}</b> tests passed and <b>{$fail_count}</b> tests failed</div>
+	<hr />
+
+	<div class="my-3 row">
+		<div class="col-lg">
+			<b>{$pass_count}</b> tests passed and <b>{$fail_count}</b> tests failed
+		</div>
+		<div class="col-lg text-end mt-2 mt-lg-0">
+			<form class="">
+				<input class="form-control form-control-sm" type="text" name="filter" placeholder="Regexp filter" />
+			</form>
+		</div>
+	</div>
   </body>
 </html>
