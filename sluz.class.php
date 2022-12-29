@@ -116,10 +116,11 @@ class sluz {
 			} elseif ($is_closed) {
 				$len         = $i - $start + 1;
 				$block       = substr($str, $start, $len);
-				$is_function = preg_match("/^\{\w+/", $block);
+				$is_function = preg_match("/^\{(if|foreach|literal)\b/", $block, $m);
 
 				// If we're in a function, loop until we find the closing tag
 				if ($is_function) {
+					// Go character by character until we find a '}' and see if we find the closing tag
 					for ($j = $i + 1; $j < strlen($str); $j++) {
 						$closed = ($str[$j] === "}");
 
@@ -128,13 +129,13 @@ class sluz {
 							$len = $j - $start + 1;
 							$tmp = substr($str, $start, $len);
 
-							// Count the number of open functions
-							$of = preg_match_all("/\{(if|foreach|literal)/", $tmp);
-							// Count the number of closed functions
-							$cf = preg_match_all("/{\/\w+/", $tmp);
+							// Open tag is whatever word is after the {
+							$open_tag  = $m[1];
+							// Build the closing tag so we can look for it later
+							$close_tag = "{/$open_tag}";
 
-							// If the open and closed are the same number we found the final tag
-							if ($of === $cf) {
+							// If this closing bracket is the closing tag we found the pair
+							if (str_ends_with($tmp, $close_tag)) {
 								$block = $tmp;
 								break;
 							}
@@ -601,6 +602,17 @@ function sluz($one, $two = null) {
 	$s->assign($one, $two);
 
 	return $s;
+}
+
+// Polyfill stolen from: https://www.php.net/manual/en/function.str-ends-with.php
+// str_ends_with() added in PHP 8.0... this can be removed when we don't need to
+// support PHP 7.x anymore
+if (!function_exists('str_ends_with')) {
+    function str_ends_with(string $haystack, string $needle): bool
+    {
+        $needle_len = strlen($needle);
+        return ($needle_len === 0 || 0 === substr_compare($haystack, $needle, - $needle_len));
+    }
 }
 
 // vim: tabstop=4 shiftwidth=4 noexpandtab autoindent softtabstop=4
