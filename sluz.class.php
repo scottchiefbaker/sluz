@@ -400,7 +400,12 @@ class sluz {
 
 		$ret = '';
 		$cmd = '$ret = (' . $str. ");";
-		@eval($cmd);
+
+		try {
+			@eval($cmd);
+		} catch (ParseError $e) {
+			// Ooops
+		}
 
 		return $ret;
 	}
