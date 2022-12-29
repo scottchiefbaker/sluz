@@ -95,20 +95,21 @@ sluz_test('{if $debug}{$key}{$last}{/if}'          , 'valBaker', 'If #13 - Two b
 sluz_test('{if $debug}ONE{else}TWO{/if}'           , 'ONE'     , 'If #14 - Else not needed');
 sluz_test('{if $zero}1{elseif $debug}2{else}3{/if}', '2'       , 'If #14 - Elseif');
 
-sluz_test('{foreach $array as $num}{$num}{/foreach}'                   , 'onetwothree'            , 'Foreach #1 - Simple');
-sluz_test('{foreach $array as $num}\n{$num}\n{/foreach}'               , '\none\n\ntwo\n\nthree\n', 'Foreach #2 - Simple with whitespace');
-sluz_test('{foreach $members as $x}{$x.first}{/foreach}'               , 'ScottJason'             , 'Foreach #3 - Hash');
-sluz_test('{foreach $arrayd as $x}{$x.1}{/foreach}'                    , '246'                    , 'Foreach #4 - Array');
-sluz_test('{foreach $arrayd as $key => $val}{$key}:{$val.0}{/foreach}' , '0:11:32:5'              , 'Foreach #6 - Key/val array');
-sluz_test('{foreach $members as $id => $x}{$id}{$x.first}{/foreach}'   , '0Scott1Jason'           , 'Foreach #7 - Key/val hash');
-sluz_test('{foreach $subarr.one as $id}{$id}{/foreach}'                , '246'                    , 'Foreach #8 - Hash key');
-sluz_test('{foreach $bogus_var as $x}one{/foreach}'                    , ''                       , 'Foreach #9 - Missing var');
-sluz_test('{foreach $empty as $x}one{/foreach}'                        , ''                       , 'Foreach #10 - Empty array');
-sluz_test('{foreach $array as $i => $x}{$i}{$x}{/foreach}'             , '0one1two2three'         , 'Foreach #11 - One char variables');
-sluz_test('{foreach $array as $i => $x}{if $x}{$x}{/if}{/foreach}'     , 'onetwothree'            , 'Foreach #12 - Foreach with nested if');
-sluz_test('{foreach $arrayd as $i => $x}{if $x.1}{$x.1}{/if}{/foreach}', '246'                    , 'Foreach #13 - Foreach with nested if (array)');
-sluz_test('{foreach $null as $x}one{/foreach}'                         , ''                       , 'Foreach #14 - Null');
-sluz_test('{foreach $first as $x}{$first}{/foreach}'                   , 'Scott'                  , 'Foreach #15 - Scalar');
+sluz_test('{foreach $array as $num}{$num}{/foreach}'                         , 'onetwothree'            , 'Foreach #1 - Simple');
+sluz_test('{foreach $array as $num}\n{$num}\n{/foreach}'                     , '\none\n\ntwo\n\nthree\n', 'Foreach #2 - Simple with whitespace');
+sluz_test('{foreach $members as $x}{$x.first}{/foreach}'                     , 'ScottJason'             , 'Foreach #3 - Hash');
+sluz_test('{foreach $arrayd as $x}{$x.1}{/foreach}'                          , '246'                    , 'Foreach #4 - Array');
+sluz_test('{foreach $arrayd as $key => $val}{$key}:{$val.0}{/foreach}'       , '0:11:32:5'              , 'Foreach #6 - Key/val array');
+sluz_test('{foreach $members as $id => $x}{$id}{$x.first}{/foreach}'         , '0Scott1Jason'           , 'Foreach #7 - Key/val hash');
+sluz_test('{foreach $subarr.one as $id}{$id}{/foreach}'                      , '246'                    , 'Foreach #8 - Hash key');
+sluz_test('{foreach $bogus_var as $x}one{/foreach}'                          , ''                       , 'Foreach #9 - Missing var');
+sluz_test('{foreach $empty as $x}one{/foreach}'                              , ''                       , 'Foreach #10 - Empty array');
+sluz_test('{foreach $array as $i => $x}{$i}{$x}{/foreach}'                   , '0one1two2three'         , 'Foreach #11 - One char variables');
+sluz_test('{foreach $array as $i => $x}{if $x}{$x}{/if}{/foreach}'           , 'onetwothree'            , 'Foreach #12 - Foreach with nested if');
+sluz_test('{foreach $arrayd as $i => $x}{if $x.1}{$x.1}{/if}{/foreach}'      , '246'                    , 'Foreach #13 - Foreach with nested if (array)');
+sluz_test('{foreach $null as $x}one{/foreach}'                               , ''                       , 'Foreach #14 - Null');
+sluz_test('{foreach $first as $x}{$first}{/foreach}'                         , 'Scott'                  , 'Foreach #15 - Scalar');
+sluz_test('{foreach $array as $i}{foreach $array as $i}x{/foreach}{/foreach}', 'xxxxxxxxx'              , 'Foreach #16 - Nested');
 
 // These tests make sure that the foreach above that sets $i and $x don't persist after
 sluz_test('{$x}', '7', 'Foreach #16 - NOT overwrite variable - previously set');
@@ -132,21 +133,23 @@ sluz_test('{* Comment *}'     , '', 'Comment #1 - With text');
 sluz_test('{* ********* *}'   , '', 'Comment #2 - ******');
 sluz_test('{**}'              , '', 'Comment #3 - No whitespace');
 sluz_test('{*{$array|count}*}', '', 'Comment #4 - Variable inside');
+sluz_test('{* {* nested *} *}', '', 'Comment #5 - Nested');
 
 sluz_test('{include file=\'extra.stpl\'}', '/e1ab49cf/' , 'Include #1 - file=\'extra.stpl\'');
 sluz_test('{include \'extra.stpl\'}'     , '/e1ab49cf/' , 'Include #2 - \'extra.stpl\'');
 sluz_test('{include}'                    , 'ERROR-73467', 'Include #3 - No payload');
 
-sluz_test(['{$a}{$b}{$c}']                                            , 3, 'Get blocks #1 - Basic variables');
-sluz_test(['{if $a}{$a}{/if}']                                        , 1, 'Get blocks #2 - Basic variables');
-sluz_test(['Jason{$a}Baker{$b}']                                      , 4, 'Get blocks #3 - Basic variables');
-sluz_test(['function(foo) { $i = 10; }']                              , 1, 'Get blocks #4 - javascript function');
-sluz_test(['{* Comment *}ABC{* Comment *}']                           , 1, 'Get blocks #5 - Comments');
-sluz_test(['   {$x}   ']                                              , 3, 'Get blocks #6 - Whitespace around variable');
-sluz_test(['{foreach $arr as $i => $x}{if $x.1}{$x.1}{/if}{/foreach}'], 1, 'Get blocks #7 - Lots of brackets');
-sluz_test(['{*{$first}*}']                                            , 0, 'Get blocks #8 - Comment with variable');
-sluz_test(['{*{$first} {$last}*}']                                    , 0, 'Get blocks #9 - Comments with variables');
-sluz_test([' {* {$foo} *} ']                                          , 2, 'Get blocks #10 - Comments with variables and whitespace');
+sluz_test(['{$a}{$b}{$c}']                                                     , 3, 'Get blocks #1 - Basic variables');
+sluz_test(['{if $a}{$a}{/if}']                                                 , 1, 'Get blocks #2 - Basic variables');
+sluz_test(['Jason{$a}Baker{$b}']                                               , 4, 'Get blocks #3 - Basic variables');
+sluz_test(['function(foo) { $i = 10; }']                                       , 1, 'Get blocks #4 - javascript function');
+sluz_test(['{* Comment *}ABC{* Comment *}']                                    , 1, 'Get blocks #5 - Comments');
+sluz_test(['   {$x}   ']                                                       , 3, 'Get blocks #6 - Whitespace around variable');
+sluz_test(['{foreach $arr as $i => $x}{if $x.1}{$x.1}{/if}{/foreach}']         , 1, 'Get blocks #7 - Lots of brackets');
+sluz_test(['{*{$first}*}']                                                     , 0, 'Get blocks #8 - Comment with variable');
+sluz_test(['{*{$first} {$last}*}']                                             , 0, 'Get blocks #9 - Comments with variables');
+sluz_test([' {* {$foo} *} ']                                                   , 2, 'Get blocks #10 - Comments with variables and whitespace');
+sluz_test(['{foreach $array as $i}{foreach $array as $i}x{/foreach}{/foreach}'], 1, 'Get blocks #11 - Nested foreach');
 
 $total = $pass_count + $fail_count;
 
