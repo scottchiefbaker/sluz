@@ -134,8 +134,13 @@ class sluz {
 							// Build the closing tag so we can look for it later
 							$close_tag = "{/$open_tag}";
 
+							$open_count  = substr_count($tmp, '{' . $open_tag);
+							$close_count = substr_count($tmp, $close_tag);
+
+							//k([$open_tag, $close_tag, $open_count, $close_count, $tmp], KRUMO_EXPAND_ALL);
+
 							// If this closing bracket is the closing tag we found the pair
-							if (str_ends_with($tmp, $close_tag)) {
+							if ($open_count === $close_count && (str_ends_with($tmp, $close_tag))) {
 								$block = $tmp;
 								break;
 							}
