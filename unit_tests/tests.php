@@ -57,11 +57,11 @@ sluz_test('{$bogus_var}'        , ''           , 'Basic #4 - Missing variable');
 sluz_test('{$animal|strtoupper}', 'KITTEN'     , 'Basic #5 - PHP Modifier');
 sluz_test('{$cust.first}'       , 'Scott'      , 'Basic #6 - Hash Lookup');
 sluz_test('{$array.1}'          , 'two'        , 'Basic #7 - Array Lookup');
-sluz_test('{$array|count}'      , 3            , 'Basic #8 - PHP Modifier array');
-sluz_test('{$number + 3}'       , 18           , 'Basic #9 - Addition');
+sluz_test('{$array|count}'      , '3'          , 'Basic #8 - PHP Modifier array');
+sluz_test('{$number + 3}'       , '18'         , 'Basic #9 - Addition');
 sluz_test('{$first . "foo"}'    , "Scottfoo"   , 'Basic #10 - Concat');
-sluz_test('{$number * $debug}'  , 15           , 'Basic #11 - Multiplication of two vars');
-sluz_test('{3}'                 , 3            , 'Basic #12 - Number literal');
+sluz_test('{$number * $debug}'  , '15'         , 'Basic #11 - Multiplication of two vars');
+sluz_test('{3}'                 , '3'          , 'Basic #12 - Number literal');
 sluz_test('{"Scott"}'           , "Scott"      , 'Basic #13 - String literal');
 sluz_test('{"Scott" . "Baker"}' , "ScottBaker" , 'Basic #14 - String concat');
 sluz_test('{$color . $age}'     , "yellow43"   , 'Basic #15 - Variable concat');
@@ -70,7 +70,7 @@ sluz_test('{$array[1]}'         , 'two'        , 'Basic #17 - Array Lookup - PHP
 sluz_test('{$cust["last"]}'     , 'Baker'      , 'Basic #18 - Hash Lookup - PHP Syntax');
 
 sluz_test('{$last|default:\'123\'}'        , 'Baker'  , 'Basic #19 - Default - Not Used');
-sluz_test('{$zero|default:\'123\'}'        , 0        , 'Basic #20 - Default - Zero Not Used');
+sluz_test('{$zero|default:\'123\'}'        , '0'      , 'Basic #20 - Default - Zero Not Used');
 sluz_test('{$empty_string|default:\'123\'}', '123'    , 'Basic #21 - Default - Empty String');
 sluz_test('{$null|default:\'123\'}'        , '123'    , 'Basic #22 - Default - Null');
 sluz_test('{foo'                           , '{foo'   , 'Basic #23 - Unclosed block');
@@ -118,13 +118,13 @@ sluz_test('Scott'           , 'Scott'           , 'Plain text #1 - Static text')
 sluz_test('<div>Scott</div>', '<div>Scott</div>', 'Plain text #2 - HTML');
 
 // Don't parse blocks that have whitespacing
-sluz_test(' {$first} ', ' {$first} ' , 'Bad block #1 - Padding with whitespace');
+sluz_test(' {$first} ', ' Scott '    , 'Bad block #1 - Padding with whitespace');
 sluz_test('{first}'   , 'ERROR-73467', 'Bad block #2 - {word}'); // Literal (no $)
 
 sluz_test('{literal}{{/literal}'                  , '{'                  , 'Literal #1 - {');
 sluz_test('{literal}}{/literal}'                  , '}'                  , 'Literal #2 - }');
 sluz_test('{literal}{}{/literal}'                 , '{}'                 , 'Literal #3 - {}');
-sluz_test('{literal}{literal}{/literal}'          , '{literal}'          , 'Literal #4 - {literal}');
+sluz_test('{literal}{foreach}{/literal}'          , '{foreach}'          , 'Literal #4 - {literal}');
 sluz_test('{literal}{literal}{/literal}{/literal}', '{literal}{/literal}', 'Literal #5 - Meta literal');
 sluz_test(' { '                                   , ' { '                , 'Literal #6 - { with whitespace');
 
@@ -141,12 +141,12 @@ sluz_test(['{$a}{$b}{$c}']                                            , 3, 'Get 
 sluz_test(['{if $a}{$a}{/if}']                                        , 1, 'Get blocks #2 - Basic variables');
 sluz_test(['Jason{$a}Baker{$b}']                                      , 4, 'Get blocks #3 - Basic variables');
 sluz_test(['function(foo) { $i = 10; }']                              , 1, 'Get blocks #4 - javascript function');
-sluz_test(['{* Comment *}ABC{* Comment *}']                           , 3, 'Get blocks #5 - Comments');
+sluz_test(['{* Comment *}ABC{* Comment *}']                           , 1, 'Get blocks #5 - Comments');
 sluz_test(['   {$x}   ']                                              , 3, 'Get blocks #6 - Whitespace around variable');
 sluz_test(['{foreach $arr as $i => $x}{if $x.1}{$x.1}{/if}{/foreach}'], 1, 'Get blocks #7 - Lots of brackets');
-sluz_test(['{*{$first}*}']                                            , 1, 'Get blocks #8 - Comment with variable');
-sluz_test(['{*{$first} {$last}*}']                                    , 1, 'Get blocks #9 - Comments with variables');
-sluz_test([' {* {$foo} *} ']                                          , 3, 'Get blocks #10 - Comments with variables and whitespace');
+sluz_test(['{*{$first}*}']                                            , 0, 'Get blocks #8 - Comment with variable');
+sluz_test(['{*{$first} {$last}*}']                                    , 0, 'Get blocks #9 - Comments with variables');
+sluz_test([' {* {$foo} *} ']                                          , 2, 'Get blocks #10 - Comments with variables and whitespace');
 
 $total = $pass_count + $fail_count;
 
@@ -193,7 +193,12 @@ function sluz_test($input, $expected, $test_name) {
 		$res  = $sluz->get_blocks($input[0]);
 		$html = count($res);
 	} else {
-		$html = $sluz->process_block($input);
+		$blocks = $sluz->get_blocks($input);
+		$html   = '';
+
+		foreach ($blocks as $input) {
+			$html .= $sluz->process_block($input);
+		}
 	}
 
 	$lead = "Test '$test_name' ";

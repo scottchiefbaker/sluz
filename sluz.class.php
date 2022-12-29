@@ -61,9 +61,6 @@ class sluz {
 		// Liternal {literal}Stuff here{/literal}
 		} elseif (preg_match('/^\{literal\}(.+)\{\/literal\}$/s', $str, $m)) {
 			$ret = $m[1];
-		// Comment {* info here *}
-		} elseif (preg_match('/^{\*.*\*\}/s', $str, $m)) {
-			$ret = '';
 		// Catch all for other { $num + 3 } type of blocks
 		} elseif (preg_match('/^\{(.+)}$/s', $str, $m)) {
 			$ret = $this->expression_block($str, $m);
@@ -161,8 +158,8 @@ class sluz {
 				}
 
 				$end_rel   = $end + 2 - $start;
-				$block     = substr($str, $start, $end_rel);
-				$blocks[]  = $block;
+				//$block     = substr($str, $start, $end_rel);
+				//$blocks[]  = $block;
 				$start    += $end_rel;
 				$i         = $start;
 			}
