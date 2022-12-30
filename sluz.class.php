@@ -633,13 +633,29 @@ function find_ending_tag($needle, $haystack) {
         $close_tag = "/$needle}";
     }
 
+	// Do a quick check up to the FIRST closing tag to see if we find it
+	$pos         = strpos($haystack, $close_tag);
+	$substr      = substr($haystack,0, $pos);
+	$open_count  = substr_count($substr, $open_tag);
+
+	if ($open_count === 1) {
+		return $pos + strlen($close_tag);
+	}
+
 	//print "Looking for '$close_tag' in '$haystack'\n";
 
+	// This is the full char by char search... a little slower but needed for nesting
+	//
     // Add one char to the string at a time, and then check if it ends
     // with the closing delimiter. Then confirm that the number of open
     // tags in the string are the same as the closed (check for nesting)
-    $x = '';
-    for ($i = 0; $i < $len; $i++) {
+
+	// We skip ahead to the first match above because we know there isn't a match in
+	// the first X characters
+	$pos += strlen($close_tag);
+    $x    = substr($haystack, 0, $pos);
+
+    for ($i = $pos; $i < $len; $i++) {
         $x .= $haystack[$i];
 
         // If we find the end delimiter and the open/closed tag count is the same
