@@ -148,9 +148,9 @@ class sluz {
 				$blocks[]  = $block;
 				$start    += strlen($block);
 				$i         = $start;
-			// If it's a comment we slurp all the chars until the first '*}' and make that the block
 			}
 
+			// If it's a comment we slurp all the chars until the first '*}' and make that the block
 			if ($is_comment) {
 				$end = find_ending_tag('*', substr($str, $start));
 
