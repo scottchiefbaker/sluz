@@ -213,7 +213,7 @@ class sluz {
 	}
 
 	private function get_tpl_content($tpl_file) {
-        $this->tpl_file = $tf = $this->tpl_file = $this->get_tpl_file($tpl_file);
+        $tf = $this->tpl_file = $this->get_tpl_file($tpl_file);
 
 		// If we're in simple mode and we have a __halt_compiler() we can assume inline mode
 		$inline_simple = $this->simple_mode && !$tpl_file && $this->get_inline_content($this->php_file);
