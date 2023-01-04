@@ -8,7 +8,6 @@ include("$dir/../sluz.class.php");
 $sluz               = new sluz;
 $sluz->debug        = 0;
 $sluz->in_unit_test = true;
-$sluz->tpl_dir      = __DIR__ . "/tpls/";
 
 // Check if there is a filter at the command line
 $filter = $argv[1] ?? $_GET['filter'] ?? "";
