@@ -152,7 +152,7 @@ class sluz {
 
 			// If it's a comment we slurp all the chars until the first '*}' and make that the block
 			if ($is_comment) {
-				$end = $this->find_ending_tag('*', substr($str, $start));
+				$end = $this->find_ending_tag('*', substr($str, $start), '{*', '*}') + 2;
 
 				if ($end === false) {
 					$this->error_out("Missing closing \"*}\" for comment", 48724);
@@ -592,23 +592,14 @@ class sluz {
 		return $ret;
 	}
 
-	function find_ending_tag($needle, $haystack) {
-		$len = strlen($haystack);
-
-		$open_tag = '{' . $needle;
-		if ($needle === '*') {
-			$close_tag = "$needle}";
-		} else {
-			$close_tag = "/$needle}";
-		}
-
+	function find_ending_tag($needle, $haystack, $open_tag, $close_tag) {
 		// Do a quick check up to the FIRST closing tag to see if we find it
 		$pos         = strpos($haystack, $close_tag);
 		$substr      = substr($haystack,0, $pos);
 		$open_count  = substr_count($substr, $open_tag);
 
 		if ($open_count === 1) {
-			return $pos + strlen($close_tag);
+			return $pos;
 		}
 
 		//print "Looking for '$close_tag' in '$haystack'\n";
