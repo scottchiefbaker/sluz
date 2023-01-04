@@ -152,7 +152,7 @@ class sluz {
 
 			// If it's a comment we slurp all the chars until the first '*}' and make that the block
 			if ($is_comment) {
-				$end = find_ending_tag('*', substr($str, $start));
+				$end = $this->find_ending_tag('*', substr($str, $start));
 
 				if ($end === false) {
 					$this->error_out("Missing closing \"*}\" for comment", 48724);
@@ -591,6 +591,55 @@ class sluz {
 
 		return $ret;
 	}
+
+	function find_ending_tag($needle, $haystack) {
+		$len = strlen($haystack);
+
+		$open_tag = '{' . $needle;
+		if ($needle === '*') {
+			$close_tag = "$needle}";
+		} else {
+			$close_tag = "/$needle}";
+		}
+
+		// Do a quick check up to the FIRST closing tag to see if we find it
+		$pos         = strpos($haystack, $close_tag);
+		$substr      = substr($haystack,0, $pos);
+		$open_count  = substr_count($substr, $open_tag);
+
+		if ($open_count === 1) {
+			return $pos + strlen($close_tag);
+		}
+
+		//print "Looking for '$close_tag' in '$haystack'\n";
+
+		// This is the full char by char search... a little slower but needed for nesting
+		//
+		// Add one char to the string at a time, and then check if it ends
+		// with the closing delimiter. Then confirm that the number of open
+		// tags in the string are the same as the closed (check for nesting)
+
+		// We skip ahead to the first match above because we know there isn't a match in
+		// the first X characters
+		$pos += strlen($close_tag);
+		$x    = substr($haystack, 0, $pos);
+
+		for ($i = $pos; $i < $len; $i++) {
+			$x .= $haystack[$i];
+
+			// If we find the end delimiter and the open/closed tag count is the same
+			if (str_ends_with($x, $close_tag)) {
+				$open_count  = substr_count($x, $open_tag);
+				$close_count = substr_count($x, $close_tag);
+
+				if ($open_count === $close_count) {
+					return $i + 1;
+				}
+			}
+		}
+
+		return false;
+	}
 }
 
 // This function is *OUTSIDE* of the class so it can be called separately without
@@ -621,55 +670,6 @@ if (!function_exists('str_ends_with')) {
         $needle_len = strlen($needle);
         return ($needle_len === 0 || 0 === substr_compare($haystack, $needle, - $needle_len));
     }
-}
-
-function find_ending_tag($needle, $haystack) {
-    $len = strlen($haystack);
-
-    $open_tag = '{' . $needle;
-    if ($needle === '*') {
-        $close_tag = "$needle}";
-    } else {
-        $close_tag = "/$needle}";
-    }
-
-	// Do a quick check up to the FIRST closing tag to see if we find it
-	$pos         = strpos($haystack, $close_tag);
-	$substr      = substr($haystack,0, $pos);
-	$open_count  = substr_count($substr, $open_tag);
-
-	if ($open_count === 1) {
-		return $pos + strlen($close_tag);
-	}
-
-	//print "Looking for '$close_tag' in '$haystack'\n";
-
-	// This is the full char by char search... a little slower but needed for nesting
-	//
-    // Add one char to the string at a time, and then check if it ends
-    // with the closing delimiter. Then confirm that the number of open
-    // tags in the string are the same as the closed (check for nesting)
-
-	// We skip ahead to the first match above because we know there isn't a match in
-	// the first X characters
-	$pos += strlen($close_tag);
-    $x    = substr($haystack, 0, $pos);
-
-    for ($i = $pos; $i < $len; $i++) {
-        $x .= $haystack[$i];
-
-        // If we find the end delimiter and the open/closed tag count is the same
-        if (str_ends_with($x, $close_tag)) {
-            $open_count  = substr_count($x, $open_tag);
-            $close_count = substr_count($x, $close_tag);
-
-            if ($open_count === $close_count) {
-                return $i + 1;
-            }
-        }
-    }
-
-    return false;
 }
 
 // vim: tabstop=4 shiftwidth=4 noexpandtab autoindent softtabstop=4
