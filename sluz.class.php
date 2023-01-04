@@ -192,8 +192,7 @@ class sluz {
 		$cur = error_reporting(); // Save current level so we can restore it
 		error_reporting(E_ALL & ~E_NOTICE); // Disable E_NOTICE
 
-		$tf             = $this->get_tpl_file($tpl_file);
-		$this->tpl_file = $tf;
+		$tf = $this->get_tpl_file($tpl_file);
 
 		// If we're in simple mode and we have a __halt_compiler() we can assume inline mode
 		$inline_simple = $this->simple_mode && !$tpl_file && $this->get_inline_content($this->php_file);
@@ -215,6 +214,7 @@ class sluz {
 		}
 
 		$this->fetch_called = true;
+		$this->tpl_file     = $tf;
 
 		error_reporting($cur); // Reset error reporting level
 
