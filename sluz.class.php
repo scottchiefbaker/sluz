@@ -152,7 +152,7 @@ class sluz {
 
 			// If it's a comment we slurp all the chars until the first '*}' and make that the block
 			if ($is_comment) {
-				$end = $this->find_ending_tag('*', substr($str, $start), '{*', '*}') + 2;
+				$end = $this->find_ending_tag(substr($str, $start), '{*', '*}') + 2;
 
 				if ($end === false) {
 					$this->error_out("Missing closing \"*}\" for comment", 48724);
@@ -592,7 +592,7 @@ class sluz {
 		return $ret;
 	}
 
-	function find_ending_tag($needle, $haystack, $open_tag, $close_tag) {
+	function find_ending_tag($haystack, $open_tag, $close_tag) {
 		// Do a quick check up to the FIRST closing tag to see if we find it
 		$pos         = strpos($haystack, $close_tag);
 		$substr      = substr($haystack,0, $pos);
@@ -613,7 +613,7 @@ class sluz {
 		// We only go five deep... this prevents endless loops
 		// No one should need more than five levels of nested comments
 		for ($h = 0; $h < 5; $h++) {
-			$pos = strpos($haystack, $needle, $offset);
+			$pos = strpos($haystack, $close_tag, $offset);
 
 			if ($pos === false) {
 				return false;
@@ -622,13 +622,11 @@ class sluz {
 			$substr = substr($haystack, 0, $pos + 2);
 
 			// If we find the end delimiter and the open/closed tag count is the same
-			if (str_ends_with($substr, $close_tag)) {
-				$open_count  = substr_count($substr, $open_tag);
-				$close_count = substr_count($substr, $close_tag);
+			$open_count  = substr_count($substr, $open_tag);
+			$close_count = substr_count($substr, $close_tag);
 
-				if ($open_count === $close_count) {
-					return $pos;
-				}
+			if ($open_count === $close_count) {
+				return $pos;
 			}
 
 			$offset = $pos + $close_len;
