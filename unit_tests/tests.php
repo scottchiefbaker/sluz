@@ -129,11 +129,12 @@ sluz_test('{literal}{foreach}{/literal}'          , '{foreach}'          , 'Lite
 sluz_test('{literal}{literal}{/literal}{/literal}', '{literal}{/literal}', 'Literal #5 - Meta literal');
 sluz_test(' { '                                   , ' { '                , 'Literal #6 - { with whitespace');
 
-sluz_test('{* Comment *}'     , '', 'Comment #1 - With text');
-sluz_test('{* ********* *}'   , '', 'Comment #2 - ******');
-sluz_test('{**}'              , '', 'Comment #3 - No whitespace');
-sluz_test('{*{$array|count}*}', '', 'Comment #4 - Variable inside');
-sluz_test('{* {* nested *} *}', '', 'Comment #5 - Nested');
+sluz_test('{* Comment *}'           , '', 'Comment #1 - With text');
+sluz_test('{* ********* *}'         , '', 'Comment #2 - ******');
+sluz_test('{**}'                    , '', 'Comment #3 - No whitespace');
+sluz_test('{*{$array|count}*}'      , '', 'Comment #4 - Variable inside');
+sluz_test('{* {* nested *} *}'      , '', 'Comment #5 - Nested');
+sluz_test('{* {* {* nested *} *} *}', '', 'Comment #6 - Triple Nested');
 
 sluz_test('{include file=\'extra.stpl\'}', '/e1ab49cf/' , 'Include #1 - file=\'extra.stpl\'');
 sluz_test('{include \'extra.stpl\'}'     , '/e1ab49cf/' , 'Include #2 - \'extra.stpl\'');

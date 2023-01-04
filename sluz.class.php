@@ -602,31 +602,36 @@ class sluz {
 			return $pos;
 		}
 
-		//print "Looking for '$close_tag' in '$haystack'\n";
+		// This is the FULL search, where we keep adding chunks of the string looking for
+		// the close tag, and then checking if the open tags match the close tags
 
-		// This is the full char by char search... a little slower but needed for nesting
-		//
-		// Add one char to the string at a time, and then check if it ends
-		// with the closing delimiter. Then confirm that the number of open
-		// tags in the string are the same as the closed (check for nesting)
-
-		// We skip ahead to the first match above because we know there isn't a match in
+		// We skip ahead past the first match above because we know there isn't a match in
 		// the first X characters
-		$pos += strlen($close_tag);
-		$x    = substr($haystack, 0, $pos);
+		$close_len = strlen($close_tag);
+		$offset    = $pos + $close_len;
 
-		for ($i = $pos; $i < $len; $i++) {
-			$x .= $haystack[$i];
+		// We only go five deep... this prevents endless loops
+		// No one should need more than five levels of nested comments
+		for ($h = 0; $h < 5; $h++) {
+			$pos = strpos($haystack, $needle, $offset);
+
+			if ($pos === false) {
+				return false;
+			}
+
+			$substr = substr($haystack, 0, $pos + 2);
 
 			// If we find the end delimiter and the open/closed tag count is the same
-			if (str_ends_with($x, $close_tag)) {
-				$open_count  = substr_count($x, $open_tag);
-				$close_count = substr_count($x, $close_tag);
+			if (str_ends_with($substr, $close_tag)) {
+				$open_count  = substr_count($substr, $open_tag);
+				$close_count = substr_count($substr, $close_tag);
 
 				if ($open_count === $close_count) {
-					return $i + 1;
+					return $pos;
 				}
 			}
+
+			$offset = $pos + $close_len;
 		}
 
 		return false;
