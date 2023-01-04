@@ -205,8 +205,6 @@ class sluz {
 			$str = file_get_contents($tf);
 		}
 
-		if ($this->debug) { print nl2br(htmlentities($str)) . "<hr>"; }
-
 		$blocks = $this->get_blocks($str);
 		$html   = '';
 		foreach ($blocks as $block) {
