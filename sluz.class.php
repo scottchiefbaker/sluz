@@ -265,18 +265,18 @@ class sluz {
 
 	// If there is not template specified we "guess" based on the PHP filename
 	private function get_tpl_file($tpl_file) {
-		$x         = debug_backtrace();
-		$last      = count($x) - 1;
-		$orig_file = basename($x[$last]['file'] ?? "");
-
 		if (!$this->php_file) {
+			$x         = debug_backtrace();
+			$last      = count($x) - 1;
+			$orig_file = basename($x[$last]['file'] ?? "");
+
 			$this->php_file = $orig_file;
 		}
 
 		if ($tpl_file === "INLINE") {
 			$tpl_file = null;
 		} elseif (!$tpl_file) {
-			$tpl_file = $this->guess_tpl_file($orig_file);
+			$tpl_file = $this->guess_tpl_file($this->php_file);
 		}
 
 		return $tpl_file;
