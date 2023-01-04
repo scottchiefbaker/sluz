@@ -273,7 +273,7 @@ class sluz {
 			$this->php_file = $orig_file;
 		}
 
-		if ($tpl_file === "INLINE") {
+		if ($tpl_file === SLUZ_INLINE) {
 			$tpl_file = null;
 		} elseif (!$tpl_file) {
 			$tpl_file = $this->guess_tpl_file($this->php_file);
