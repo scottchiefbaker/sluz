@@ -192,17 +192,22 @@ class sluz {
 		$cur = error_reporting(); // Save current level so we can restore it
 		error_reporting(E_ALL & ~E_NOTICE); // Disable E_NOTICE
 
-		$str = $this->get_tpl_content($tpl_file);
-
+		$str    = $this->get_tpl_content($tpl_file);
 		$blocks = $this->get_blocks($str);
-		$html   = '';
-		foreach ($blocks as $block) {
-			$html .= $this->process_block($block);
-		}
+		$html   = $this->process_blocks($blocks);
 
 		$this->fetch_called = true;
 
 		error_reporting($cur); // Reset error reporting level
+
+		return $html;
+	}
+
+	private function process_blocks(array $blocks) {
+		$html   = '';
+		foreach ($blocks as $block) {
+			$html .= $this->process_block($block);
+		}
 
 		return $html;
 	}
