@@ -192,18 +192,7 @@ class sluz {
 		$cur = error_reporting(); // Save current level so we can restore it
 		error_reporting(E_ALL & ~E_NOTICE); // Disable E_NOTICE
 
-		$tf = $this->get_tpl_file($tpl_file);
-
-		// If we're in simple mode and we have a __halt_compiler() we can assume inline mode
-		$inline_simple = $this->simple_mode && !$tpl_file && $this->get_inline_content($this->php_file);
-
-		if ($tpl_file === SLUZ_INLINE || $inline_simple) {
-			$str = $this->get_inline_content($this->php_file);
-		} elseif (!is_readable($tf)) {
-			$this->error_out("Unable to load template file <code>$tf</code>",42280);
-		} else {
-			$str = file_get_contents($tf);
-		}
+		$str = $this->get_tpl_content($tpl_file);
 
 		$blocks = $this->get_blocks($str);
 		$html   = '';
@@ -212,11 +201,28 @@ class sluz {
 		}
 
 		$this->fetch_called = true;
-		$this->tpl_file     = $tf;
 
 		error_reporting($cur); // Reset error reporting level
 
 		return $html;
+	}
+
+	private function get_tpl_content($tpl_file) {
+        $this->tpl_file = $tf = $this->tpl_file = $this->get_tpl_file($tpl_file);
+
+		// If we're in simple mode and we have a __halt_compiler() we can assume inline mode
+		$inline_simple = $this->simple_mode && !$tpl_file && $this->get_inline_content($this->php_file);
+		$is_inline     = ($tpl_file === SLUZ_INLINE) || $inline_simple;
+
+		if ($is_inline) {
+			$str = $this->get_inline_content($this->php_file);
+		} elseif (!is_readable($tf)) {
+			$this->error_out("Unable to load template file <code>$tf</code>",42280);
+		} else {
+			$str = file_get_contents($tf);
+		}
+
+		return $str;
 	}
 
 	// Get the text after __halt_compiler()
