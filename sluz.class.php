@@ -506,11 +506,8 @@ class sluz {
 			$testp   = $this->convert_variables_in_string($test);
 
 			if ($this->peval($testp)) {
-				$blocks = $this->get_blocks($payload);
-
-				foreach ($blocks as $block) {
-					$ret .= $this->process_block($block);
-				}
+				$blocks  = $this->get_blocks($payload);
+				$ret    .= $this->process_blocks($blocks);
 
 				// One of the tests was true so we stop processing
 				break;
@@ -525,11 +522,7 @@ class sluz {
 		$callback = [$this, 'include_callback']; // Object callback syntax
 		$str      = preg_replace_callback("/\{include.+?\}/", $callback, $str);
 		$blocks   = $this->get_blocks($str);
-
-		$ret = '';
-		foreach ($blocks as $block) {
-			$ret .= $this->process_block($block);
-		}
+		$ret      = $this->process_blocks($blocks);
 
 		return $ret;
 	}
@@ -568,9 +561,7 @@ class sluz {
 				$this->tpl_vars[$okey] = $val;
 			}
 
-			foreach ($blocks as $block) {
-				$ret .= $this->process_block($block);
-			}
+			$ret .= $this->process_blocks($blocks);
 
 			// Restore the previous value
 			$this->tpl_vars[$okey] = $prevk;
