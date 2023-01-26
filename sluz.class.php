@@ -435,20 +435,21 @@ class sluz {
 	private function variable_block($str) {
 
 		// If it has a '|' it's either a function call or 'default'
-		if (preg_match("/(.+?)\|(.+?)(:|$)/", $str, $m)) {
+		if (preg_match("/(.+?)\|(.*)/", $str, $m)) {
 			$key = $m[1];
 			$mod = $m[2];
 
 			$tmp        = $this->array_dive($key, $this->tpl_vars) ?? "";
 			$is_nothing = ($tmp === null || $tmp === "");
+			$is_default = strpos($mod, "default:") !== false;
 
 			// Empty with a default value
-			if ($is_nothing && $mod === "default") {
+			if ($is_nothing && $is_default) {
 				$p    = explode("default:", $str, 2);
 				$dval = $p[1] ?? "";
 				$ret  = $this->peval($dval);
 			// Non-empty, but has a default value
-			} elseif (!$is_nothing && $mod === "default") {
+			} elseif (!$is_nothing && $is_default) {
 				$ret = $this->array_dive($key, $this->tpl_vars) ?? "";
 			// User function
 			} else {
@@ -458,7 +459,19 @@ class sluz {
 
 				// Loop through each modifier (chaining)
 				foreach ($parts as $mod) {
-					$pre = call_user_func_array($mod, [$pre]);
+					$x         = preg_split("/:/", $mod);
+					$func      = $x[0] ?? "";
+					$param_str = $x[1] ?? "";
+					$params    = [$pre];
+
+					if ($param_str) {
+						$new    = preg_split("/,/", $param_str);
+						$params = array_merge($params, $new);
+					}
+
+					//printf("Calling: %s(%s)<br />\n", $func, join(", ", $params));
+
+					$pre = call_user_func_array($func, $params);
 				}
 
 				$ret = $pre;
