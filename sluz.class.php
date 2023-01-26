@@ -452,8 +452,16 @@ class sluz {
 				$ret = $this->array_dive($key, $this->tpl_vars) ?? "";
 			// User function
 			} else {
-				$pre = $this->array_dive($key, $this->tpl_vars) ?? "";
-				$ret = call_user_func($mod, $pre);
+				$pre   = $this->array_dive($key, $this->tpl_vars) ?? "";
+				// Each modifier is separated by a |
+				$parts = preg_split("/\\|/", $mod);
+
+				// Loop through each modifier (chaining)
+				foreach ($parts as $mod) {
+					$pre = call_user_func_array($mod, [$pre]);
+				}
+
+				$ret = $pre;
 			}
 		} else {
 			$ret = $this->array_dive($str, $this->tpl_vars) ?? "";
