@@ -32,6 +32,7 @@ $sluz->assign('key'         , 'val');
 $sluz->assign('first'       , "Scott");
 $sluz->assign('last'        , "Baker");
 $sluz->assign('animal'      , "Kitten");
+$sluz->assign('word'        , "cRaZy");
 $sluz->assign('debug'       , 1);
 $sluz->assign('array'       , ['one', 'two', 'three']);
 $sluz->assign('cust'        , ['first' => 'Scott', 'last' => 'Baker']);
@@ -77,6 +78,7 @@ sluz_test('{$first'                        , '{$first', 'Basic #24 - Unclosed bl
 sluz_test('{$cust.first|default:\'Jason\'}', 'Scott'  , 'Basic #25 - Hash with default value, not used');
 sluz_test('{$cust.foo|default:\'Jason\'}'  , 'Jason'  , 'Basic #26 - Hash with default value, used');
 sluz_test('{$array}'                       , 'Array'  , 'Basic #28 - Array used as a scalar');
+sluz_test('{$word|strtolower|ucfirst}'     , 'Crazy'  , 'Basic #29 - Chaining modifiers');
 
 sluz_test('{if $debug}DEBUG{/if}'                  , 'DEBUG'   , 'If #1 - Simple');
 sluz_test('{if $bogus_var}DEBUG{/if}'              , ''        , 'If #2 - Missing var');
