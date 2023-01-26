@@ -78,7 +78,9 @@ sluz_test('{$first'                        , '{$first', 'Basic #24 - Unclosed bl
 sluz_test('{$cust.first|default:\'Jason\'}', 'Scott'  , 'Basic #25 - Hash with default value, not used');
 sluz_test('{$cust.foo|default:\'Jason\'}'  , 'Jason'  , 'Basic #26 - Hash with default value, used');
 sluz_test('{$array}'                       , 'Array'  , 'Basic #28 - Array used as a scalar');
-sluz_test('{$word|strtolower|ucfirst}'     , 'Crazy'  , 'Basic #29 - Chaining modifiers');
+sluz_test('{$word|truncate:3}'             , 'cRa'    , 'Basic #29 - Modifier with param');
+sluz_test('{$word|strtolower|ucfirst}'     , 'Crazy'  , 'Basic #30 - Chaining modifiers');
+sluz_test('{$last|truncate:4|truncate:2}'  , 'Ba'     , 'Basic #31 - Two modifiers with params');
 
 sluz_test('{if $debug}DEBUG{/if}'                  , 'DEBUG'   , 'If #1 - Simple');
 sluz_test('{if $bogus_var}DEBUG{/if}'              , ''        , 'If #2 - Missing var');
@@ -267,6 +269,12 @@ function sluz_test($input, $expected, $test_name) {
 
 		$fail_count++;
 	}
+}
+
+// This is just to test user functions/modifiers
+function truncate($str, int $len) {
+	$ret = substr($str, 0, $len);
+	return $ret;
 }
 
 // vim: tabstop=4 shiftwidth=4 noexpandtab autoindent softtabstop=4
