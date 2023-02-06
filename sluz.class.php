@@ -264,7 +264,13 @@ class sluz {
 			}
 		}
 
-		$inc_tpl = ($this->tpl_path ?? "tpls/") . $file;
+		// Include TPL path is *relative* to the main TPL
+		$tpl_path = dirname($this->tpl_file);
+		if (!$tpl_path) {
+			$tpl_path = "tpls/";
+		}
+
+		$inc_tpl = "$tpl_path/$file";
 
 		if ($file && is_readable($inc_tpl)) {
 			$ext_str = file_get_contents($inc_tpl);
