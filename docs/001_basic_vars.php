@@ -14,4 +14,4 @@ $s->assign("last" , "Doolis");
 $s->assign("month", ["Jan", "Feb", "Mar"]); // Array syntax
 $s->assign("data" , ["color" => "red"]);    // Hash syntax
 
-print $s->fetch();
+print $s->fetch("tpls/001_basic_vars.stpl");

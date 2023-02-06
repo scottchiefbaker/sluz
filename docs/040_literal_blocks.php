@@ -12,4 +12,4 @@ $s = new sluz();
 
 $s->assign("name", "Jason Doolis");
 
-print $s->fetch();
+print $s->fetch("tpls/040_literal_blocks.stpl");

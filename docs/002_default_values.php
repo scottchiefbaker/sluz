@@ -11,4 +11,4 @@ $s = new sluz();
 $s->assign("name", "Jason Doolis");
 //$s->assign("greeting", "Hola"); // If we don't send this, the default it used
 
-print $s->fetch();
+print $s->fetch("tpls/002_default_values.stpl");

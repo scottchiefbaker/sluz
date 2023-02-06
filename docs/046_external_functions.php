@@ -14,7 +14,7 @@ $s = new sluz();
 $s->assign("name" , "Jason Doolis"); // Scalar syntax
 $s->assign("numbers" , [4,1,9,7,2]); // Array syntax
 
-print $s->fetch();
+print $s->fetch("tpls/046_external_functions.stpl");
 
 ///////////////////////////////////////////////////////////////////////////////
 

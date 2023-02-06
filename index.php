@@ -10,6 +10,6 @@ $s = new sluz();
 
 // Sluz will default to "tpls/[filename_minus_dot_php].stpl"
 $s->assign('sluz_version', $s->version);
-print $s->fetch();
+print $s->fetch("tpls/index.stpl");
 
 ////////////////////////////////////////////////////////

@@ -12,4 +12,4 @@ $s = new sluz();
 $s->assign("first", "Jason"); // Scalar syntax
 $s->assign("last" , "Doolis");
 
-print $s->fetch();
+print $s->fetch("tpls/045_include.stpl");
