@@ -1,3 +1,4 @@
 <p>Uppercase: {$name|strtoupper}</p>
 <p>Initials: {$name|initials}</p>
 <p>Numbers: {$numbers|join_comma}</p>
+<p>Substring: {$name|substr:0,3}</p>
