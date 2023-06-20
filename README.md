@@ -37,7 +37,7 @@ needed for the library to function.
 
 Sluz has an extensive test suite that is used to verify compatibility
 across PHP versions. As of this writing Sluz passes all unit tests on
-PHP versions: 7.3, 7.4, 8.0, and 8.1.
+PHP versions: 7.3, 7.4, 8.0, 8.1 and 8.2.
 
 To run the tests issue this command at the CLI:
 
