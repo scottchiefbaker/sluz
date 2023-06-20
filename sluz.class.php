@@ -265,7 +265,7 @@ class sluz {
 		}
 
 		// Include TPL path is *relative* to the main TPL
-		$tpl_path = dirname($this->tpl_file);
+		$tpl_path = dirname($this->tpl_file ?? "");
 		if (!$tpl_path) {
 			$tpl_path = "tpls/";
 		}
