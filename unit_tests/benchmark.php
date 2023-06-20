@@ -29,7 +29,7 @@ while (microtime(1) - $start < $runtime_secs) {
 	$s->assign('millis', $total);
 
 	$s->tpl_path = __DIR__ . "/tpls/";
-	$output = $s->fetch();
+	$output = $s->fetch("tpls/benchmark.stpl");
 	$loops++;
 }
 
