@@ -477,6 +477,10 @@ class sluz {
 
 					//printf("Calling: %s(%s)<br />\n", $func, join(", ", $params));
 
+					if (!is_callable($func)) {
+						return $this->error_out("Unknown function call \"$func\"", 47204);
+					}
+
 					$pre = call_user_func_array($func, $params);
 				}
 
