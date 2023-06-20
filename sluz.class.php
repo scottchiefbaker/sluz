@@ -5,7 +5,7 @@
 define('SLUZ_INLINE', 987123654); // Just a random number
 
 class sluz {
-	public $version      = '0.7';
+	public $version      = '0.8';
 	public $tpl_file     = null;
 	public $debug        = 0;
 	public $in_unit_test = false;
