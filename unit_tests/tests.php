@@ -81,6 +81,8 @@ sluz_test('{$array}'                       , 'Array'  , 'Basic #28 - Array used 
 sluz_test('{$word|truncate:3}'             , 'cRa'    , 'Basic #29 - Modifier with param');
 sluz_test('{$word|strtolower|ucfirst}'     , 'Crazy'  , 'Basic #30 - Chaining modifiers');
 sluz_test('{$last|truncate:4|truncate:2}'  , 'Ba'     , 'Basic #31 - Two modifiers with params');
+sluz_test('{$first|substr:2}'              , 'ott'    , 'Basic #32 - PHP function with one param');
+sluz_test('{$first|substr:2,2}'            , 'ot'     , 'Basic #33 - PHP function with two params');
 
 sluz_test('{if $debug}DEBUG{/if}'                  , 'DEBUG'   , 'If #1 - Simple');
 sluz_test('{if $bogus_var}DEBUG{/if}'              , ''        , 'If #2 - Missing var');
