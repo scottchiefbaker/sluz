@@ -205,8 +205,10 @@ function sluz_test($input, $expected, $test_name) {
 		$blocks = $sluz->get_blocks($input);
 		$html   = '';
 
-		foreach ($blocks as $input) {
-			$html .= $sluz->process_block($input);
+		foreach ($blocks as $x) {
+			$input = $x[0];
+			$pos   = $x[1];
+			$html .= $sluz->process_block($input, $pos);
 		}
 	}
 

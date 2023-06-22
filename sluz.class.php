@@ -16,6 +16,7 @@ class sluz {
 	private $var_prefix   = "sluz_pfx";
 	private $simple_mode  = false;
 	private $fetch_called = false;
+	private $char_pos     = -1;
 
 	public function __construct() { }
 	public function __destruct()  {
@@ -35,8 +36,10 @@ class sluz {
 	}
 
 	// Convert template blocks in to output strings
-	public function process_block(string $str) {
+	public function process_block(string $str, int $char_pos = -1) {
 		$ret = '';
+
+		$this->char_pos = $char_pos;
 
 		// Micro-optimization for "" input
 		if (strlen($str) === 0) {
@@ -107,7 +110,7 @@ class sluz {
 				$len   = $i - $start;
 				$block = substr($str, $start, $len);
 
-				$blocks[] = $block;
+				$blocks[] = [$block, $i];
 				$start    = $i;
 			// If it's a "}" it's a closing block that starts at $start
 			} elseif ($is_closed) {
@@ -145,7 +148,7 @@ class sluz {
 					}
 				}
 
-				$blocks[]  = $block;
+				$blocks[]  = [$block, $i];
 				$start    += strlen($block);
 				$i         = $start;
 			}
@@ -155,7 +158,8 @@ class sluz {
 				$end = $this->find_ending_tag(substr($str, $start), '{*', '*}') + 2;
 
 				if ($end === false) {
-					$this->error_out("Missing closing \"*}\" for comment", 48724);
+					list($line, $col) = $this->get_char_location($this->char_pos, $this->tpl_file);
+					$this->error_out("Missing closing \"*}\" for comment on line #$line", 48724);
 				}
 
 				$end_rel    = $end - $start;
@@ -168,7 +172,7 @@ class sluz {
 
 		// If we're not at the end of the string, add the last block
 		if ($start < $slen) {
-			$blocks[] = substr($str, $start);
+			$blocks[] = [substr($str, $start), $i];
 		}
 
 		return $blocks;
@@ -205,8 +209,10 @@ class sluz {
 
 	private function process_blocks(array $blocks) {
 		$html   = '';
-		foreach ($blocks as $block) {
-			$html .= $this->process_block($block);
+		foreach ($blocks as $x) {
+			$block     = $x[0];
+			$char_pos  = $x[1];
+			$html     .= $this->process_block($block, $char_pos);
 		}
 
 		return $html;
@@ -253,7 +259,8 @@ class sluz {
 		if (preg_match("/(file=)?'(.+?)'/", $str, $m)) {
 			$file = $m[2];
 		} else {
-			$this->error_out("Unable to find a template in include block <code>$str</code>", 18488);
+			list($line, $col) = $this->get_char_location($this->char_pos, $this->tpl_file);
+			$this->error_out("Unable to find a template in include block <code>$str</code> on line #$line", 18488);
 		}
 
 		// Extra variables to include sub templates
@@ -278,7 +285,8 @@ class sluz {
 			$ext_str = file_get_contents($inc_tpl);
 			return $ext_str;
 		} else {
-			$this->error_out("Unable to load include template <code>$inc_tpl</code>", 18485);
+			list($line, $col) = $this->get_char_location($this->char_pos, $this->tpl_file);
+			$this->error_out("Unable to load include template <code>$inc_tpl</code> on line #$line", 18485);
 		}
 	}
 
@@ -480,7 +488,8 @@ class sluz {
 					//printf("Calling: %s(%s)<br />\n", $func, join(", ", $params));
 
 					if (!is_callable($func)) {
-						return $this->error_out("Unknown function call \"$func\"", 47204);
+						list($line, $col) = $this->get_char_location($this->char_pos, $this->tpl_file);
+						return $this->error_out("Unknown function call \"$func\" on line #$line", 47204);
 					}
 
 					$pre = call_user_func_array($func, $params);
@@ -498,6 +507,34 @@ class sluz {
 		}
 
 		return $ret;
+	}
+
+	private function get_char_location($pos, $tpl_file) {
+		$str = $this->get_tpl_content($tpl_file);
+
+		// Error catching...
+		if ($pos < 0) {
+			return [-1, -1];
+		}
+
+		$line = 1;
+		$col  = 0;
+		for ($i = 0; $i < strlen($str); $i++) {
+			$col++;
+			$char = $str[$i];
+
+			if ($char === "\n") {
+				$line++;
+				$col = 0;
+			}
+
+			if ($pos === $i) {
+				$ret = [$line, $col];
+				return $ret;
+			}
+		}
+
+		return [-1, -1];
 	}
 
 	// parse an if statement
@@ -610,7 +647,8 @@ class sluz {
 
 		// Make sure the block has something parseble... at least a $ or "
 		if (!preg_match("/[\"\d$]/", $str)) {
-			return $this->error_out("Unknown block type '$str'", 73467);
+			list($line, $col) = $this->get_char_location($this->char_pos, $this->tpl_file);
+			return $this->error_out("Unknown block type '$str' on line #$line", 73467);
 		}
 
 		$blk   = $m[1];
@@ -618,8 +656,8 @@ class sluz {
 		$ret   = $this->peval($after);
 
 		if (!$ret) {
-			$ret = $str;
-			return $this->error_out("Unknown tag '$str'", 18933);
+			list($line, $col) = $this->get_char_location($this->char_pos, $this->tpl_file);
+			return $this->error_out("Unknown tag '$str' on line #$line", 18933);
 		}
 
 		return $ret;
