@@ -227,6 +227,8 @@ class sluz {
 			$str = file_get_contents($tf);
 		}
 
+		if (empty($str)) { $str = ""; }
+
 		return $str;
 	}
 
