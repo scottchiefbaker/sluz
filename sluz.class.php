@@ -2,7 +2,7 @@
 
 ////////////////////////////////////////////////////////
 
-define('SLUZ_INLINE', 987123654); // Just a random number
+define('SLUZ_INLINE', 'INLINE_TEMPLATE'); // Just a random number
 
 class sluz {
 	public $version      = '0.8';
@@ -308,9 +308,7 @@ class sluz {
 			$this->php_file = $orig_file;
 		}
 
-		if ($tpl_file === SLUZ_INLINE) {
-			$tpl_file = null;
-		} elseif (!$tpl_file) {
+		if (!$tpl_file) {
 			$tpl_file = $this->guess_tpl_file($this->php_file);
 		}
 
