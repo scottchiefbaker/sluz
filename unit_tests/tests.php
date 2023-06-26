@@ -69,20 +69,20 @@ sluz_test('{$x}'                , "7"          , 'Basic #16 - Single Character v
 sluz_test('{$array[1]}'         , 'two'        , 'Basic #17 - Array Lookup - PHP Syntax');
 sluz_test('{$cust["last"]}'     , 'Baker'      , 'Basic #18 - Hash Lookup - PHP Syntax');
 
-sluz_test('{$last|default:\'123\'}'        , 'Baker'  , 'Basic #19 - Default - Not Used');
-sluz_test('{$zero|default:\'123\'}'        , '0'      , 'Basic #20 - Default - Zero Not Used');
-sluz_test('{$empty_string|default:\'123\'}', '123'    , 'Basic #21 - Default - Empty String');
-sluz_test('{$null|default:\'123\'}'        , '123'    , 'Basic #22 - Default - Null');
-sluz_test('{foo'                           , '{foo'   , 'Basic #23 - Unclosed block');
-sluz_test('{$first'                        , '{$first', 'Basic #24 - Unclosed block variable');
-sluz_test('{$cust.first|default:\'Jason\'}', 'Scott'  , 'Basic #25 - Hash with default value, not used');
-sluz_test('{$cust.foo|default:\'Jason\'}'  , 'Jason'  , 'Basic #26 - Hash with default value, used');
-sluz_test('{$array}'                       , 'Array'  , 'Basic #28 - Array used as a scalar');
-sluz_test('{$word|truncate:3}'             , 'cRa'    , 'Basic #29 - Modifier with param');
-sluz_test('{$word|strtolower|ucfirst}'     , 'Crazy'  , 'Basic #30 - Chaining modifiers');
-sluz_test('{$last|truncate:4|truncate:2}'  , 'Ba'     , 'Basic #31 - Two modifiers with params');
-sluz_test('{$first|substr:2}'              , 'ott'    , 'Basic #32 - PHP function with one param');
-sluz_test('{$first|substr:2,2}'            , 'ot'     , 'Basic #33 - PHP function with two params');
+sluz_test('{$last|default:\'123\'}'        , 'Baker'      , 'Basic #19 - Default - Not Used');
+sluz_test('{$zero|default:\'123\'}'        , '0'          , 'Basic #20 - Default - Zero Not Used');
+sluz_test('{$empty_string|default:\'123\'}', '123'        , 'Basic #21 - Default - Empty String');
+sluz_test('{$null|default:\'123\'}'        , '123'        , 'Basic #22 - Default - Null');
+sluz_test('{foo'                           , 'ERROR-45821', 'Basic #23 - Unclosed block');
+sluz_test('{$first'                        , 'ERROR-45821', 'Basic #24 - Unclosed block variable');
+sluz_test('{$cust.first|default:\'Jason\'}', 'Scott'      , 'Basic #25 - Hash with default value, not used');
+sluz_test('{$cust.foo|default:\'Jason\'}'  , 'Jason'      , 'Basic #26 - Hash with default value, used');
+sluz_test('{$array}'                       , 'Array'      , 'Basic #28 - Array used as a scalar');
+sluz_test('{$word|truncate:3}'             , 'cRa'        , 'Basic #29 - Modifier with param');
+sluz_test('{$word|strtolower|ucfirst}'     , 'Crazy'      , 'Basic #30 - Chaining modifiers');
+sluz_test('{$last|truncate:4|truncate:2}'  , 'Ba'         , 'Basic #31 - Two modifiers with params');
+sluz_test('{$first|substr:2}'              , 'ott'        , 'Basic #32 - PHP function with one param');
+sluz_test('{$first|substr:2,2}'            , 'ot'         , 'Basic #33 - PHP function with two params');
 
 sluz_test('{if $debug}DEBUG{/if}'                  , 'DEBUG'   , 'If #1 - Simple');
 sluz_test('{if $bogus_var}DEBUG{/if}'              , ''        , 'If #2 - Missing var');
@@ -129,10 +129,11 @@ sluz_test('{first}'   , 'ERROR-73467', 'Bad block #2 - {word}'); // Literal (no 
 
 sluz_test('{literal}{{/literal}'                  , '{'                  , 'Literal #1 - {');
 sluz_test('{literal}}{/literal}'                  , '}'                  , 'Literal #2 - }');
-sluz_test('{literal}{}{/literal}'                 , '{}'                 , 'Literal #3 - {}');
+sluz_test('{literal}{}{/literal}'                 , '{}'                 , 'Literal #3 - Literal + {}');
 sluz_test('{literal}{foreach}{/literal}'          , '{foreach}'          , 'Literal #4 - {literal}');
 sluz_test('{literal}{literal}{/literal}{/literal}', '{literal}{/literal}', 'Literal #5 - Meta literal');
 sluz_test(' { '                                   , ' { '                , 'Literal #6 - { with whitespace');
+sluz_test('{}'                                    , '{}'                 , 'Literal #7 - Raw {}');
 
 sluz_test('{* Comment *}'           , '', 'Comment #1 - With text');
 sluz_test('{* ********* *}'         , '', 'Comment #2 - ******');

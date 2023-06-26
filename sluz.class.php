@@ -69,6 +69,10 @@ class sluz {
 		// Catch all for other { $num + 3 } type of blocks
 		} elseif (preg_match('/^\{(.+)}$/s', $str, $m)) {
 			$ret = $this->expression_block($str, $m);
+		// If it starts with '{' (from above) but does NOT contain a closing tag
+		} elseif (!preg_match('/\}$/', $str, $m)) {
+			list($line, $col, $file) = $this->get_char_location($this->char_pos, $this->tpl_file);
+			return $this->error_out("Unclosed tag <code>$str</code> in <code>$file</code> on line #$line", 45821);
 		// Something went WAY wrong
 		} else {
 			$ret = $str;
@@ -570,7 +574,11 @@ class sluz {
 			}
 		}
 
-		return [-1, -1];
+		if ($pos === strlen($str)) {
+			return [$line, $col, $tpl_file];
+		}
+
+		return [-1, -1, $tpl_file];
 	}
 
 	// parse an if statement
@@ -692,7 +700,7 @@ class sluz {
 			return $this->error_out("Unknown block type <code>$str</code> in <code>$file</code> on line #$line", 73467);
 		}
 
-		$blk   = $m[1];
+		$blk   = $m[1] ?? "";
 		$after = $this->convert_variables_in_string($blk);
 		$ret   = $this->peval($after);
 
