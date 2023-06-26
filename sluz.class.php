@@ -6,7 +6,9 @@ define('SLUZ_INLINE', 987123654); // Just a random number
 
 class sluz {
 	public $version      = '0.8';
-	public $tpl_file     = null;
+	public $tpl_file     = null; // The path to the TPL file
+	public $inc_tpl_file = null; // The path to the {include} file
+
 	public $debug        = 0;
 	public $in_unit_test = false;
 	public $tpl_vars     = [];
@@ -155,16 +157,16 @@ class sluz {
 
 			// If it's a comment we slurp all the chars until the first '*}' and make that the block
 			if ($is_comment) {
-				$end = $this->find_ending_tag(substr($str, $start), '{*', '*}') + 2;
+				$end = $this->find_ending_tag(substr($str, $start), '{*', '*}');
 
 				if ($end === false) {
-					list($line, $col) = $this->get_char_location($this->char_pos, $this->tpl_file);
-					$this->error_out("Missing closing \"*}\" for comment on line #$line", 48724);
+					list($line, $col, $file) = $this->get_char_location($i, $this->tpl_file);
+					return $this->error_out("Missing closing <code>*}</code> for comment in <code>$file</code> on line #$line", 48724);
 				}
 
+				$end += 2; // '*}' is 2 long so we add that
+
 				$end_rel    = $end - $start;
-				//$block    = substr($str, $start, $end);
-				//$blocks[] = $block;
 				$start      += $end;
 				$i          = $start;
 			}
@@ -228,7 +230,7 @@ class sluz {
 		if ($is_inline) {
 			$str = $this->get_inline_content($this->php_file);
 		} elseif (!is_readable($tf)) {
-			$this->error_out("Unable to load template file <code>$tf</code>",42280);
+			return $this->error_out("Unable to load template file <code>$tf</code>",42280);
 		} else {
 			$str = file_get_contents($tf);
 		}
@@ -254,17 +256,11 @@ class sluz {
 
 	// The callback to do the include string replacement stuff
 	private function include_callback(array $m) {
-		$str  = $m[0];
-		$file = '';
-		if (preg_match("/(file=)?'(.+?)'/", $str, $m)) {
-			$file = $m[2];
-		} else {
-			list($line, $col) = $this->get_char_location($this->char_pos, $this->tpl_file);
-			$this->error_out("Unable to find a template in include block <code>$str</code> on line #$line", 18488);
-		}
+		$input_str = $m[0];
+		$inc_tpl   = $this->extract_include_file($input_str);
 
 		// Extra variables to include sub templates
-		if (preg_match_all("/(\w+)='(.+?)'/", $str, $m)) {
+		if (preg_match_all("/(\w+)='(.+?)'/", $input_str, $m)) {
 			for ($i = 0; $i < count($m[0]); $i++) {
 				$key = $m[1][$i] ?? "";
 				$val = $m[2][$i] ?? "";
@@ -273,21 +269,33 @@ class sluz {
 			}
 		}
 
+		if (is_readable($inc_tpl)) {
+			$ext_str = file_get_contents($inc_tpl);
+			return $ext_str;
+		} else {
+			list($line, $col, $file) = $this->get_char_location($this->char_pos, $this->tpl_file);
+			return $this->error_out("Unable to load include template <code>$inc_tpl</code> in <code>$file</code> on line #$line", 18485);
+		}
+	}
+
+	function extract_include_file($str) {
+		$file = '';
+		if (preg_match("/(file=)?'(.+?)'/", $str, $m)) {
+			$file = $m[2];
+		} else {
+			list($line, $col, $file) = $this->get_char_location($this->char_pos, $this->tpl_file);
+			return $this->error_out("Unable to find a file in include block <code>$str</code> in <code>$file</code> on line #$line", 68493);
+		}
+
 		// Include TPL path is *relative* to the main TPL
 		$tpl_path = dirname($this->tpl_file ?? "");
 		if (!$tpl_path) {
 			$tpl_path = "tpls/";
 		}
 
-		$inc_tpl = "$tpl_path/$file";
+		$ret = "$tpl_path/$file";
 
-		if ($file && is_readable($inc_tpl)) {
-			$ext_str = file_get_contents($inc_tpl);
-			return $ext_str;
-		} else {
-			list($line, $col) = $this->get_char_location($this->char_pos, $this->tpl_file);
-			$this->error_out("Unable to load include template <code>$inc_tpl</code> on line #$line", 18485);
-		}
+		return $ret;
 	}
 
 	// If there is not template specified we "guess" based on the PHP filename
@@ -488,8 +496,8 @@ class sluz {
 					//printf("Calling: %s(%s)<br />\n", $func, join(", ", $params));
 
 					if (!is_callable($func)) {
-						list($line, $col) = $this->get_char_location($this->char_pos, $this->tpl_file);
-						return $this->error_out("Unknown function call \"$func\" on line #$line", 47204);
+						list($line, $col, $file) = $this->get_char_location($this->char_pos, $this->tpl_file);
+						return $this->error_out("Unknown function call <code>$func</code> in <code>$file</code> on line #$line", 47204);
 					}
 
 					$pre = call_user_func_array($func, $params);
@@ -510,11 +518,15 @@ class sluz {
 	}
 
 	private function get_char_location($pos, $tpl_file) {
+		// If we're in an {include} the tpl is that temporarily
+		if ($this->inc_tpl_file) {
+			$tpl_file = $this->inc_tpl_file;
+		}
 		$str = $this->get_tpl_content($tpl_file);
 
 		// Error catching...
 		if ($pos < 0) {
-			return [-1, -1];
+			return [-1, -1, $tpl_file];
 		}
 
 		$line = 1;
@@ -529,7 +541,7 @@ class sluz {
 			}
 
 			if ($pos === $i) {
-				$ret = [$line, $col];
+				$ret = [$line, $col, $tpl_file];
 				return $ret;
 			}
 		}
@@ -590,9 +602,14 @@ class sluz {
 	// Parse an include block
 	private function include_block($str) {
 		$callback = [$this, 'include_callback']; // Object callback syntax
-		$str      = preg_replace_callback("/\{include.+?\}/", $callback, $str);
-		$blocks   = $this->get_blocks($str);
+		$inc_str  = preg_replace_callback("/\{include.+?\}/", $callback, $str);
+
+		$this->inc_tpl_file = $this->extract_include_file($str); // Temp override TPL file
+
+		$blocks   = $this->get_blocks($inc_str);
 		$ret      = $this->process_blocks($blocks);
+
+		$this->inc_tpl_file = null; // Clear override
 
 		return $ret;
 	}
@@ -647,8 +664,8 @@ class sluz {
 
 		// Make sure the block has something parseble... at least a $ or "
 		if (!preg_match("/[\"\d$]/", $str)) {
-			list($line, $col) = $this->get_char_location($this->char_pos, $this->tpl_file);
-			return $this->error_out("Unknown block type '$str' on line #$line", 73467);
+			list($line, $col, $file) = $this->get_char_location($this->char_pos, $this->tpl_file);
+			return $this->error_out("Unknown block type <code>$str</code> in <code>$file</code> on line #$line", 73467);
 		}
 
 		$blk   = $m[1];
@@ -656,8 +673,8 @@ class sluz {
 		$ret   = $this->peval($after);
 
 		if (!$ret) {
-			list($line, $col) = $this->get_char_location($this->char_pos, $this->tpl_file);
-			return $this->error_out("Unknown tag '$str' on line #$line", 18933);
+			list($line, $col, $file) = $this->get_char_location($this->char_pos, $this->tpl_file);
+			return $this->error_out("Unknown tag <code>$str</code> in <code>$file</code> on line #$line", 18933);
 		}
 
 		return $ret;
