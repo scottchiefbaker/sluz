@@ -373,7 +373,7 @@ class sluz {
 			}
 
 			return $ret;
-		};
+			};
 
 		// Process flat arrays in the test like $cust.name or $array[3]
 		$str = preg_replace_callback('/(\$\w[\w\.]*)/', $dot_to_bracket_callback, $str);
@@ -382,49 +382,75 @@ class sluz {
 	}
 
 	public function error_out($msg, int $err_num) {
-		$out = "<style>
+		$style = "
 			.s_error {
-				font-family: sans;
-				border: 1px solid;
-				padding: 6px;
+				font-family  : sans;
+				color        : #842029;
+				padding      : 0.8em;
 				border-radius: 4px;
 				margin-bottom: 8px;
+				background   : #f8d7da;
+				border       : 1px solid #f5c2c7;
+				max-width    : 70%;
+				margin       : auto;
+				min-width    : 370px;
 			}
 
-			.s_error_head { margin-top: 0; }
+			.s_error_head {
+				margin-top : 0;
+				color      : white;
+				text-shadow: 0px 0px 7px gray;
+			}
 			.s_error_num { margin-top: 1em; }
 			.s_error_file {
-				margin-top: 1em;
+				margin-top : 2em;
 				padding-top: 0.5em;
-				font-size: .8em;
-				border-top: 1px solid;
+				font-size  : .8em;
+				border-top : 1px solid gray;
 			}
 
 			.s_error code {
-				padding: .2rem .4rem;
-				font-size: 1.1em;
-				color: #fff;
-				background-color: #212529;
-				border-radius: .2rem;
+				padding         : .2rem .4rem;
+				font-size       : 1.1em;
+				border-radius   : .2rem;
+				background-color: #dad5d5;
+				color           : #1a1a1a;
+				border          : 1px solid #c2c2c2;
 			}
-		</style>";
+		";
 
 		if ($this->in_unit_test) {
 			return "ERROR-$err_num";
 		}
 
 		$d    = debug_backtrace();
-		$file = $d[1]['file'] ?? "";
-		$line = $d[1]['line'] ?? 0;
+		$file = $d[0]['file'] ?? "";
+		$line = $d[0]['line'] ?? 0;
 
-		$out .= "<div class=\"s_error\">\n";
-		$out .= "<h1 class=\"s_error_head\">Sluz Fatal Error</h1>";
-		$out .= "<div class=\"s_error_desc\"><b>Description:</b> $msg</div>";
-		$out .= "<div class=\"s_error_num\"><b>Number</b> #$err_num</div>";
+		$title = "Sluz error #$err_num";
+
+		$body  = "<div class=\"s_error\">\n";
+		$body .= "<h1 class=\"s_error_head\">Sluz Fatal Error #$err_num</h1>";
+		$body .= "<div class=\"s_error_desc\"><b>Description:</b> $msg</div>";
+
 		if ($file && $line) {
-			$out .= "<div class=\"s_error_file\">Source: <code>$file</code> #$line</div>";
+			$body .= "<div class=\"s_error_file\">Source: <code>$file</code> #$line</div>";
 		}
-		$out .= "</div>\n";
+
+		$body .= "</div>\n";
+
+		$out = "<!doctype html>
+		<html lang=\"en\">
+			<head>
+				<meta charset=\"utf-8\">
+				<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">
+				<title>$title</title>
+				<style>$style</style>
+			</head>
+			<body>
+				$body
+			</body>
+		</html>";
 
 		print $out;
 
