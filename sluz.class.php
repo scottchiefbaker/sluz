@@ -253,7 +253,7 @@ class sluz {
 			return null;
 		}
 
-		$str = substr($str, $offset + 19);
+		$str = substr($str, $offset + 18);
 
 		return $str;
 	}
