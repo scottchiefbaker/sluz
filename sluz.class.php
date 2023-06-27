@@ -283,9 +283,9 @@ class sluz {
 	}
 
 	function extract_include_file($str) {
-		$file = '';
-		if (preg_match("/(file=)?'(.+?)'/", $str, $m)) {
-			$file = $m[2];
+		// We're looking for either {include "foo.stpl"} or {include file="foo.stpl"}
+		if (preg_match("/(file=)?(['\"].+?['\"])/", $str, $m)) {
+			$file = $this->peval($m[2]);
 		} else {
 			list($line, $col, $file) = $this->get_char_location($this->char_pos, $this->tpl_file);
 			return $this->error_out("Unable to find a file in include block <code>$str</code> in <code>$file</code> on line #$line", 68493);
