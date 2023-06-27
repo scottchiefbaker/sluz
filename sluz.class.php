@@ -291,6 +291,8 @@ class sluz {
 			return $this->error_out("Unable to find a file in include block <code>$str</code> in <code>$file</code> on line #$line", 68493);
 		}
 
+		$this->inc_tpl_file = $file;
+
 		// Include TPL path is *relative* to the main TPL
 		$tpl_path = dirname($this->tpl_file ?? "");
 		if (!$tpl_path) {
@@ -636,12 +638,10 @@ class sluz {
 		$callback = [$this, 'include_callback']; // Object callback syntax
 		$inc_str  = preg_replace_callback("/\{include.+?\}/", $callback, $str);
 
-		$this->inc_tpl_file = $this->extract_include_file($str); // Temp override TPL file
-
 		$blocks   = $this->get_blocks($inc_str);
 		$ret      = $this->process_blocks($blocks);
 
-		$this->inc_tpl_file = null; // Clear override
+		$this->inc_tpl_file = null; // Clear temp override
 
 		return $ret;
 	}
