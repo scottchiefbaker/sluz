@@ -6,6 +6,11 @@ $s = new sluz();
 $doc      = $_GET['doc'] ?? "";
 $doc_file = $doc . ".php";
 
+// If we just request index.php we get this
+if (!isset($_GET['doc'])) {
+	$doc_file = "001_basic_vars.php";
+}
+
 if (!is_readable($doc_file)) {
 	$s->error_out("Unable to find documentation '$doc'", 10321);
 }
