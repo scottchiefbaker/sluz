@@ -372,7 +372,13 @@ class sluz {
 			}
 
 			return $ret;
-			};
+		};
+
+		// If there are no dollars signs it's not a variable string, nothing to do
+		$contains_variable = (strpos($str, '$') !== false);
+		if (!$contains_variable) {
+			return $str;
+		}
 
 		// Process flat arrays in the test like $cust.name or $array[3]
 		$str = preg_replace_callback('/(\$\w[\w\.]*)/', $dot_to_bracket_callback, $str);
