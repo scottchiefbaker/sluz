@@ -2,6 +2,11 @@
 
 $runtime_secs = 3;
 $start        = microtime(1);
+$arg_str      = join(" ", $argv);
+
+if (preg_match("/--time (\d+)/", $arg_str, $m)) {
+	$runtime_secs = $m[1];
+}
 
 require_once(__DIR__ . "/../sluz.class.php");
 $x        = new sluz();
