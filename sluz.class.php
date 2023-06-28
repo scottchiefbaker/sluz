@@ -268,7 +268,7 @@ class sluz {
 			}
 		}
 
-		if (is_readable($inc_tpl)) {
+		if (is_file($inc_tpl) && is_readable($inc_tpl)) {
 			$ext_str = file_get_contents($inc_tpl);
 			return $ext_str;
 		} else {
@@ -280,7 +280,8 @@ class sluz {
 	function extract_include_file($str) {
 		// We're looking for either {include "foo.stpl"} or {include file="foo.stpl"}
 		if (preg_match("/(file=)?(['\"].+?['\"])/", $str, $m)) {
-			$file = $this->peval($m[2]);
+			$xstr = $this->convert_variables_in_string($m[2]);
+			$file = $this->peval($xstr);
 		} else {
 			list($line, $col, $file) = $this->get_char_location($this->char_pos, $this->tpl_file);
 			return $this->error_out("Unable to find a file in include block <code>$str</code> in <code>$file</code> on line #$line", 68493);
