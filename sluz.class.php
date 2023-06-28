@@ -357,33 +357,33 @@ class sluz {
 
 	// Convert $cust.name.first -> $cust['name']['first'] and $num.0.3 -> $num[0][3]
 	private function convert_variables_in_string($str) {
-		$dot_to_bracket_callback = function($m) {
-			$str   = $m[1];
-			$parts = explode(".", $str);
-
-			$ret = array_shift($parts);
-			$ret = "$" . $this->var_prefix . '_' . substr($ret,1);
-			foreach ($parts as $x) {
-				if (is_numeric($x)) {
-					$ret .= "[" . $x . "]";
-				} else {
-					$ret .= "['" . $x . "']";
-				}
-			}
-
-			return $ret;
-		};
-
 		// If there are no dollars signs it's not a variable string, nothing to do
-		$contains_variable = (strpos($str, '$') !== false);
-		if (!$contains_variable) {
+		if ((strpos($str, '$') === false)) {
 			return $str;
 		}
 
 		// Process flat arrays in the test like $cust.name or $array[3]
-		$str = preg_replace_callback('/(\$\w[\w\.]*)/', $dot_to_bracket_callback, $str);
+		$callback = array($this, 'dot_to_bracket_callback');
+		$str      = preg_replace_callback('/(\$\w[\w\.]*)/', $callback, $str);
 
 		return $str;
+	}
+
+	private function dot_to_bracket_callback($m) {
+		$str   = $m[1];
+		$parts = explode(".", $str);
+
+		$ret = array_shift($parts);
+		$ret = "$" . $this->var_prefix . '_' . substr($ret,1);
+		foreach ($parts as $x) {
+			if (is_numeric($x)) {
+				$ret .= "[" . $x . "]";
+			} else {
+				$ret .= "['" . $x . "']";
+			}
+		}
+
+		return $ret;
 	}
 
 	public function error_out($msg, int $err_num) {
