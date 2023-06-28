@@ -40,7 +40,7 @@ print $s->fetch("tpls/script.stpl");</pre>
 
 		<div class="row">
 			<div class="col">
-				<a href="docs/read.php?doc=001_basic_vars">More documentation</a>
+				<a href="docs/index.php?doc=001_basic_vars">More documentation</a>
 			</div>
 			<div class="col text-end">
 				<a href="unit_tests/tests.php">Run unit tests</a>
