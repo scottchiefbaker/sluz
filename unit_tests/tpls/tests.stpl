@@ -8,7 +8,7 @@
     <!-- Bootstrap CSS -->
     <link href="../docs/css/bootstrap.min.css" rel="stylesheet">
 
-    <title>Welcome to Sluz</title>
+    <title>Sluz unit tests</title>
 
 	{literal}
 	<style>
