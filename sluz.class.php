@@ -199,6 +199,10 @@ class sluz {
 	// Specify a path to the .stpl file, or pass nothing to let sluz 'guess'
 	// Guess is 'tpls/[scriptname_minus_dot_php].stpl
 	public function fetch($tpl_file = "") {
+		if (!$this->php_file) {
+			$this->php_file = $this->get_php_file();
+        }
+
 		$str    = $this->get_tpl_content($tpl_file);
 		$blocks = $this->get_blocks($str);
 		$html   = $this->process_blocks($blocks);
@@ -206,6 +210,14 @@ class sluz {
 		$this->fetch_called = true;
 
 		return $html;
+	}
+
+	public function get_php_file() {
+		$x    = debug_backtrace();
+		$last = count($x) - 1;
+		$ret  = basename($x[$last]['file'] ?? "");
+
+		return $ret;
 	}
 
 	private function process_blocks(array $blocks) {
@@ -220,17 +232,17 @@ class sluz {
 	}
 
 	private function get_tpl_content($tpl_file) {
-        $tf = $this->tpl_file = $this->get_tpl_file($tpl_file);
+        $tf = $this->tpl_file = $tpl_file;
 
 		// If we're in simple mode and we have a __halt_compiler() we can assume inline mode
-		$inline_simple = $this->simple_mode && !$tpl_file && $this->get_inline_content($this->php_file);
+		$inline_simple = $this->simple_mode && $this->get_inline_content($this->php_file);
 		$is_inline     = ($tpl_file === SLUZ_INLINE) || $inline_simple;
 
 		if ($is_inline) {
 			$str = $this->get_inline_content($this->php_file);
-		} elseif (!is_readable($tf)) {
+		} elseif ($tf && !is_readable($tf)) {
 			return $this->error_out("Unable to load template file <code>$tf</code>",42280);
-		} else {
+		} elseif ($tf) {
 			$str = file_get_contents($tf);
 		}
 
@@ -248,9 +260,9 @@ class sluz {
 			return null;
 		}
 
-		$str = substr($str, $offset + 18);
+		$ret = substr($str, $offset + 18);
 
-		return $str;
+		return $ret;
 	}
 
 	// The callback to do the include string replacement stuff
@@ -298,35 +310,6 @@ class sluz {
 		$ret = "$tpl_path/$file";
 
 		return $ret;
-	}
-
-	// If there is not template specified we "guess" based on the PHP filename
-	private function get_tpl_file($tpl_file) {
-		if (!$this->php_file) {
-			$x         = debug_backtrace();
-			$last      = count($x) - 1;
-			$orig_file = basename($x[$last]['file'] ?? "");
-
-			$this->php_file = $orig_file;
-		}
-
-		if (!$tpl_file) {
-			$tpl_file = $this->guess_tpl_file($this->php_file);
-		}
-
-		return $tpl_file;
-	}
-
-	public function guess_tpl_file(string $php_file) {
-		if ($this->simple_mode && !$this->tpl_file) {
-			$php_file = $this->php_file;
-		}
-
-		$php_file = preg_replace("/.php$/", '', basename($php_file));
-		$dir      = $this->tpl_path ?? "tpls/";
-		$tpl_file = $dir . $php_file . ".stpl";
-
-		return $tpl_file;
 	}
 
 	// Extract data from an array in the form of $foo.key.baz
