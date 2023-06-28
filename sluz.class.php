@@ -12,7 +12,6 @@ class sluz {
 	public $debug        = 0;
 	public $in_unit_test = false;
 	public $tpl_vars     = [];
-	public $tpl_path     = null;
 
 	private $php_file     = null;
 	private $var_prefix   = "sluz_pfx";
@@ -203,6 +202,11 @@ class sluz {
 			$this->php_file = $this->get_php_file();
         }
 
+		// We use ABSOLUTE paths here because this may be called in the destructor which has a cwd() of '/'
+		if (!$tpl_file) {
+			$tpl_file = dirname($this->php_file) . '/' . $this->guess_tpl_file($this->php_file);
+		}
+
 		$str    = $this->get_tpl_content($tpl_file);
 		$blocks = $this->get_blocks($str);
 		$html   = $this->process_blocks($blocks);
@@ -210,6 +214,12 @@ class sluz {
 		$this->fetch_called = true;
 
 		return $html;
+	}
+
+	public function guess_tpl_file($php_file) {
+		$ret = "tpls/" . preg_replace('/\.php$/', '.stpl', basename($php_file));
+
+		return $ret;
 	}
 
 	public function get_php_file() {
@@ -463,7 +473,6 @@ class sluz {
 
 	public function enable_simple_mode($php_file) {
 		$this->php_file    = $php_file;
-		$this->tpl_path    = realpath(dirname($this->php_file) . "/tpls/") . "/";
 		$this->simple_mode = true;
 	}
 
