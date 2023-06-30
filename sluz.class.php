@@ -12,6 +12,7 @@ class sluz {
 	public $debug        = 0;
 	public $in_unit_test = false;
 	public $tpl_vars     = [];
+	public $use_mo       = true; // Use micro-optimiziations
 
 	private $php_file     = null;
 	private $var_prefix   = "sluz_pfx";
@@ -456,7 +457,56 @@ class sluz {
 		exit;
 	}
 
+	private function micro_optimize($input) {
+		// Optimize raw integers
+		if (is_integer($input)) {
+			return $input;
+		}
+
+		////////////////////////////////////////////
+
+		// Optimize simple $vars
+		$first_char = $last_char = null;
+		if (is_string($input)) {
+			$first_char = $input[0];
+			$last_char  = $input[-1];
+		}
+
+		// If it starts with a '$' we might be able to cheat
+		if ($first_char === '$') {
+			$new = str_replace('$' . $this->var_prefix . '_', '', $input);
+			$ret = $this->tpl_vars[$new] ?? null;
+
+			//kd($input, $new, $ret);
+
+			return $ret;
+		}
+
+		////////////////////////////////////////////
+
+		// Optimize a simple 'string'
+		if ($first_char === "'" && $last_char === "'") {
+			$tmp = substr($input,1,strlen($input) - 2);
+
+			$has_dollar = strpos($tmp, '$') !== false;
+			$has_quote  = strpos($tmp, "'") !== false;
+
+			if (!$has_dollar && !$has_quote) {
+				return $tmp;
+			}
+		}
+
+		return null;
+	}
+
 	private function peval($str) {
+		if ($this->use_mo) {
+			$x = $this->micro_optimize($str);
+			if ($x) {
+				return $x;
+			}
+		}
+
 		extract($this->tpl_vars, EXTR_PREFIX_ALL, $this->var_prefix);
 
 		$ret = '';
