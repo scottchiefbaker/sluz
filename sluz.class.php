@@ -353,7 +353,7 @@ class sluz {
 	// Convert $cust.name.first -> $cust['name']['first'] and $num.0.3 -> $num[0][3]
 	private function convert_variables_in_string($str) {
 		// If there are no dollars signs it's not a variable string, nothing to do
-		if ((strpos($str, '$') === false)) {
+		if (!str_contains($str, '$')) {
 			return $str;
 		}
 
@@ -488,8 +488,8 @@ class sluz {
 		if ($first_char === "'" && $last_char === "'") {
 			$tmp = substr($input,1,strlen($input) - 2);
 
-			$has_dollar = strpos($tmp, '$') !== false;
-			$has_quote  = strpos($tmp, "'") !== false;
+			$has_dollar = str_contains($tmp, '$');
+			$has_quote  = str_contains($tmp, "'");
 
 			if (!$has_dollar && !$has_quote) {
 				return $tmp;
@@ -539,7 +539,7 @@ class sluz {
 
 			$tmp        = $this->array_dive($key, $this->tpl_vars) ?? "";
 			$is_nothing = ($tmp === null || $tmp === "");
-			$is_default = strpos($mod, "default:") !== false;
+			$is_default = str_contains($mod, "default:");
 
 			// Empty with a default value
 			if ($is_nothing && $is_default) {
@@ -827,6 +827,15 @@ if (!function_exists('str_ends_with')) {
     {
         $needle_len = strlen($needle);
         return ($needle_len === 0 || 0 === substr_compare($haystack, $needle, - $needle_len));
+    }
+}
+
+// Polyfill stolen from: https://www.php.net/manual/en/function.str-contains.php
+// str_contains was added in PHP 8.0...  this can be removed when we don't need to
+// support PHP 7.x anymore
+if (!function_exists('str_contains')) {
+    function str_contains($haystack, $needle) {
+        return $needle !== '' && mb_strpos($haystack, $needle) !== false;
     }
 }
 
