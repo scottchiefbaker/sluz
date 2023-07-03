@@ -325,6 +325,14 @@ class sluz {
 
 	// Extract data from an array in the form of $foo.key.baz
 	public function array_dive(string $needle, array $haystack) {
+		// Do a simple hash lookup first before we dive deep (we may get lucky)
+		if ($this->use_mo) {
+			$x = $haystack[$needle] ?? null;
+			if ($x) {
+				return $x;
+			}
+		}
+
 		// Split at the periods
 		$parts = explode(".", $needle);
 
