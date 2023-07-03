@@ -459,7 +459,7 @@ class sluz {
 
 	private function micro_optimize($input) {
 		// Optimize raw integers
-		if (is_integer($input)) {
+		if (is_numeric($input)) {
 			return $input;
 		}
 
