@@ -482,10 +482,9 @@ class sluz {
 
 		// If it starts with a '$' we might be able to cheat
 		if ($first_char === '$') {
+			// Remove the prefix so we can look it up raw
 			$new = str_replace('$' . $this->var_prefix . '_', '', $input);
 			$ret = $this->tpl_vars[$new] ?? null;
-
-			//kd($input, $new, $ret);
 
 			return $ret;
 		}
