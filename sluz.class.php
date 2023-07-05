@@ -494,12 +494,22 @@ class sluz {
 
 		// Optimize a simple 'string'
 		if ($first_char === "'" && $last_char === "'") {
-			$tmp = substr($input,1,strlen($input) - 2);
+			$tmp        = substr($input,1,strlen($input) - 2);
+			$is_complex = str_contains($tmp, "'");
 
-			$has_dollar = str_contains($tmp, '$');
-			$has_quote  = str_contains($tmp, "'");
+			if (!$is_complex) {
+				return $tmp;
+			}
+		}
 
-			if (!$has_dollar && !$has_quote) {
+		////////////////////////////////////////////
+
+		// Optimize a simple "string"
+		if ($first_char === '"' && $last_char === '"') {
+			$tmp        = substr($input,1,strlen($input) - 2);
+			$is_complex = str_contains($tmp, '$') || str_contains($tmp, '"');
+
+			if (!$is_complex) {
 				return $tmp;
 			}
 		}
