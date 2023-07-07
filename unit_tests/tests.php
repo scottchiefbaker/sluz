@@ -28,6 +28,7 @@ $hash = ['color' => 'yellow', 'age' => 43, 'book' => 'Dark Tower'];
 $is_cli = (php_sapi_name() == "cli");
 
 $sluz->assign('x'           , '7');
+$sluz->assign('y'           , [2,4,6]);
 $sluz->assign('key'         , 'val');
 $sluz->assign('first'       , "Scott");
 $sluz->assign('last'        , "Baker");
@@ -115,10 +116,10 @@ sluz_test('{foreach $arrayd as $i => $x}{if $x.1}{$x.1}{/if}{/foreach}'      , '
 sluz_test('{foreach $null as $x}one{/foreach}'                               , ''                       , 'Foreach #14 - Null');
 sluz_test('{foreach $first as $x}{$first}{/foreach}'                         , 'Scott'                  , 'Foreach #15 - Scalar');
 sluz_test('{foreach $array as $i}{foreach $array as $i}x{/foreach}{/foreach}', 'xxxxxxxxx'              , 'Foreach #16 - Nested');
-
 // These tests make sure that the foreach above that sets $i and $x don't persist after
-sluz_test('{$x}', '7', 'Foreach #16 - NOT overwrite variable - previously set');
-sluz_test('{$i}', '' , 'Foreach #17 - NOT overwrite variable - no initial value');
+sluz_test('{$x}'                                                             , '7'                      , 'Foreach #17 - NOT overwrite variable - previously set');
+sluz_test('{$i}'                                                             , ''                       , 'Foreach #18 - NOT overwrite variable - no initial value');
+sluz_test('{foreach $y as $z}{$z}{/foreach}'                                 , '246'                    , 'Foreach #19 - Foreach one char key');
 
 sluz_test('Scott'           , 'Scott'           , 'Plain text #1 - Static text');
 sluz_test('<div>Scott</div>', '<div>Scott</div>', 'Plain text #2 - HTML');
