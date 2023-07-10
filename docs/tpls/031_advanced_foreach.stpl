@@ -1,0 +1,11 @@
+<p>
+{foreach $turtles as $name}
+<div style="background: {if $__FOREACH_FIRST}green{elseif $__FOREACH_LAST}red{else}yellow{/if}">{$name}</div>
+{/foreach}
+</p>
+
+<p>
+{foreach $turtles as $name}
+<div>{$__FOREACH_INDEX}) {$name}</div>
+{/foreach}
+</p>
