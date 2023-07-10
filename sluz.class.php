@@ -702,12 +702,17 @@ class sluz {
 
 	// Parse an include block
 	private function include_block($str) {
+		// Include blocks may modify tpl vars, so we save them here
+		$save = $this->tpl_vars;
+
 		$callback = [$this, 'include_callback']; // Object callback syntax
 		$inc_str  = preg_replace_callback("/\{include.+?\}/", $callback, $str);
 
 		$blocks   = $this->get_blocks($inc_str);
 		$ret      = $this->process_blocks($blocks);
 
+		// Restore the TPL vars to pre 'include' state
+		$this->tpl_vars     = $save;
 		$this->inc_tpl_file = null; // Clear temp override
 
 		return $ret;
