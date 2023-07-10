@@ -307,9 +307,13 @@ class sluz {
 	}
 
 	function extract_include_file($str) {
-		// We're looking for either {include "foo.stpl"} or {include file="foo.stpl"}
-		if (preg_match("/(file=)?(['\"].+?['\"])/", $str, $m)) {
+		// {include file='foo.stpl'}
+		if (preg_match("/\s(file=)(['\"].+?['\"])/", $str, $m)) {
 			$xstr = $this->convert_variables_in_string($m[2]);
+			$file = $this->peval($xstr);
+		// {include 'foo.stpl'} - unofficial
+		} elseif (preg_match("/\s(['\"].+?['\"])/", $str, $m)) {
+			$xstr = $this->convert_variables_in_string($m[1]);
 			$file = $this->peval($xstr);
 		} else {
 			list($line, $col, $file) = $this->get_char_location($this->char_pos, $this->tpl_file);
