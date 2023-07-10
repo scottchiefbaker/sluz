@@ -143,9 +143,10 @@ sluz_test('{*{$array|count}*}'      , '', 'Comment #4 - Variable inside');
 sluz_test('{* {* nested *} *}'      , '', 'Comment #5 - Nested');
 sluz_test('{* {* {* nested *} *} *}', '', 'Comment #6 - Triple Nested');
 
-sluz_test('{include file=\'extra.stpl\'}', '/e1ab49cf/' , 'Include #1 - file=\'extra.stpl\'');
-sluz_test('{include \'extra.stpl\'}'     , '/e1ab49cf/' , 'Include #2 - \'extra.stpl\'');
-sluz_test('{include}'                    , 'ERROR-73467', 'Include #3 - No payload');
+sluz_test('{include file=\'extra.stpl\'}'               , '/e1ab49cf/' , 'Include #1 - file=\'extra.stpl\'');
+sluz_test('{include \'extra.stpl\'}'                    , '/e1ab49cf/' , 'Include #2 - \'extra.stpl\'');
+sluz_test('{include}'                                   , 'ERROR-73467', 'Include #3 - No payload');
+sluz_test("{include file='extra.stpl' secret='eca4906'}", '/eca4906/'  , 'Include #4 - With variable');
 
 sluz_test(['{$a}{$b}{$c}']                                                     , 3, 'Get blocks #1 - Basic variables');
 sluz_test(['{if $a}{$a}{/if}']                                                 , 1, 'Get blocks #2 - Basic variables');

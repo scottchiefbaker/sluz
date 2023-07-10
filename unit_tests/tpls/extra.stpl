@@ -2,4 +2,4 @@
 
 <p>{$number} is my favorite number</p>
 
-<div>e1ab49cf</div>
+<div>e1ab49cf - {$secret}</div>
