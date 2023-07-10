@@ -740,13 +740,12 @@ class sluz {
 			$src = [];
 		}
 
+		// Save the current values so we can restore them later
+		$save = $this->tpl_vars;
+
 		$ret = '';
 		// Temp set a key/val so when we process this section it's correct
 		foreach ($src as $key => $val) {
-			// Save the current values so we can restore them later
-			$prevk = $this->tpl_vars[$okey] ?? null;
-			$prevv = $this->tpl_vars[$oval] ?? null;
-
 			// This is a key/val pair: foreach $key => $val
 			if ($oval) {
 				$this->tpl_vars[$okey] = $key;
@@ -757,11 +756,9 @@ class sluz {
 			}
 
 			$ret .= $this->process_blocks($blocks);
-
-			// Restore the previous value
-			$this->tpl_vars[$okey] = $prevk;
-			$this->tpl_vars[$oval] = $prevv;
 		}
+
+		$this->tpl_vars = $save;
 
 		return $ret;
 	}
