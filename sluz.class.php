@@ -282,10 +282,16 @@ class sluz {
 		$inc_tpl   = $this->extract_include_file($input_str);
 
 		// Extra variables to include sub templates
-		if (preg_match_all("/(\w+)='(.+?)'/", $input_str, $m)) {
+		if (preg_match_all("/(\w+)=(['\"](.+?)['\"])/", $input_str, $m)) {
 			for ($i = 0; $i < count($m[0]); $i++) {
 				$key = $m[1][$i] ?? "";
 				$val = $m[2][$i] ?? "";
+
+				// We skip the file='header.stpl' option
+				if ($key === 'file') { continue; }
+
+				$val = $this->convert_variables_in_string($val);
+				$val = $this->peval($val);
 
 				$this->assign($key, $val);
 			}
