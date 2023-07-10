@@ -748,17 +748,18 @@ class sluz {
 		$last = count($src) - 1;
 		// Temp set a key/val so when we process this section it's correct
 		foreach ($src as $key => $val) {
-			// Set/clear if we're on the first iteration
+			// Set if we're on the FIRST iteration
 			if ($idx === 0) {
 				$this->tpl_vars['__FOREACH_FIRST'] = true;
 			} else {
-				unset($this->tpl_vars['__FOREACH_FIRST']);
+				$this->tpl_vars['__FOREACH_FIRST'] = false;
 			}
 
-			// Set if we're on the last iteration. We don't bother clearing this
-			// because it gets done below when we restore all the TPL vars
+			// Set if we're on the LAST iteration
 			if ($idx === $last) {
 				$this->tpl_vars['__FOREACH_LAST'] = true;
+			} else {
+				$this->tpl_vars['__FOREACH_LAST'] = false;
 			}
 
 			$this->tpl_vars['__FOREACH_INDEX'] = $idx;
