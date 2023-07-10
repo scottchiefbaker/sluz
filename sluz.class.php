@@ -743,9 +743,26 @@ class sluz {
 		// Save the current values so we can restore them later
 		$save = $this->tpl_vars;
 
-		$ret = '';
+		$ret  = '';
+		$idx  = 0;
+		$last = count($src) - 1;
 		// Temp set a key/val so when we process this section it's correct
 		foreach ($src as $key => $val) {
+			// Set/clear if we're on the first iteration
+			if ($idx === 0) {
+				$this->tpl_vars['__FOREACH_FIRST'] = true;
+			} else {
+				unset($this->tpl_vars['__FOREACH_FIRST']);
+			}
+
+			// Set if we're on the last iteration. We don't bother clearing this
+			// because it gets done below when we restore all the TPL vars
+			if ($idx === $last) {
+				$this->tpl_vars['__FOREACH_LAST'] = true;
+			}
+
+			$this->tpl_vars['__FOREACH_INDEX'] = $idx;
+
 			// This is a key/val pair: foreach $key => $val
 			if ($oval) {
 				$this->tpl_vars[$okey] = $key;
@@ -756,8 +773,11 @@ class sluz {
 			}
 
 			$ret .= $this->process_blocks($blocks);
+
+			$idx++;
 		}
 
+		// Restore the TPL vars to the version before the {foreach} started
 		$this->tpl_vars = $save;
 
 		return $ret;
