@@ -298,8 +298,8 @@ class sluz {
 		}
 
 		if (is_file($inc_tpl) && is_readable($inc_tpl)) {
-			$ext_str = file_get_contents($inc_tpl);
-			return $ext_str;
+			$str = file_get_contents($inc_tpl);
+			return $str;
 		} else {
 			list($line, $col, $file) = $this->get_char_location($this->char_pos, $this->tpl_file);
 			return $this->error_out("Unable to load include template <code>$inc_tpl</code> in <code>$file</code> on line #$line", 18485);
