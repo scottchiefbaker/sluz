@@ -320,8 +320,6 @@ class sluz {
 			return $this->error_out("Unable to find a file in include block <code>$str</code> in <code>$file</code> on line #$line", 68493);
 		}
 
-		$this->inc_tpl_file = $file;
-
 		// Include TPL path is *relative* to the main TPL
 		$tpl_path = dirname($this->tpl_file ?? "");
 		if (!$tpl_path) {
@@ -329,6 +327,7 @@ class sluz {
 		}
 
 		$ret = "$tpl_path/$file";
+		$this->inc_tpl_file = $ret;
 
 		return $ret;
 	}
