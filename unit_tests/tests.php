@@ -3,6 +3,8 @@
 ////////////////////////////////////////////////////////
 
 $dir = dirname(__FILE__);
+// Make the tests work from the CLI in any dir
+chdir($dir);
 include("$dir/../sluz.class.php");
 
 $sluz               = new sluz;
