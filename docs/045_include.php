@@ -4,7 +4,7 @@
 // You can include external templates in your .stpl files. This allows you   //
 // to have a common header, footer, or framework. Included files have all    //
 // the same properties as normal templates. Templates in {include} tags      //
-// will need to be pathed as *relative* to the including tpl.                //
+// will need to be pathed as *relative* to the calling PHP script.           //
 ///////////////////////////////////////////////////////////////////////////////
 
 include("../sluz.class.php");

@@ -49,6 +49,6 @@
 	<hr />
 
 	{if !$hide_footer}
-	{include file='footer.stpl'}
+	{include file='tpls/footer.stpl'}
 	{/if}
 </html>
