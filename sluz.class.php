@@ -66,6 +66,9 @@ class sluz {
 		// Liternal {literal}Stuff here{/literal}
 		} elseif (preg_match('/^\{literal\}(.+)\{\/literal\}$/s', $str, $m)) {
 			$ret = $m[1];
+		// This is for complicated variables with default values that don't match the above rule
+		} elseif (str_contains($str, "|default:") && preg_match('/^\{\$(\w.+)\}/', $str, $m)) {
+			$ret = $this->variable_block($m[1]);
 		// Catch all for other { $num + 3 } type of blocks
 		} elseif (preg_match('/^\{(.+)}$/s', $str, $m)) {
 			$ret = $this->expression_block($str, $m);
