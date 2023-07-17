@@ -49,22 +49,22 @@ class sluz {
 		}
 
 		// If it doesn't start with a '{' it's plain text so we just return it
-		if ($str[0] !== "{") {
+		if (!str_starts_with($str, '{')) {
 			$ret = $str;
 		// Simple variable replacement {$foo} or {$foo|default:"123"}
-		} elseif (preg_match('/^\{\$(\w[\w\|\.\'":,]*)\s*\}$/', $str, $m)) {
+		} elseif (str_starts_with($str, '{$') && preg_match('/^\{\$(\w[\w\|\.\'":,]*)\s*\}$/', $str, $m)) {
 			$ret = $this->variable_block($m[1]);
 		// If statement {if $foo}{/if}
-		} elseif (preg_match('/^\{if (.+?)\}(.+)\{\/if\}$/s', $str, $m)) {
+		} elseif (str_starts_with($str, '{if ') && preg_match('/^\{if (.+?)\}(.+)\{\/if\}$/s', $str, $m)) {
 			$ret = $this->if_block($str, $m);
 		// Foreach {foreach $foo as $x}{/foreach}
-		} elseif (preg_match('/^\{foreach (\$\w[\w.]*) as \$(\w+)( => \$(\w+))?\}(.+)\{\/foreach\}$/s', $str, $m)) {
+		} elseif (str_starts_with($str, '{foreach ') && preg_match('/^\{foreach (\$\w[\w.]*) as \$(\w+)( => \$(\w+))?\}(.+)\{\/foreach\}$/s', $str, $m)) {
 			$ret = $this->foreach_block($m);
 		// Include {include file='my.stpl' number='99'}
-		} elseif (preg_match('/^\{include.+?\}$/s', $str, $m)) {
+		} elseif (str_starts_with($str, '{include ') && preg_match('/^\{include.+?\}$/s', $str, $m)) {
 			$ret = $this->include_block($str);
 		// Liternal {literal}Stuff here{/literal}
-		} elseif (preg_match('/^\{literal\}(.+)\{\/literal\}$/s', $str, $m)) {
+		} elseif (str_starts_with($str, '{literal}') && preg_match('/^\{literal\}(.+)\{\/literal\}$/s', $str, $m)) {
 			$ret = $m[1];
 		// This is for complicated variables with default values that don't match the above rule
 		} elseif (str_contains($str, "|default:") && preg_match('/^\{\$(\w.+)\}/', $str, $m)) {
@@ -871,6 +871,14 @@ if (!function_exists('str_ends_with')) {
 if (!function_exists('str_contains')) {
     function str_contains($haystack, $needle) {
         return $needle !== '' && strpos($haystack, $needle) !== false;
+    }
+}
+
+// Polyfill stolen from: https://www.php.net/manual/en/function.str-starts-with.php
+// This can be removed when we don't need to support PHP 7.x anymore
+if (!function_exists('str_starts_with')) {
+    function str_starts_with($haystack, $needle) {
+        return (string)$needle !== '' && strncmp($haystack, $needle, strlen($needle)) === 0;
     }
 }
 
