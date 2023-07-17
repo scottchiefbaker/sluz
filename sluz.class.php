@@ -70,7 +70,7 @@ class sluz {
 		} elseif (preg_match('/^\{(.+)}$/s', $str, $m)) {
 			$ret = $this->expression_block($str, $m);
 		// If it starts with '{' (from above) but does NOT contain a closing tag
-		} elseif (!preg_match('/\}$/', $str, $m)) {
+		} elseif (!str_ends_with($str, '}')) {
 			list($line, $col, $file) = $this->get_char_location($this->char_pos, $this->tpl_file);
 			return $this->error_out("Unclosed tag <code>$str</code> in <code>$file</code> on line #$line", 45821);
 		// Something went WAY wrong
@@ -856,8 +856,7 @@ function sluz($one, $two = null) {
 // str_ends_with() added in PHP 8.0... this can be removed when we don't need to
 // support PHP 7.x anymore
 if (!function_exists('str_ends_with')) {
-    function str_ends_with(string $haystack, string $needle): bool
-    {
+    function str_ends_with(string $haystack, string $needle): bool {
         $needle_len = strlen($needle);
         return ($needle_len === 0 || 0 === substr_compare($haystack, $needle, - $needle_len));
     }
@@ -869,6 +868,15 @@ if (!function_exists('str_ends_with')) {
 if (!function_exists('str_contains')) {
     function str_contains($haystack, $needle) {
         return $needle !== '' && strpos($haystack, $needle) !== false;
+    }
+}
+
+// Polyfill stolen from: https://www.php.net/manual/en/function.str-ends-with.php
+// This can be removed when we don't need to support PHP 7.x anymore
+if (! function_exists('str_ends_with')) {
+    function str_ends_with(string $haystack, string $needle): bool {
+        $needle_len = strlen($needle);
+        return ($needle_len === 0 || 0 === substr_compare($haystack, $needle, - $needle_len));
     }
 }
 
