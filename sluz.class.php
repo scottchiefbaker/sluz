@@ -464,6 +464,15 @@ class sluz {
 			return $ret;
 		}
 
+		// If it starts with a '!$' we might be able to cheat and invert
+		if (str_starts_with($input, '!$')) {
+			// Remove the prefix so we can look it up raw
+			$new = str_replace('$' . $this->var_prefix . '_', '', $input);
+			$ret = $this->tpl_vars[$new] ?? null;
+
+			return !$ret;
+		}
+
 		////////////////////////////////////////////
 
 		// Optimize a simple 'string'
