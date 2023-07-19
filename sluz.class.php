@@ -624,14 +624,25 @@ class sluz {
 		// Put the tpl_vars in the current scope so if works against them
 		extract($this->tpl_vars, EXTR_PREFIX_ALL, $this->var_prefix);
 
-		$cond[]  = $m[1];
-		$payload = $m[2];
+		// The first conditional is the {if ...}
+		$cond[0] = $m[1];
+
+		// If we see a nested if we need to ignore that part
+		$nested_if = strrpos($m[2], '{/if}');
+		if ($nested_if) {
+			$payload  = substr($m[2], $nested_if + 5);
+			$parts[0] = substr($m[2], 0, $nested_if + 5);
+		} else {
+			$payload = $m[2];
+			$parts   = [];
+		}
 
 		// We build a list of tests and their output value if true in $rules
 		// We extract the conditions in $cond and the true values in $parts
 
 		// This is the number of if/elseif/else blocks we need to find tests for
-		$part_count = preg_match_all("/\{(if|elseif|else\})/", $str, $m);
+		$part_count = preg_match_all("/(\{elseif|else\})/", $payload, $m);
+		$part_count += 1; // The initial {if}
 
 		// The middle conditions are the {elseif XXXX} stuff
 		preg_match_all("/\{elseif (.+?)\}/", $payload, $m);
@@ -639,11 +650,19 @@ class sluz {
 			$cond[] = $i;
 		}
 
-		// The last condition is the else and it's always true
+		// The last condition is the else and it's ALWAYS true
 		$cond[] = 1;
 
 		// This gets us all the payload elements
-		$parts  = preg_split("/(\{elseif (.+?)\}|\{else\})/", $payload);
+		$tmp = preg_split("/(\{elseif (.+?)\}|\{else\})/", $payload);
+
+		// If it's a nested if, we already have some parts so we merge
+		if ($parts) {
+			array_shift($tmp); // Trash the first one
+			$parts = array_merge($parts, $tmp);
+		} else {
+			$parts = $tmp;
+		}
 
 		// Build all the rules and associated values
 		$rules  = [];
