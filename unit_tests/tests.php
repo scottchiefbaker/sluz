@@ -51,6 +51,7 @@ $sluz->assign('empty_string', '');
 $sluz->assign('null'        , null);
 $sluz->assign('true'        , true);
 $sluz->assign('false'       , false);
+$sluz->assign('conf'		, [ 'main' => true, 'debug' => false ]);
 $sluz->assign($hash);
 
 $test_output = [];
@@ -111,6 +112,8 @@ sluz_test('{if $key}{if $one}one{elseif $x}X{else}ELSE{/if}{/if}', 'X'       , '
 sluz_test('{if $number}1{if $key}2{/if}3{/if}'                   , '123'     , 'If #19 - Nested if leading/trailing chars');
 sluz_test('{if $true}123{else}456{/if}'                          , '123'     , 'If #20 - Boolean');
 sluz_test('{if !$true}123{else}456{/if}'                         , '456'     , 'If #21 - Boolean inverted');
+sluz_test('{if $conf.main}123{else}456{/if}'                     , '123'     , 'If #22 - Hash boolean');
+sluz_test('{if !$conf.main}123{else}456{/if}'                    , '456'     , 'If #23 - Hash boolean inverted');
 
 sluz_test('{foreach $array as $num}{$num}{/foreach}'                         , 'onetwothree'            , 'Foreach #1 - Simple');
 sluz_test('{foreach $array as $num}\n{$num}\n{/foreach}'                     , '\none\n\ntwo\n\nthree\n', 'Foreach #2 - Simple with whitespace');
