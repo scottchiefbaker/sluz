@@ -640,7 +640,7 @@ class sluz {
 		$nested_if = strrpos($m[2], '{/if}');
 		if ($nested_if) {
 			$payload  = substr($m[2], $nested_if + 5);
-			$parts[0] = substr($m[2], 0, $nested_if + 5);
+			$parts[0] = $m[2];
 		} else {
 			$payload = $m[2];
 			$parts   = [];
