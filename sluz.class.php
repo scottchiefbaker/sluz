@@ -453,6 +453,9 @@ class sluz {
 		if (is_string($input)) {
 			$first_char = $input[0];
 			$last_char  = $input[-1];
+		// It's not a number or a string?
+		} else {
+			return $input;
 		}
 
 		// If it starts with a '$' we might be able to cheat
