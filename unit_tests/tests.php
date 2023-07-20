@@ -106,6 +106,7 @@ sluz_test('{if $debug}{$key}{$last}{/if}'                        , 'valBaker', '
 sluz_test('{if $debug}ONE{else}TWO{/if}'                         , 'ONE'     , 'If #16 - Else not needed');
 sluz_test('{if $zero}1{elseif $debug}2{else}3{/if}'              , '2'       , 'If #17 - Elseif');
 sluz_test('{if $key}{if $one}one{elseif $x}X{else}ELSE{/if}{/if}', 'X'       , 'If #18 - Nested if with elseif');
+sluz_test('{if $number}1{if $key}2{/if}3{/if}'                   , '123'     , 'If #19 - Nested if leading/trailing chars');
 
 sluz_test('{foreach $array as $num}{$num}{/foreach}'                         , 'onetwothree'            , 'Foreach #1 - Simple');
 sluz_test('{foreach $array as $num}\n{$num}\n{/foreach}'                     , '\none\n\ntwo\n\nthree\n', 'Foreach #2 - Simple with whitespace');
