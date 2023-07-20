@@ -473,7 +473,9 @@ class sluz {
 			$new = str_replace('!$' . $this->var_prefix . '_', '', $input);
 			$ret = $this->tpl_vars[$new] ?? null;
 
-			return !$ret;
+			if ($ret !== null) {
+				return !$ret;
+			}
 		}
 
 		////////////////////////////////////////////
