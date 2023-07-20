@@ -640,7 +640,7 @@ class sluz {
 		$nested_if = strrpos($m[2], '{/if}');
 		if ($nested_if) {
 			$payload  = substr($m[2], $nested_if + 5);
-			$parts[0] = $m[2];
+			$first_p  = $m[2];
 		} else {
 			$payload = $m[2];
 			$parts   = [];
@@ -663,14 +663,11 @@ class sluz {
 		$cond[] = 1;
 
 		// This gets us all the payload elements
-		$tmp = preg_split("/(\{elseif (.+?)\}|\{else\})/", $payload);
+		$parts = preg_split("/(\{elseif (.+?)\}|\{else\})/", $payload);
 
-		// If it's a nested if, we already have some parts so we merge
-		if ($parts) {
-			array_shift($tmp); // Trash the first one
-			$parts = array_merge($parts, $tmp);
-		} else {
-			$parts = $tmp;
+		// If it's a nested if, we already have the first part so we use that
+		if ($nested_if) {
+			$parts[0] = $first_p;
 		}
 
 		// Build all the rules and associated values
