@@ -49,7 +49,7 @@ class sluz {
 		}
 
 		// If it doesn't start with a '{' it's plain text so we just return it
-		if (!str_starts_with($str, '{')) {
+		if ($str[0] !== '{') {
 			$ret = $str;
 		// Simple variable replacement {$foo} or {$foo|default:"123"}
 		} elseif (str_starts_with($str, '{$') && preg_match('/^\{\$(\w[\w\|\.\'":,]*)\s*\}$/', $str, $m)) {
