@@ -38,7 +38,6 @@ while (microtime(1) - $start < $runtime_secs) {
 	$total = sprintf("%.2f", (microtime(1) - $lstart) * 1000);
 	$s->assign('millis', $total);
 
-	$s->tpl_path = __DIR__ . "/tpls/";
 	$output = $s->fetch("tpls/benchmark.stpl");
 	$loops++;
 }
