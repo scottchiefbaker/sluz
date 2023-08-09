@@ -114,6 +114,7 @@ sluz_test('{if $true}123{else}456{/if}'                          , '123'     , '
 sluz_test('{if !$true}123{else}456{/if}'                         , '456'     , 'If #21 - Boolean inverted');
 sluz_test('{if $conf.main}123{else}456{/if}'                     , '123'     , 'If #22 - Hash boolean');
 sluz_test('{if !$conf.main}123{else}456{/if}'                    , '456'     , 'If #23 - Hash boolean inverted');
+sluz_test('{if $x}{if $y}yes{/if}{else}no{/if}'                  , 'yes'     , 'If #24 - Nested if with an else');
 
 sluz_test('{foreach $array as $num}{$num}{/foreach}'                         , 'onetwothree'            , 'Foreach #1 - Simple');
 sluz_test('{foreach $array as $num}\n{$num}\n{/foreach}'                     , '\none\n\ntwo\n\nthree\n', 'Foreach #2 - Simple with whitespace');
