@@ -653,7 +653,6 @@ class sluz {
 			$first_p = preg_replace("/({\/if}.*)\{else.*/s", '\\1', $m[2]);
 		} else {
 			$payload = $m[2];
-			$parts   = [];
 		}
 
 		// We build a list of tests and their output value if true in $rules
