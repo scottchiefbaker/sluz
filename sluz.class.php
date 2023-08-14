@@ -646,11 +646,11 @@ class sluz {
 		if ($nested_if) {
 			$payload  = substr($m[2], $nested_if + 5);
 
-			// If it's a nested if/else we chop off the end after the last {/if}
+			// If it's a nested if/else we chop off the end after the LAST {/if}
 			// FIXME: This is a huge hack, I don't know why it works, but it
 			// does and all the unit tests pass. So :shrug: ??
 			//$first_p  = $m[2];
-			$first_p = preg_replace("/({\/if}.*)\{else.*/s", '\\1', $m[2]);
+			$first_p = preg_replace("|({/if}.*){else.*|s", '\\1', $m[2]);
 		} else {
 			$payload = $m[2];
 		}
