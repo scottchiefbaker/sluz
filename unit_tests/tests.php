@@ -201,6 +201,22 @@ if ($is_cli) {
 	$sluz->assign("pass_count", $pass_count);
 	$sluz->assign("total", $total);
 
+	// If the first word of this test, and the last test are NOT
+	// the same it's a new section.
+	$last = "";
+	foreach ($test_output as &$x) {
+		$words = preg_split("/ /", $x[0], 2);
+		$word  = $words[0] ?? "";
+
+		if ($last && $word != $last) {
+			$x['new'] = 1;
+		} else {
+			$x['new'] = 0;
+		}
+
+		$last = $word;
+	}
+
 	$sluz->assign("tests", $test_output);
 	$sluz->tpl_file = "tpls/tests.stpl";
 	print $sluz->fetch("tpls/tests.stpl");

@@ -30,7 +30,7 @@
 
 	<div class="px-2">
 		{foreach $tests as $x}
-		<div class="d-flex test">
+		<div class="d-flex test {if $x.new}mt-2{/if}">
 			<div class="test_desc flex-grow-1">{$x.0}</div>
 			{if $x.1}
 			<div class="test_result_fail text-danger text-end flex-grow-1">{$x.1}</div>
