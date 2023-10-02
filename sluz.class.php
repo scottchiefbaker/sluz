@@ -2,7 +2,7 @@
 
 ////////////////////////////////////////////////////////
 
-define('SLUZ_INLINE', 'INLINE_TEMPLATE'); // Just a random number
+define('SLUZ_INLINE', 'INLINE_TEMPLATE'); // Just a specific string
 
 class sluz {
 	public $version      = '0.8';
