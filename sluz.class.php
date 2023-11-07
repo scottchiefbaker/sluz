@@ -826,53 +826,11 @@ class sluz {
 	}
 
 	function get_tokens($str) {
-		$ret   = [];
-		$count = 0;
-		$pos   = 0;
-		while ($pos !== false) {
-			$pos = strpos($str, '{', $pos);
-			if ($pos !== false) {
-				$pair[$count][0] = $pos;
-				$pos++;
-			}
+		$x = preg_split('/({[^}]+})/', $str, 0, PREG_SPLIT_DELIM_CAPTURE);
+		$x = array_filter($x);
+		$x = array_values($x);
 
-			if ($count++ > 10000) { break; }
-		}
-
-		$pos   = 0;
-		$count = 0;
-		while ($pos !== false) {
-			$pos             = strpos($str, '}', $pos);
-			if ($pos !== false) {
-				$pair[$count][1] = $pos;
-				$pos++;
-			}
-
-			if ($count++ > 10000) { break; }
-		}
-
-		$last  = 0;
-		foreach ($pair as $x) {
-			$start = $x[0];
-			$end   = $x[1] + 1;
-
-			// If the { } aren't right next to each other, get the stuff in between
-			if ($last && $start) {
-				$tok = substr($str, $last, $start - $last);
-				if ($tok) {
-					$ret[] = $tok;
-				}
-			}
-
-			$tok = substr($str, $start, $end - $start);
-			if ($tok) {
-				$ret[] = $tok;
-			}
-
-			$last = $end;
-		}
-
-		return $ret;
+		return $x;
 	}
 
 	function is_if_token($str) {
