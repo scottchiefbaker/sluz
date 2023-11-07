@@ -55,7 +55,7 @@ class sluz {
 		} elseif (str_starts_with($str, '{$') && preg_match('/^\{\$(\w[\w\|\.\'":,]*)\s*\}$/', $str, $m)) {
 			$ret = $this->variable_block($m[1]);
 		// If statement {if $foo}{/if}
-		} elseif (str_starts_with($str, '{if ') && preg_match('/^\{if .+?\}.+\{\/if\}$/s', $str)) {
+		} elseif (str_starts_with($str, '{if ') && str_ends_with($str, '{/if}')) {
 			$ret = $this->if_block($str);
 		// Foreach {foreach $foo as $x}{/foreach}
 		} elseif (str_starts_with($str, '{foreach ') && preg_match('/^\{foreach (\$\w[\w.]*) as \$(\w+)( => \$(\w+))?\}(.+)\{\/foreach\}$/s', $str, $m)) {
