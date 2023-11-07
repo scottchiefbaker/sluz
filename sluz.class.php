@@ -635,9 +635,8 @@ class sluz {
 
 	// parse an if statement
 	private function if_block($str) {
-		$rules = $this->parse_if_rules($str);
-
-		if (!$rules) { return ''; }
+		$toks  = $this->get_tokens($str);
+		$rules = $this->get_if_rules_from_tokens($toks);
 
 		// Put the tpl_vars in the current scope so if works against them
 		extract($this->tpl_vars, EXTR_PREFIX_ALL, $this->var_prefix);
@@ -978,13 +977,6 @@ class sluz {
 		}
 
 		return $ret;
-	}
-
-	private function parse_if_rules($str) {
-		$toks  = $this->get_tokens($str);
-		$rules = $this->get_if_rules_from_tokens($toks);
-
-		return $rules;
 	}
 }
 
