@@ -61,7 +61,7 @@ class sluz {
 		} elseif (str_starts_with($str, '{foreach ') && preg_match('/^\{foreach (\$\w[\w.]*) as \$(\w+)( => \$(\w+))?\}(.+)\{\/foreach\}$/s', $str, $m)) {
 			$ret = $this->foreach_block($m);
 		// Include {include file='my.stpl' number='99'}
-		} elseif (str_starts_with($str, '{include ') && preg_match('/^\{include.+?\}$/s', $str, $m)) {
+		} elseif (str_starts_with($str, '{include ')) {
 			$ret = $this->include_block($str);
 		// Liternal {literal}Stuff here{/literal}
 		} elseif (str_starts_with($str, '{literal}') && preg_match('/^\{literal\}(.+)\{\/literal\}$/s', $str, $m)) {
