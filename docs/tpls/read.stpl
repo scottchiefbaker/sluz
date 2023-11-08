@@ -1,64 +1,80 @@
-{literal}
-<style>
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Sluz documentation</title>
+
+	<!-- Bootstrap CSS -->
+	<link href="css/bootstrap.min.css" rel="stylesheet">
+
+	{literal}
+	<style>
 	body {
 		font-family: sans;
-	}
-	.header { font-weight: bold; }
+		}
+		.header { font-weight: bold; }
 
-	.tpl, .out { margin-top: 1em; }
+		.tpl, .out { margin-top: 1em; }
 
-	.tpl_file, .php_file, .output {
-		border: 1px solid;
-		padding: 6px;
-	}
+		.tpl_file, .php_file, .output {
+			border: 1px solid;
+			padding: 6px;
+		}
 
-	.p-0 { padding: 0px; }
-	.m-0 { margin: 0px; }
-	hr {
-		margin-top: 1em;
-		margin-bottom: 1em;
-		border: 1px solid gray;
-		border-radius: 5px;
-	}
-</style>
-{/literal}
+		.p-0 { padding: 0px; }
+		.m-0 { margin: 0px; }
+		hr {
+			margin-top: 1em;
+			margin-bottom: 1em;
+			border: 1px solid gray;
+			border-radius: 5px;
+		}
+	</style>
+	{/literal}
+  </head>
 
-<body>
-<h1>{$doc_name}</h1>
+<body class="container-lg">
+	<h3>{$doc_name}</h3>
 
-<div class="php">
-	<div class="header">
-		PHP:
+	<div class="php">
+		<div class="header">
+			PHP:
+		</div>
+		<div class="php_file">
+			{$php_contents}
+		</div>
 	</div>
-	<div class="php_file">
-		{$php_contents}
+
+	<div class="">
+		{if $tpl_contents}
+		<div class="tpl">
+			<div class="header">
+				Template:
+			</div>
+			<div class="tpl_file">
+				<pre class="m-0">{$tpl_contents}</pre>
+			</div>
+		</div>
+		{/if}
+
+		<div class="">
+			<div class="header out">
+				<a href="{$doc_name}">Output:</a>
+			</div>
+			<div class="output" style="margin-top: 0em;">
+				<iframe style="border: 0px; width: 100%; height: 15em;" src="{$doc_name}"></iframe>
+			</div>
+		</div>
 	</div>
-</div>
 
-{if $tpl_contents}
-<div class="tpl">
-	<div class="header">
-		Template:
-	</div>
-	<div class="tpl_file">
-		<pre class="m-0">{$tpl_contents}</pre>
-	</div>
-</div>
-{/if}
+	<hr />
 
-<div class="header out">
-	<a href="{$doc_name}">Output:</a>
-</div>
-<div class="output" style="margin-top: 0em;">
-	<iframe style="border: 0px; width: 100%; height: 15em;" src="{$doc_name}"></iframe>
-</div>
+	<div><b>Other documentation:</b></div>
 
-<hr />
-
-<div><b>Other documentation:</b></div>
-
-<ul>
-{foreach $doc_files as $file}
-<li><a href="?doc={$file}">{$file}</a></li>
-{/foreach}
-</ul>
+	<ul>
+	{foreach $doc_files as $file}
+	<li><a href="?doc={$file}">{$file}</a></li>
+	{/foreach}
+	</ul>
+</body>

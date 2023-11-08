@@ -10,7 +10,7 @@
 
 		<title>Welcome to Sluz</title>
 	</head>
-	<body class="container">
+	<body class="container-lg">
 		<div class="row mb-3">
 			<h1 class="col-md-9">Welcome to Sluz v{$sluz_version}</h1>
 			<h1 class="col-md-3 text-md-end"><a title="View on GitHub" href="https://github.com/scottchiefbaker/sluz"><img style="width: 1.2em;"src="tpls/github-logo.svg" /></a></h1>
