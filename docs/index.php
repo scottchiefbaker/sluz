@@ -31,6 +31,7 @@ $s->assign("doc_name", $doc_file);
 $s->assign("php_contents", $phpc);
 $s->assign("tpl_contents", $tplc);
 $s->assign("doc_files", $doc_files);
+$s->assign('sluz_version', $s->version);
 
 print $s->fetch("tpls/read.stpl");
 
