@@ -1,6 +1,6 @@
 <p>
 {foreach $turtles as $name}
-<div style="background: {if $__FOREACH_FIRST}green{elseif $__FOREACH_LAST}red{else}yellow{/if}">{$name}</div>
+<div style="background: {if $__FOREACH_FIRST}orange{elseif $__FOREACH_LAST}red{else}yellow{/if}">{$name}</div>
 {/foreach}
 </p>
 

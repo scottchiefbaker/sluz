@@ -10,6 +10,6 @@
 include("../sluz.class.php");
 $s = new sluz();
 
-$s->assign("turtles", ["Michelangeo", "Donatello", "Leonardo", "Raphael"]); // Array
+$s->assign("turtles", ["Michelangelo", "Donatello", "Leonardo", "Raphael"]); // Array
 
 print $s->fetch("tpls/031_advanced_foreach.stpl");
