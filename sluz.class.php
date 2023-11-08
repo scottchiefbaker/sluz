@@ -903,7 +903,7 @@ class sluz {
 
 		////////////////////////////////////////////////////////////////////////
 
-		// Everything AFTER an {if }piece is the payload to that test condition
+		// Everything AFTER an {if} piece is the payload to that test condition
 		$str      = '';
 		$payloads = [];
 		$first    = true;
