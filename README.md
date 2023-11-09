@@ -1,4 +1,4 @@
-# Sluz PHP template system
+# Sluz PHP templating system
 
 Sluz is a minimalistic PHP templating engine with an emphasis on
 syntax similar to [Smarty](https://www.smarty.net/). This allows
