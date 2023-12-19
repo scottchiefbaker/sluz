@@ -635,8 +635,25 @@ class sluz {
 
 	// parse an if statement
 	private function if_block($str) {
-		$toks  = $this->get_tokens($str);
-		$rules = $this->get_if_rules_from_tokens($toks);
+		// If it's a simple {if $name}Output{/if} we can save a lot of
+		// time parsing detailed rules
+		if ($this->use_mo) {
+			// If there is no {else} or {elseif}
+			$is_simple = (strpos($str, "{else", 7) === false);
+		} else {
+			$is_simple = false;
+		}
+
+		if ($is_simple) {
+			//k($str);
+			preg_match("/{if (.+?)}(.+){\/if}/s", $str, $m);
+			$cond     = $m[1] ?? "";
+			$payload  = $m[2] ?? "";
+			$rules[0] = [$cond, $payload];
+		} else {
+			$toks  = $this->get_tokens($str);
+			$rules = $this->get_if_rules_from_tokens($toks);
+		}
 
 		// Put the tpl_vars in the current scope so if works against them
 		extract($this->tpl_vars, EXTR_PREFIX_ALL, $this->var_prefix);
