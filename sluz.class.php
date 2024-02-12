@@ -43,7 +43,7 @@ class sluz {
 
 		$this->char_pos = $char_pos;
 
-		// Micro-optimization for "" input
+		// Micro-optimization for "" input!
 		if (strlen($str) === 0) {
 			return '';
 		}
