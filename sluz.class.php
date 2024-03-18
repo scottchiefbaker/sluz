@@ -13,7 +13,6 @@ class sluz {
 	public $in_unit_test  = false;      // Boolean if we are in unit testing mode
 	public $tpl_vars      = [];         // Array of variables assigned to the TPL
 	public $parent_tpl    = null;       // Path to parent TPL
-
 	public $open_char    = '{';
 	public $close_char   = '}';
 
@@ -88,7 +87,6 @@ class sluz {
 	public function get_blocks($str) {
 		$oc = $this->open_char;
 		$cc = $this->close_char;
-		$start_time = microtime(1);
 
 		$start  = 0;
 		$blocks = [];
@@ -117,6 +115,8 @@ class sluz {
 				continue;
 			}
 
+			$is_open    = $char === $oc;
+			$is_closed  = $char === $cc;
 			$has_len    = $start != $i;
 			$is_comment = false;
 
@@ -765,10 +765,9 @@ class sluz {
 		// If it's a simple {if $name}Output{/if} we can save a lot of
 		// time parsing detailed rules
 		// i.e. there is no {else} or {elseif}
-		$is_simple = (strpos($str, "{else", 7) === false);
+		$is_simple = (strpos($str, "{$oc}else", 7) === false);
 
 		if ($is_simple) {
-			//k($str);
 			preg_match("/{$oc}if (.+?)$cc(.+)$oc\/if$cc/s", $str, $m);
 			$cond     = $m[1] ?? "";
 			$payload  = $m[2] ?? "";
@@ -1044,7 +1043,7 @@ class sluz {
 				$yes = boolval($this->is_if_token($item));
 			}
 
-			// The last {if} of a nested doesn't count
+			// The last {/if} of a nested doesn't count
 			if ($nested === 1 && $item === "{$oc}/if{$cc}") {
 				$yes = false;
 			}
