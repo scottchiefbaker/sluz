@@ -13,6 +13,8 @@ class sluz {
 	public $in_unit_test = false;
 	public $tpl_vars     = [];
 	public $use_mo       = true; // Use micro-optimiziations
+	public $open_char    = '{';
+	public $close_char   = '}';
 
 	private $php_file     = null;
 	private $var_prefix   = "sluz_pfx";
@@ -41,6 +43,9 @@ class sluz {
 	public function process_block(string $str, int $char_pos = -1) {
 		$ret = '';
 
+		$open_char  = $this->open_char;
+		$close_char = $this->close_char;
+
 		$this->char_pos = $char_pos;
 
 		// Micro-optimization for "" input!
@@ -49,31 +54,31 @@ class sluz {
 		}
 
 		// If it doesn't start with a '{' it's plain text so we just return it
-		if ($str[0] !== '{') {
+		if ($str[0] !== $open_char) {
 			$ret = $str;
 		// Simple variable replacement {$foo} or {$foo|default:"123"}
-		} elseif (str_starts_with($str, '{$') && preg_match('/^\{\$(\w[\w\|\.\'":,]*)\s*\}$/', $str, $m)) {
+		} elseif (str_starts_with($str, $open_char . '$') && preg_match('/^' . $open_char . '\$(\w[\w\|\.\'":,]*)\s*' . $close_char . '$/', $str, $m)) {
 			$ret = $this->variable_block($m[1]);
 		// If statement {if $foo}{/if}
-		} elseif (str_starts_with($str, '{if ') && str_ends_with($str, '{/if}')) {
+		} elseif (str_starts_with($str, "{$open_char}if ") && str_ends_with($str, "{$open_char}/if{$close_char}")) {
 			$ret = $this->if_block($str);
 		// Foreach {foreach $foo as $x}{/foreach}
-		} elseif (str_starts_with($str, '{foreach ') && preg_match('/^\{foreach (\$\w[\w.]*) as \$(\w+)( => \$(\w+))?\}(.+)\{\/foreach\}$/s', $str, $m)) {
+		} elseif (str_starts_with($str, "{$open_char}foreach ") && preg_match('/^' . $open_char . 'foreach (\$\w[\w.]*) as \$(\w+)( => \$(\w+))?' . $close_char . '(.+)' . $open_char . '\/foreach' . $close_char . '$/s', $str, $m)) {
 			$ret = $this->foreach_block($m);
 		// Include {include file='my.stpl' number='99'}
-		} elseif (str_starts_with($str, '{include ')) {
+		} elseif (str_starts_with($str, "{$open_char}include ")) {
 			$ret = $this->include_block($str);
 		// Liternal {literal}Stuff here{/literal}
-		} elseif (str_starts_with($str, '{literal}') && preg_match('/^\{literal\}(.+)\{\/literal\}$/s', $str, $m)) {
+		} elseif (str_starts_with($str, "{$open_char}literal{$close_char}") && preg_match('/^' . $open_char . 'literal' . $close_char . '(.+)' . $open_char . '\/literal' . $close_char . '$/s', $str, $m)) {
 			$ret = $m[1];
 		// This is for complicated variables with default values that don't match the above rule
-		} elseif (str_contains($str, "|default:") && preg_match('/^\{\$(\w.+)\}/', $str, $m)) {
+		} elseif (str_contains($str, "|default:") && preg_match('/^' . $open_char . '\$(\w.+)' . $close_char . '/', $str, $m)) {
 			$ret = $this->variable_block($m[1]);
 		// Catch all for other { $num + 3 } type of blocks
-		} elseif (preg_match('/^\{(.+)}$/s', $str, $m)) {
+		} elseif (preg_match('/^' . $open_char . '(.+)' . $close_char . '$/s', $str, $m)) {
 			$ret = $this->expression_block($str, $m);
 		// If it starts with '{' (from above) but does NOT contain a closing tag
-		} elseif (!str_ends_with($str, '}')) {
+		} elseif (!str_ends_with($str, $close_char)) {
 			list($line, $col, $file) = $this->get_char_location($this->char_pos, $this->tpl_file);
 			return $this->error_out("Unclosed tag <code>$str</code> in <code>$file</code> on line #$line", 45821);
 		// Something went WAY wrong
@@ -86,6 +91,9 @@ class sluz {
 
 	// Break the text up in to tokens/blocks to process by process_block()
 	public function get_blocks($str) {
+		$oc = $this->open_char;
+		$cc = $this->close_char;
+
 		$start  = 0;
 		$blocks = [];
 		$slen   = strlen($str);
@@ -93,8 +101,8 @@ class sluz {
 		for ($i = 0; $i < $slen; $i++) {
 			$char = $str[$i];
 
-			$is_open    = $char === "{";
-			$is_closed  = $char === "}";
+			$is_open    = $char === $oc;
+			$is_closed  = $char === $cc;
 			$has_len    = $start != $i;
 			$is_comment = false;
 
@@ -105,7 +113,7 @@ class sluz {
 				$chunk  = $prev_c . $char . $next_c;
 
 				// If the { is surrounded by whitespace it's not a block
-				if (preg_match("/\s[\{\}]\s/", $chunk)) {
+				if (preg_match("/\s[$oc$cc]\s/", $chunk)) {
 					$is_open = false;
 				}
 
@@ -125,13 +133,13 @@ class sluz {
 			} elseif ($is_closed) {
 				$len         = $i - $start + 1;
 				$block       = substr($str, $start, $len);
-				$is_function = preg_match("/^\{(if|foreach|literal)\b/", $block, $m);
+				$is_function = preg_match("/^$oc(if|foreach|literal)\b/", $block, $m);
 
 				// If we're in a function, loop until we find the closing tag
 				if ($is_function) {
 					// Go character by character until we find a '}' and see if we find the closing tag
 					for ($j = $i + 1; $j < strlen($str); $j++) {
-						$closed = ($str[$j] === "}");
+						$closed = ($str[$j] === $cc);
 
 						// If we find a close tag we check to see if it's the final closed tag
 						if ($closed) {
@@ -141,9 +149,9 @@ class sluz {
 							// Open tag is whatever word is after the '{'
 							$open_tag  = $m[1];
 							// Build the closing tag so we can look for it later
-							$close_tag = "{/$open_tag}";
+							$close_tag = "$oc/$open_tag$cc";
 
-							$open_count  = substr_count($tmp, '{' . $open_tag);
+							$open_count  = substr_count($tmp, $oc . $open_tag);
 							$close_count = substr_count($tmp, $close_tag);
 
 							//k([$open_tag, $close_tag, $open_count, $close_count, $tmp], KRUMO_EXPAND_ALL);
@@ -164,7 +172,7 @@ class sluz {
 
 			// If it's a comment we slurp all the chars until the first '*}' and make that the block
 			if ($is_comment) {
-				$end = $this->find_ending_tag(substr($str, $start), '{*', '*}');
+				$end = $this->find_ending_tag(substr($str, $start), "$oc*", "*$cc");
 
 				if ($end === false) {
 					list($line, $col, $file) = $this->get_char_location($i, $this->tpl_file);
@@ -635,18 +643,21 @@ class sluz {
 
 	// parse an if statement
 	private function if_block($str) {
+		$oc = $this->open_char;
+		$cc = $this->close_char;
+
 		// If it's a simple {if $name}Output{/if} we can save a lot of
 		// time parsing detailed rules
 		if ($this->use_mo) {
 			// If there is no {else} or {elseif}
-			$is_simple = (strpos($str, "{else", 7) === false);
+			$is_simple = (strpos($str, "{$oc}else", 7) === false);
 		} else {
 			$is_simple = false;
 		}
 
 		if ($is_simple) {
 			//k($str);
-			preg_match("/{if (.+?)}(.+){\/if}/s", $str, $m);
+			preg_match("/{$oc}if (.+?)$cc(.+)$oc\/if$cc/s", $str, $m);
 			$cond     = $m[1] ?? "";
 			$payload  = $m[2] ?? "";
 			$rules[0] = [$cond, $payload];
@@ -843,7 +854,10 @@ class sluz {
 	}
 
 	function get_tokens($str) {
-		$x = preg_split('/({[^}]+})/', $str, 0, PREG_SPLIT_DELIM_CAPTURE);
+		$oc = $this->open_char;
+		$cc = $this->close_char;
+
+		$x = preg_split('/(' . $oc . '[^' . $cc . ']+' . $cc. ')/', $str, 0, PREG_SPLIT_DELIM_CAPTURE);
 		$x = array_filter($x);
 		$x = array_values($x);
 
@@ -869,6 +883,9 @@ class sluz {
 	}
 
 	private function get_if_rules_from_tokens($toks) {
+		$oc = $this->open_char;
+		$cc = $this->close_char;
+
 		$num    = count($toks);
 		$nested = 0;
 
@@ -877,8 +894,8 @@ class sluz {
 		for ($i = 0; $i < $num; $i++) {
 			$item = $toks[$i];
 
-			if (str_starts_with($item, '{if')) { $nested++; }
-			if ($item === '{/if}')             { $nested--; }
+			if (str_starts_with($item, "{$oc}if")) { $nested++; }
+			if ($item === "{$oc}/if{$cc}")             { $nested--; }
 
 			// If we're in the middle of a nest, it's automatically NOT an if piece
 			if ($nested !== 1) {
@@ -888,7 +905,7 @@ class sluz {
 			}
 
 			// The last {if} of a nested doesn't count
-			if ($nested === 1 && $item === '{/if}') {
+			if ($nested === 1 && $item === "{$oc}/if{$cc}") {
 				$yes = false;
 			}
 
