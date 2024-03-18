@@ -276,6 +276,24 @@ $sluz->parent_tpl = "";
 
 //////////////////////////////////////////////////////////////////////////////////////////
 
+//////////////////////////////////////////////////////////////////////////////////////////
+
+$sluz->open_char  = '<';
+$sluz->close_char = '>';
+
+sluz_test('<* Comment *>'                   , ''                       , 'Alternate Delimiter #1');
+sluz_test('{"name": "Scott"}'               , '{"name": "Scott"}'      , 'Alternate Delimiter #2');
+sluz_test('{"last": "<$last>"}'             , '{"last": "Baker"}'      , 'Alternate Delimiter #3');
+sluz_test('<if $debug>DEBUG</if>'           , 'DEBUG'                  , 'Alternate Delimiter #4');
+sluz_test('<foreach $y as $i><$i></foreach>', '246'                    , 'Alternate Delimiter #5');
+sluz_test('<literal><<</literal>'           , '<<'                     , 'Alternate Delimiter #6');
+sluz_test('<* <* nested *> *>'              , ''                       , 'Alternate Delimiter #7');
+sluz_test("<include 'tpls/json.stpl'>"      , "{\"name\": \"Scott\"}\n", 'Alternate Delimiter #8');
+
+// We have to reset the delimters for the HTML tests to run
+$sluz->open_char  = '{';
+$sluz->close_char = '}';
+
 $total = $pass_count + $fail_count;
 
 if ($is_cli) {
