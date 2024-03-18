@@ -9,10 +9,10 @@ class sluz {
 	public $tpl_file      = null;       // The path to the TPL file
 	public $inc_tpl_file  = null;       // The path to the {include} file
 
-	public $debug         = 0;          // Enable debug mode
-	public $in_unit_test  = false;      // Boolean if we are in unit testing mode
-	public $tpl_vars      = [];         // Array of variables assigned to the TPL
-	public $parent_tpl    = null;       // Path to parent TPL
+	public $debug        = 0;          // Enable debug mode
+	public $in_unit_test = false;      // Boolean if we are in unit testing mode
+	public $tpl_vars     = [];         // Array of variables assigned to the TPL
+	public $parent_tpl   = null;       // Path to parent TPL
 	public $open_char    = '{';
 	public $close_char   = '}';
 
