@@ -1018,13 +1018,4 @@ if (!function_exists('str_starts_with')) {
     }
 }
 
-// Polyfill stolen from: https://www.php.net/manual/en/function.str-ends-with.php
-// This can be removed when we don't need to support PHP 7.x anymore
-if (! function_exists('str_ends_with')) {
-    function str_ends_with(string $haystack, string $needle): bool {
-        $needle_len = strlen($needle);
-        return ($needle_len === 0 || 0 === substr_compare($haystack, $needle, - $needle_len));
-    }
-}
-
 // vim: tabstop=4 shiftwidth=4 noexpandtab autoindent softtabstop=4
