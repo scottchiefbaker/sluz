@@ -9,16 +9,16 @@ class sluz {
 	public $tpl_file     = null; // The path to the TPL file
 	public $inc_tpl_file = null; // The path to the {include} file
 
-	public $debug        = 0;
-	public $in_unit_test = false;
-	public $tpl_vars     = [];
-	public $use_mo       = true; // Use micro-optimiziations
+	public $debug        = 0;     // Enable debug mode
+	public $in_unit_test = false; // Boolean if we are in unit testing mode
+	public $use_mo       = true;  // Use micro- optimiziations
+	public $tpl_vars     = [];    // Array of variables assigned to the TPL
 
-	private $php_file     = null;
-	private $var_prefix   = "sluz_pfx";
-	private $simple_mode  = false;
-	private $fetch_called = false;
-	private $char_pos     = -1;
+	private $var_prefix   = "sluz_pfx"; // Variable prefix for extract()
+	private $php_file     = null;       // Path to the calling PHP file
+	private $simple_mode  = false;      // Boolean are we in simple mode
+	private $fetch_called = false;      // Boolean used in simple if fetch has been called
+	private $char_pos     = -1;         // Character offset in the TPL
 
 	public function __construct() { }
 	public function __destruct()  {
@@ -28,6 +28,7 @@ class sluz {
 		}
 	}
 
+	// Assign variables to pass to the TPL
 	public function assign($key, $val = null) {
 		// Single item call (assign array at once)
 		if (is_null($val) && is_array($key)) {
@@ -220,12 +221,14 @@ class sluz {
 		return $html;
 	}
 
+	// Guess the TPL filename based on the PHP file
 	public function guess_tpl_file($php_file) {
 		$ret = "tpls/" . preg_replace('/\.php$/', '.stpl', basename($php_file));
 
 		return $ret;
 	}
 
+	// Find the calling parent PHP file (from the perspective of the sluz class)
 	public function get_php_file() {
 		$x    = debug_backtrace();
 		$last = count($x) - 1;
@@ -234,8 +237,10 @@ class sluz {
 		return $ret;
 	}
 
+	// Turn an array of blocks into output HTML
 	private function process_blocks(array $blocks) {
-		$html   = '';
+		$html = '';
+
 		foreach ($blocks as $x) {
 			$block     = $x[0];
 			$char_pos  = $x[1];
@@ -245,6 +250,7 @@ class sluz {
 		return $html;
 	}
 
+	// Load the template file into a string
 	private function get_tpl_content($tpl_file) {
         $tf = $this->tpl_file = $tpl_file;
 
@@ -279,6 +285,7 @@ class sluz {
 		return $ret;
 	}
 
+	// Find the include TPL in the {include} string
 	function extract_include_file($str) {
 		// {include file='foo.stpl'}
 		if (preg_match("/\s(file=)(['\"].+?['\"])/", $str, $m)) {
@@ -347,6 +354,7 @@ class sluz {
 		return $str;
 	}
 
+	// Build an evalable string from a variable string
 	private function dot_to_bracket_callback($m) {
 		$str   = $m[1];
 		$parts = explode(".", $str);
@@ -364,6 +372,7 @@ class sluz {
 		return $ret;
 	}
 
+	// Spit out an error message
 	public function error_out($msg, int $err_num) {
 		$style = "
 			.s_error {
@@ -440,6 +449,7 @@ class sluz {
 		exit;
 	}
 
+	// A bunch of little optimizations and shortcuts
 	private function micro_optimize($input) {
 		// Optimize raw integers
 		if (is_numeric($input)) {
@@ -505,6 +515,7 @@ class sluz {
 		return null;
 	}
 
+	// A smart wrapper around eval()
 	private function peval($str) {
 		if ($this->use_mo) {
 			$x = $this->micro_optimize($str);
@@ -527,6 +538,7 @@ class sluz {
 		return $ret;
 	}
 
+	// Turn on simple mode
 	public function enable_simple_mode($php_file) {
 		$this->php_file    = $php_file;
 		$this->simple_mode = true;
@@ -597,6 +609,7 @@ class sluz {
 		return $ret;
 	}
 
+	// Find the line/column based on char offset in a file
 	private function get_char_location($pos, $tpl_file) {
 		// If we're in an {include} the tpl is that temporarily
 		if ($this->inc_tpl_file) {
@@ -633,7 +646,7 @@ class sluz {
 		return [-1, -1, $tpl_file];
 	}
 
-	// parse an if statement
+	// Parse an if statement
 	private function if_block($str) {
 		// If it's a simple {if $name}Output{/if} we can save a lot of
 		// time parsing detailed rules
@@ -799,6 +812,7 @@ class sluz {
 		return $ret;
 	}
 
+	// Find the position of the closing tag in a string. This *IS* nesting aware
 	function find_ending_tag($haystack, $open_tag, $close_tag) {
 		// Do a quick check up to the FIRST closing tag to see if we find it
 		$pos         = strpos($haystack, $close_tag);
