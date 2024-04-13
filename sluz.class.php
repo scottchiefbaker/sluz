@@ -842,6 +842,7 @@ class sluz {
 		return false;
 	}
 
+	// Break up a string into tokens: pieces of {} and the text between them
 	function get_tokens($str) {
 		$x = preg_split('/({[^}]+})/', $str, 0, PREG_SPLIT_DELIM_CAPTURE);
 		$x = array_filter($x);
@@ -850,6 +851,7 @@ class sluz {
 		return $x;
 	}
 
+	// Is the string part of an if token
 	function is_if_token($str) {
 		if ($str === '{else}') {
 			return true;
@@ -868,6 +870,7 @@ class sluz {
 		return false;
 	}
 
+	// Take an array of tokens and build a list of if/else rules
 	private function get_if_rules_from_tokens($toks) {
 		$num    = count($toks);
 		$nested = 0;
@@ -887,7 +890,7 @@ class sluz {
 				$yes = boolval($this->is_if_token($item));
 			}
 
-			// The last {if} of a nested doesn't count
+			// The last {/if} of a nested doesn't count
 			if ($nested === 1 && $item === '{/if}') {
 				$yes = false;
 			}
