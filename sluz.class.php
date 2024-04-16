@@ -5,14 +5,14 @@
 define('SLUZ_INLINE', 'INLINE_TEMPLATE'); // Just a specific string
 
 class sluz {
-	public $version      = '0.8.2';
-	public $tpl_file     = null; // The path to the TPL file
-	public $inc_tpl_file = null; // The path to the {include} file
+	public $version       = '0.8.2';
+	public $tpl_file      = null;       // The path to the TPL file
+	public $inc_tpl_file  = null;       // The path to the {include} file
 
-	public $debug        = 0;     // Enable debug mode
-	public $in_unit_test = false; // Boolean if we are in unit testing mode
-	public $use_mo       = true;  // Use micro- optimiziations
-	public $tpl_vars     = [];    // Array of variables assigned to the TPL
+	public $debug         = 0;          // Enable debug mode
+	public $in_unit_test  = false;      // Boolean if we are in unit testing mode
+	public $use_mo        = true;       // Use micro- optimiziations
+	public $tpl_vars      = [];         // Array of variables assigned to the TPL
 
 	private $var_prefix   = "sluz_pfx"; // Variable prefix for extract()
 	private $php_file     = null;       // Path to the calling PHP file
