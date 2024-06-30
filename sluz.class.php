@@ -979,8 +979,8 @@ class sluz {
 	}
 
 	// Get/Set parent tpl
-	function parent_tpl($tpl = "") {
-		if ($tpl) {
+	function parent_tpl($tpl) {
+		if (isset($tpl)) {
 			$this->parent_tpl = $tpl;
 
 			return $this->parent_tpl;
