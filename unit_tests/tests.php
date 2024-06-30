@@ -181,6 +181,20 @@ sluz_test(['{*{$first} {$last}*}']                                             ,
 sluz_test([' {* {$foo} *} ']                                                   , 2, 'Get blocks #10 - Comments with variables and whitespace');
 sluz_test(['{foreach $array as $i}{foreach $array as $i}x{/foreach}{/foreach}'], 1, 'Get blocks #11 - Nested foreach');
 
+//////////////////////////////////////////////////////////////////////////////////////////
+// Fetch tests
+//////////////////////////////////////////////////////////////////////////////////////////
+
+sluz_fetch_test(["tpls/extra.stpl"], "/extra.stpl/s"    , "Fetch #1 - Simple fetch");
+sluz_fetch_test(["tpls/child.stpl" , "tpls/parent.stpl"], "/0fd197af.*21c1a4c5/s", "Parent/Child #1 - Fetch with two params");
+
+// Set and then reset the parent tpl
+$x = $sluz->parent_tpl("tpls/parent.stpl");
+sluz_fetch_test(["tpls/child.stpl"], "/0fd197af.*21c1a4c5/s", "Parent/Child #2 - Fetch with preset parent");
+$sluz->parent_tpl = "";
+
+//////////////////////////////////////////////////////////////////////////////////////////
+
 $total = $pass_count + $fail_count;
 
 if ($is_cli) {
@@ -225,6 +239,58 @@ if ($is_cli) {
 }
 
 ////////////////////////////////////////////////////////
+
+function sluz_fetch_test($files, $pattern, $test_name) {
+	global $sluz;
+	global $pass_count;
+	global $fail_count;
+	global $test_output;
+	global $filter;
+	global $is_cli;
+	global $ok_str;
+	global $fail_str;
+
+	if (!empty($filter) && !preg_match("/$filter/i", $test_name)) { return; }
+
+	////////////////////////////////////////
+
+	$lead = "Test '$test_name' ";
+	$pad  = str_repeat(" ", 80 - (strlen($lead)));
+
+	if ($is_cli) {
+		print "$lead $pad";
+	}
+
+	$ok    = "\033[32m";
+	$fail  = "\033[31m";
+	$reset = "\033[0m";
+	$white = "\033[1m";
+
+	$l = $white . "[" . $reset;
+	$r = $white . "]" . $reset;
+
+	////////////////////////////////////////
+
+	$child  = $files[0] ?? "";
+	$parent = $files[1] ?? null;
+
+	$str = $sluz->fetch($child, $parent);
+
+	if (preg_match($pattern, $str)) {
+		$pass_count++;
+		$test_output[] = [$test_name,0];
+
+		if ($is_cli) {
+			print $ok_str . "\n";
+		}
+	} else {
+		if ($is_cli) {
+			print $fail_str . "\n";
+		}
+		$fail_count++;
+		$test_output[] = [$test_name, "Expected $pattern"];
+	}
+}
 
 function sluz_test($input, $expected, $test_name) {
 	global $sluz;

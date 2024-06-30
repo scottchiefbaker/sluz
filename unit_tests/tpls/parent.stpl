@@ -1,0 +1,3 @@
+<h1>header 0fd197af-ef52-4357-9dbd-e959762597ae</h1>
+{include file="$__CHILD_TPL"}
+<h1>footer</h1>
