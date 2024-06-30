@@ -13,6 +13,7 @@ class sluz {
 	public $in_unit_test  = false;      // Boolean if we are in unit testing mode
 	public $use_mo        = true;       // Use micro- optimiziations
 	public $tpl_vars      = [];         // Array of variables assigned to the TPL
+	public $parent_tpl    = null;       // Path to parent TPL
 
 	private $var_prefix   = "sluz_pfx"; // Variable prefix for extract()
 	private $php_file     = null;       // Path to the calling PHP file
@@ -202,7 +203,7 @@ class sluz {
 
 	// Specify a path to the .stpl file, or pass nothing to let sluz 'guess'
 	// Guess is 'tpls/[scriptname_minus_dot_php].stpl
-	public function fetch($tpl_file = "") {
+	public function fetch($tpl_file = "", $parent = null) {
 		if (!$this->php_file) {
 			$this->php_file = $this->get_php_file();
         }
@@ -210,6 +211,12 @@ class sluz {
 		// We use ABSOLUTE paths here because this may be called in the destructor which has a cwd() of '/'
 		if (!$tpl_file) {
 			$tpl_file = dirname($this->php_file) . '/' . $this->guess_tpl_file($this->php_file);
+		}
+
+		$parent_tpl = $parent ?? $this->parent_tpl;
+		if (!empty($parent_tpl)) {
+			$this->assign("__CHILD_TPL", $tpl_file);
+			$tpl_file = $parent_tpl;
 		}
 
 		$str    = $this->get_tpl_content($tpl_file);
@@ -969,6 +976,15 @@ class sluz {
 		}
 
 		return $ret;
+	}
+
+	// Get/Set parent tpl
+	function parent_tpl($tpl = "") {
+		if ($tpl) {
+			$this->parent_tpl = $tpl;
+		} else {
+			return $this->parent_tpl;
+		}
 	}
 }
 
