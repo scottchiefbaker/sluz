@@ -4,7 +4,7 @@
 // Templates can call external functions. Any function that's callable in    //
 // normal scope can be used: global PHP functions, or user functions.        //
 // Functions will be called with the template variable being the first       //
-// and parameter, and other params after. You may need to write wrapper      //
+// parameter, and other params after. You may need to write wrapper          //
 // functions to make this work in your environment.                          //
 ///////////////////////////////////////////////////////////////////////////////
 
