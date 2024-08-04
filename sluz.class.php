@@ -69,7 +69,7 @@ class sluz {
 		} elseif (str_starts_with($str, '{literal}') && preg_match('/^\{literal\}(.+)\{\/literal\}$/s', $str, $m)) {
 			$ret = $m[1];
 		// This is for complicated variables with default values that don't match the above rule
-		} elseif (str_contains($str, "|default:") && preg_match('/^\{\$(\w.+)\}/', $str, $m)) {
+		} elseif (str_contains($str, "|") && preg_match('/^\{\$(\w.+)\}/', $str, $m)) {
 			$ret = $this->variable_block($m[1]);
 		// Catch all for other { $num + 3 } type of blocks
 		} elseif (preg_match('/^\{(.+)}$/s', $str, $m)) {
@@ -588,11 +588,14 @@ class sluz {
 					$params    = [$pre];
 
 					if ($param_str) {
-						$new    = preg_split("/,/", $param_str);
+						$new = preg_split("/,/", $param_str);
+						$new = array_map([$this, 'peval'], $new);
+
 						$params = array_merge($params, $new);
 					}
 
-					//printf("Calling: %s(%s)<br />\n", $func, join(", ", $params));
+					//k([$str, $parts, $func, $new, $params]);
+					//printf("Calling: %s([%s])<br />\n", $func, join(", ", $params[0]));
 
 					if (!is_callable($func)) {
 						list($line, $col, $file) = $this->get_char_location($this->char_pos, $this->tpl_file);
