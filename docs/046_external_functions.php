@@ -18,8 +18,8 @@ print $s->fetch("tpls/046_external_functions.stpl");
 
 ///////////////////////////////////////////////////////////////////////////////
 
-function join_comma(array $arr) {
-	return join(", ", $arr);
+function join_comma(array $arr, string $separator = ", ") {
+	return join($separator, $arr);
 }
 
 function initials($str) {
