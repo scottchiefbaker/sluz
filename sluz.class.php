@@ -577,8 +577,12 @@ class sluz {
 			// User function
 			} else {
 				$pre   = $this->array_dive($key, $this->tpl_vars) ?? "";
-				// Each modifier is separated by a |
-				$parts = preg_split("/\\|/", $mod, 1);
+
+				// Each modifier is separated by a | but we only split on
+				// pipes that are NOT in a quoted string. Pattern provided
+				// by ChatGPT.
+				$pattern = '/\|(?![^"]*"(?:(?:[^"]*"){2})*[^"]*$)/';
+				$parts   = preg_split($pattern, $mod);
 
 				// Loop through each modifier (chaining)
 				foreach ($parts as $mod) {
