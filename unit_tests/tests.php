@@ -93,6 +93,7 @@ sluz_test('{if !$cust.age}unknown{else}{$age}{/if}', 'unknown'    , 'Basic #35 -
 sluz_test('{$y|join_comma}'                        , '2, 4, 6'    , 'Basic #36 - Function with default param');
 sluz_test('{$y|join_comma:9}'                      , '29496'      , 'Basic #37 - Function with integer param');
 sluz_test('{$y|join_comma:"*"}'                    , '2*4*6'      , 'Basic #38 - Function with string param');
+sluz_test('{$y|join_comma:"|"}'                    , '2|4|6'      , 'Basic #39 - Function with string param pipe');
 
 sluz_test('{if $debug}DEBUG{/if}'                                , 'DEBUG'   , 'If #1 - Simple');
 sluz_test('{if $bogus_var}DEBUG{/if}'                            , ''        , 'If #2 - Missing var');
