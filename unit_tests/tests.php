@@ -90,6 +90,9 @@ sluz_test('{$last|truncate:4|truncate:2}'          , 'Ba'         , 'Basic #32 -
 sluz_test('{$first|substr:2}'                      , 'ott'        , 'Basic #33 - PHP function with one param');
 sluz_test('{$first|substr:2,2}'                    , 'ot'         , 'Basic #34 - PHP function with two params');
 sluz_test('{if !$cust.age}unknown{else}{$age}{/if}', 'unknown'    , 'Basic #35 - Negated hash lookup');
+sluz_test('{$y|join_comma}'                        , '2, 4, 6'    , 'Basic #36 - Function with default param');
+sluz_test('{$y|join_comma:9}'                      , '29496'      , 'Basic #37 - Function with integer param');
+sluz_test('{$y|join_comma:"*"}'                    , '2*4*6'      , 'Basic #38 - Function with string param');
 
 sluz_test('{if $debug}DEBUG{/if}'                                , 'DEBUG'   , 'If #1 - Simple');
 sluz_test('{if $bogus_var}DEBUG{/if}'                            , ''        , 'If #2 - Missing var');
@@ -386,5 +389,11 @@ function truncate($str, int $len) {
 	$ret = substr($str, 0, $len);
 	return $ret;
 }
+
+// Join an array with commas or custom separator
+function join_comma(array $arr, string $separator = ", ") {
+	return join($separator, $arr);
+}
+
 
 // vim: tabstop=4 shiftwidth=4 noexpandtab autoindent softtabstop=4
