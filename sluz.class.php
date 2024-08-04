@@ -578,7 +578,7 @@ class sluz {
 			} else {
 				$pre   = $this->array_dive($key, $this->tpl_vars) ?? "";
 				// Each modifier is separated by a |
-				$parts = preg_split("/\\|/", $mod);
+				$parts = preg_split("/\\|/", $mod, 1);
 
 				// Loop through each modifier (chaining)
 				foreach ($parts as $mod) {
