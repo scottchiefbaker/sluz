@@ -606,7 +606,15 @@ class sluz {
 						return $this->error_out("Unknown function call <code>$func</code> in <code>$file</code> on line #$line", 47204);
 					}
 
-					$pre = call_user_func_array($func, $params);
+					try {
+						$pre = call_user_func_array($func, $params);
+					} catch (Exception $e) {
+						$msg = "Exception: " . $e->getMessage();
+						$this->error_out($msg, 79134);
+					} catch (TypeError $e) {
+						$msg = "TypeError: " . $e->getMessage();
+						$this->error_out($msg, 58200);
+					}
 				}
 
 				$ret = $pre;
