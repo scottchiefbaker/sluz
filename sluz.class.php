@@ -467,7 +467,7 @@ class sluz {
 
 		// Optimize simple $vars
 		$first_char = $last_char = null;
-		if (is_string($input)) {
+		if ($input && is_string($input)) {
 			$first_char = $input[0];
 			$last_char  = $input[-1];
 		// It's not a number or a string?
