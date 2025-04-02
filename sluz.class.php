@@ -20,6 +20,7 @@ class sluz {
 	private $simple_mode  = false;      // Boolean are we in simple mode
 	private $fetch_called = false;      // Boolean used in simple if fetch has been called
 	private $char_pos     = -1;         // Character offset in the TPL
+	private $stats        = [];         // Store statistics related to parsing
 
 	public function __construct() { }
 	public function __destruct()  {
@@ -88,6 +89,8 @@ class sluz {
 
 	// Break the text up in to tokens/blocks to process by process_block()
 	public function get_blocks($str) {
+		$start_time = microtime(1);
+
 		$start  = 0;
 		$blocks = [];
 		$slen   = strlen($str);
@@ -186,6 +189,9 @@ class sluz {
 			$blocks[] = [substr($str, $start), $i];
 		}
 
+		$this->stats['get_blocks_time_ms'] = intval((microtime(1) - $start_time) * 1000);
+		$this->stats['block_count']        = count($blocks);
+
 		return $blocks;
 	}
 
@@ -246,7 +252,8 @@ class sluz {
 
 	// Turn an array of blocks into output HTML
 	private function process_blocks(array $blocks) {
-		$html = '';
+		$start_time = microtime(1);
+		$html       = '';
 
 		foreach ($blocks as $x) {
 			$block     = $x[0];
@@ -254,12 +261,19 @@ class sluz {
 			$html     .= $this->process_block($block, $char_pos);
 		}
 
+		$this->stats['process_blocks_time_ms'] = intval((microtime(1) - $start_time) * 1000);
+
 		return $html;
+	}
+
+	public function get_stats() {
+		return $this->stats;
 	}
 
 	// Load the template file into a string
 	private function get_tpl_content($tpl_file) {
-        $tf = $this->tpl_file = $tpl_file;
+		$start_time = microtime(1);
+		$tf         = $this->tpl_file = $tpl_file;
 
 		// If we're in simple mode and we have a __halt_compiler() we can assume inline mode
 		$inline_simple = $this->simple_mode && $this->get_inline_content($this->php_file);
@@ -274,6 +288,8 @@ class sluz {
 		}
 
 		if (empty($str)) { $str = ""; }
+
+		$this->stats['get_tpl_content_time_ms'] = intval((microtime(1) - $start_time) * 1000);
 
 		return $str;
 	}
