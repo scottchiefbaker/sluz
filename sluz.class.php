@@ -608,7 +608,8 @@ class sluz {
 					$params    = [$pre];
 
 					if ($param_str) {
-						$new = preg_split("/,/", $param_str);
+						// Split a string by commas only when they are not inside quotation marks
+						$new = preg_split('/,(?=(?:[^"]*"[^"]*")*[^"]*$)/', $param_str);
 						$new = array_map([$this, 'peval'], $new);
 
 						$params = array_merge($params, $new);
