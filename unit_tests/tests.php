@@ -97,6 +97,11 @@ sluz_test('{$y|join_comma:"|"}'                    , '2|4|6'      , 'Basic #39 -
 sluz_test('{$y|join_comma:","}'                    , '2,4,6'      , 'Basic #40 - Function with string param pipe comma');
 sluz_test('{$y|join_comma:"\'"}'                   , "2'4'6"      , 'Basic #41 - Function with string param pipe single quote');
 
+// Bare functions must return a string
+sluz_test('{hello_world()}' , "Hello world", 'Function #1 - Hello world');
+sluz_test('{return_false()}', "ERROR-18933", 'Function #2 - Return false');
+sluz_test('{return_null()}' , "ERROR-18933", 'Function #3 - Return null');
+
 sluz_test('{if $debug}DEBUG{/if}'                                , 'DEBUG'   , 'If #1 - Simple');
 sluz_test('{if $bogus_var}DEBUG{/if}'                            , ''        , 'If #2 - Missing var');
 sluz_test('{if $debug}{$first}{/if}'                             , 'Scott'   , 'If #3 - Variable as payload');
@@ -399,5 +404,16 @@ function join_comma(array $arr, string $separator = ", ") {
 	return join($separator, $arr);
 }
 
+function hello_world() {
+	return "Hello world";
+}
+
+function return_false() {
+	return false;
+}
+
+function return_null() {
+	return null;
+}
 
 // vim: tabstop=4 shiftwidth=4 noexpandtab autoindent softtabstop=4
