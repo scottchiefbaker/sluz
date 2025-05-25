@@ -834,7 +834,7 @@ class sluz {
 		$ret = "";
 
 		// Make sure the block has something parseble... at least a $ or "
-		if (!preg_match("/[\"\d$]/", $str)) {
+		if (!preg_match("/[\"\d$(]/", $str)) {
 			list($line, $col, $file) = $this->get_char_location($this->char_pos, $this->tpl_file);
 			return $this->error_out("Unknown block type <code>$str</code> in <code>$file</code> on line #$line", 73467);
 		}
@@ -843,7 +843,9 @@ class sluz {
 		$after = $this->convert_variables_in_string($blk);
 		$ret   = $this->peval($after);
 
-		if (!$ret) {
+		// The evaluated block has to return SOMETHING printable (not null/false/obj)
+        // Even "" is fine
+        if (!is_string($ret)) {
 			list($line, $col, $file) = $this->get_char_location($this->char_pos, $this->tpl_file);
 			return $this->error_out("Unknown tag <code>$str</code> in <code>$file</code> on line #$line", 18933);
 		}
