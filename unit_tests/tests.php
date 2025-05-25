@@ -102,6 +102,10 @@ sluz_test('{hello_world()}' , "Hello world", 'Function #1 - Hello world');
 sluz_test('{return_false()}', "ERROR-18933", 'Function #2 - Return false');
 sluz_test('{return_null()}' , "ERROR-18933", 'Function #3 - Return null');
 
+// Generic blocks EXPECTED to return an error
+sluz_test('{junk}'          , "ERROR-73467", 'Error #1 - bare string');
+sluz_test('{junk(}'         , "ERROR-18933", 'Error #2 - string with action char');
+
 sluz_test('{if $debug}DEBUG{/if}'                                , 'DEBUG'   , 'If #1 - Simple');
 sluz_test('{if $bogus_var}DEBUG{/if}'                            , ''        , 'If #2 - Missing var');
 sluz_test('{if $debug}{$first}{/if}'                             , 'Scott'   , 'If #3 - Variable as payload');
