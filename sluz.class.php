@@ -539,7 +539,7 @@ class sluz {
 	}
 
 	// A smart wrapper around eval()
-	private function peval($str) {
+	private function peval($str, &$err = 0) {
 		if ($this->use_mo) {
 			$x = $this->micro_optimize($str);
 			if ($x) {
@@ -556,7 +556,10 @@ class sluz {
 			@eval($cmd);
 		} catch (ParseError $e) {
 			// Ooops
+			$err = -1;
 		}
+
+		//k([$str, $cmd, $ret, $err], KRUMO_EXPAND_ALL);
 
 		return $ret;
 	}
@@ -839,13 +842,14 @@ class sluz {
 			return $this->error_out("Unknown block type <code>$str</code> in <code>$file</code> on line #$line", 73467);
 		}
 
+		$err   = false;
 		$blk   = $m[1] ?? "";
 		$after = $this->convert_variables_in_string($blk);
-		$ret   = $this->peval($after);
+		$ret   = $this->peval($after, $err);
 
 		// The evaluated block has to return SOMETHING printable (not null/false/obj)
         // Even "" is fine
-        if (!is_string($ret) && !is_numeric($ret)) {
+        if ($err || (!is_string($ret) && !is_numeric($ret))) {
 			list($line, $col, $file) = $this->get_char_location($this->char_pos, $this->tpl_file);
 			return $this->error_out("Unknown tag <code>$str</code> in <code>$file</code> on line #$line", 18933);
 		}
