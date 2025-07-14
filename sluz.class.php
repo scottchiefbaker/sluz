@@ -1053,27 +1053,27 @@ function sluz($one, $two = null) {
 // str_ends_with() added in PHP 8.0... this can be removed when we don't need to
 // support PHP 7.x anymore
 if (!function_exists('str_ends_with')) {
-    function str_ends_with(string $haystack, string $needle): bool {
-        $needle_len = strlen($needle);
-        return ($needle_len === 0 || 0 === substr_compare($haystack, $needle, - $needle_len));
-    }
+	function str_ends_with(string $haystack, string $needle): bool {
+		$needle_len = strlen($needle);
+		return ($needle_len === 0 || 0 === substr_compare($haystack, $needle, - $needle_len));
+	}
 }
 
 // Polyfill stolen from: https://www.php.net/manual/en/function.str-contains.php
 // str_contains was added in PHP 8.0...  this can be removed when we don't need to
 // support PHP 7.x anymore
 if (!function_exists('str_contains')) {
-    function str_contains($haystack, $needle) {
-        return $needle !== '' && strpos($haystack, $needle) !== false;
-    }
+	function str_contains($haystack, $needle) {
+		return $needle !== '' && strpos($haystack, $needle) !== false;
+	}
 }
 
 // Polyfill stolen from: https://www.php.net/manual/en/function.str-starts-with.php
 // This can be removed when we don't need to support PHP 7.x anymore
 if (!function_exists('str_starts_with')) {
-    function str_starts_with($haystack, $needle) {
-        return (string)$needle !== '' && strncmp($haystack, $needle, strlen($needle)) === 0;
-    }
+	function str_starts_with($haystack, $needle) {
+		return (string)$needle !== '' && strncmp($haystack, $needle, strlen($needle)) === 0;
+	}
 }
 
 // vim: tabstop=4 shiftwidth=4 noexpandtab autoindent softtabstop=4
