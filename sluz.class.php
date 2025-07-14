@@ -850,8 +850,8 @@ class sluz {
 		$valid_type = (is_string($ret) || is_numeric($ret));
 
 		// The evaluated block has to return SOMETHING printable (not null/false/obj)
-        // Even "" is fine
-        if ($err || !$valid_type) {
+		// Even "" is fine
+		if ($err || !$valid_type) {
 			list($line, $col, $file) = $this->get_char_location($this->char_pos, $this->tpl_file);
 			return $this->error_out("Unknown tag <code>$str</code> in <code>$file</code> on line #$line", 18933);
 		}
