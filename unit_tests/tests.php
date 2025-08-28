@@ -12,7 +12,7 @@ $sluz->debug        = 0;
 $sluz->in_unit_test = true;
 
 $simple = 0;
-if (in_array('--simple', $argv)) {
+if (in_array('--simple', $argv ?? [])) {
 	$simple = 1;
 }
 
