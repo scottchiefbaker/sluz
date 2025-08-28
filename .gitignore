@@ -1,3 +1,5 @@
 .user.ini
 x.php
 tpls/x.stpl
+tpls/child.stpl
+tpls/parent.stpl

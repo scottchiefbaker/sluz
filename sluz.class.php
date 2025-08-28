@@ -5,22 +5,25 @@
 define('SLUZ_INLINE', 'INLINE_TEMPLATE'); // Just a specific string
 
 class sluz {
-	public $version      = '0.8.3';
-	public $tpl_file     = null; // The path to the TPL file
-	public $inc_tpl_file = null; // The path to the {include} file
+	public $version       = '0.8.5';
+	public $tpl_file      = null;       // The path to the TPL file
+	public $inc_tpl_file  = null;       // The path to the {include} file
 
-	public $debug        = 0;
-	public $in_unit_test = false;
-	public $tpl_vars     = [];
-	public $use_mo       = true; // Use micro-optimiziations
+	public $debug         = 0;          // Enable debug mode
+	public $in_unit_test  = false;      // Boolean if we are in unit testing mode
+	public $use_mo        = true;       // Use micro- optimiziations
+	public $tpl_vars      = [];         // Array of variables assigned to the TPL
+	public $parent_tpl    = null;       // Path to parent TPL
+
 	public $open_char    = '{';
 	public $close_char   = '}';
 
-	private $php_file     = null;
-	private $var_prefix   = "sluz_pfx";
-	private $simple_mode  = false;
-	private $fetch_called = false;
-	private $char_pos     = -1;
+	private $var_prefix   = "sluz_pfx"; // Variable prefix for extract()
+	private $php_file     = null;       // Path to the calling PHP file
+	private $simple_mode  = false;      // Boolean are we in simple mode
+	private $fetch_called = false;      // Boolean used in simple if fetch has been called
+	private $char_pos     = -1;         // Character offset in the TPL
+	private $stats        = [];         // Store statistics related to parsing
 
 	public function __construct() { }
 	public function __destruct()  {
@@ -30,6 +33,7 @@ class sluz {
 		}
 	}
 
+	// Assign variables to pass to the TPL
 	public function assign($key, $val = null) {
 		// Single item call (assign array at once)
 		if (is_null($val) && is_array($key)) {
@@ -72,7 +76,7 @@ class sluz {
 		} elseif (str_starts_with($str, "{$open_char}literal{$close_char}") && preg_match('/^' . $open_char . 'literal' . $close_char . '(.+)' . $open_char . '\/literal' . $close_char . '$/s', $str, $m)) {
 			$ret = $m[1];
 		// This is for complicated variables with default values that don't match the above rule
-		} elseif (str_contains($str, "|default:") && preg_match('/^' . $open_char . '\$(\w.+)' . $close_char . '/', $str, $m)) {
+		} elseif (str_contains($str, "|") && preg_match('/^' . $open_char . '\$(\w.+)' . $close_char . '/', $str, $m)) {
 			$ret = $this->variable_block($m[1]);
 		// Catch all for other { $num + 3 } type of blocks
 		} elseif (preg_match('/^' . $open_char . '(.+)' . $close_char . '$/s', $str, $m)) {
@@ -93,6 +97,7 @@ class sluz {
 	public function get_blocks($str) {
 		$oc = $this->open_char;
 		$cc = $this->close_char;
+		$start_time = microtime(1);
 
 		$start  = 0;
 		$blocks = [];
@@ -192,6 +197,9 @@ class sluz {
 			$blocks[] = [substr($str, $start), $i];
 		}
 
+		$this->stats['get_blocks_time_ms'] = intval((microtime(1) - $start_time) * 1000);
+		$this->stats['block_count']        = count($blocks);
+
 		return $blocks;
 	}
 
@@ -209,7 +217,7 @@ class sluz {
 
 	// Specify a path to the .stpl file, or pass nothing to let sluz 'guess'
 	// Guess is 'tpls/[scriptname_minus_dot_php].stpl
-	public function fetch($tpl_file = "") {
+	public function fetch($tpl_file = "", $parent = null) {
 		if (!$this->php_file) {
 			$this->php_file = $this->get_php_file();
         }
@@ -217,6 +225,12 @@ class sluz {
 		// We use ABSOLUTE paths here because this may be called in the destructor which has a cwd() of '/'
 		if (!$tpl_file) {
 			$tpl_file = dirname($this->php_file) . '/' . $this->guess_tpl_file($this->php_file);
+		}
+
+		$parent_tpl = $parent ?? $this->parent_tpl;
+		if (!empty($parent_tpl)) {
+			$this->assign("__CHILD_TPL", $tpl_file);
+			$tpl_file = $parent_tpl;
 		}
 
 		$str    = $this->get_tpl_content($tpl_file);
@@ -228,12 +242,14 @@ class sluz {
 		return $html;
 	}
 
+	// Guess the TPL filename based on the PHP file
 	public function guess_tpl_file($php_file) {
 		$ret = "tpls/" . preg_replace('/\.php$/', '.stpl', basename($php_file));
 
 		return $ret;
 	}
 
+	// Find the calling parent PHP file (from the perspective of the sluz class)
 	public function get_php_file() {
 		$x    = debug_backtrace();
 		$last = count($x) - 1;
@@ -242,19 +258,30 @@ class sluz {
 		return $ret;
 	}
 
+	// Turn an array of blocks into output HTML
 	private function process_blocks(array $blocks) {
-		$html   = '';
+		$start_time = microtime(1);
+		$html       = '';
+
 		foreach ($blocks as $x) {
 			$block     = $x[0];
 			$char_pos  = $x[1];
 			$html     .= $this->process_block($block, $char_pos);
 		}
 
+		$this->stats['process_blocks_time_ms'] = intval((microtime(1) - $start_time) * 1000);
+
 		return $html;
 	}
 
+	public function get_stats() {
+		return $this->stats;
+	}
+
+	// Load the template file into a string
 	private function get_tpl_content($tpl_file) {
-        $tf = $this->tpl_file = $tpl_file;
+		$start_time = microtime(1);
+		$tf         = $this->tpl_file = $tpl_file;
 
 		// If we're in simple mode and we have a __halt_compiler() we can assume inline mode
 		$inline_simple = $this->simple_mode && $this->get_inline_content($this->php_file);
@@ -269,6 +296,8 @@ class sluz {
 		}
 
 		if (empty($str)) { $str = ""; }
+
+		$this->stats['get_tpl_content_time_ms'] = intval((microtime(1) - $start_time) * 1000);
 
 		return $str;
 	}
@@ -287,6 +316,7 @@ class sluz {
 		return $ret;
 	}
 
+	// Find the include TPL in the {include} string
 	function extract_include_file($str) {
 		// {include file='foo.stpl'}
 		if (preg_match("/\s(file=)(['\"].+?['\"])/", $str, $m)) {
@@ -355,6 +385,7 @@ class sluz {
 		return $str;
 	}
 
+	// Build an evalable string from a variable string
 	private function dot_to_bracket_callback($m) {
 		$str   = $m[1];
 		$parts = explode(".", $str);
@@ -372,6 +403,7 @@ class sluz {
 		return $ret;
 	}
 
+	// Spit out an error message
 	public function error_out($msg, int $err_num) {
 		$style = "
 			.s_error {
@@ -448,6 +480,7 @@ class sluz {
 		exit;
 	}
 
+	// A bunch of little optimizations and shortcuts
 	private function micro_optimize($input) {
 		// Optimize raw integers
 		if (is_numeric($input)) {
@@ -458,7 +491,7 @@ class sluz {
 
 		// Optimize simple $vars
 		$first_char = $last_char = null;
-		if (is_string($input)) {
+		if ($input && is_string($input)) {
 			$first_char = $input[0];
 			$last_char  = $input[-1];
 		// It's not a number or a string?
@@ -513,7 +546,8 @@ class sluz {
 		return null;
 	}
 
-	private function peval($str) {
+	// A smart wrapper around eval()
+	private function peval($str, &$err = 0) {
 		if ($this->use_mo) {
 			$x = $this->micro_optimize($str);
 			if ($x) {
@@ -530,11 +564,15 @@ class sluz {
 			@eval($cmd);
 		} catch (ParseError $e) {
 			// Ooops
+			$err = -1;
 		}
+
+		//k([$str, $cmd, $ret, $err], KRUMO_EXPAND_ALL);
 
 		return $ret;
 	}
 
+	// Turn on simple mode
 	public function enable_simple_mode($php_file) {
 		$this->php_file    = $php_file;
 		$this->simple_mode = true;
@@ -566,8 +604,12 @@ class sluz {
 			// User function
 			} else {
 				$pre   = $this->array_dive($key, $this->tpl_vars) ?? "";
-				// Each modifier is separated by a |
-				$parts = preg_split("/\\|/", $mod);
+
+				// Each modifier is separated by a | but we only split on
+				// pipes that are NOT in a quoted string. Pattern provided
+				// by ChatGPT.
+				$pattern = '/\|(?![^"]*"(?:(?:[^"]*"){2})*[^"]*$)/';
+				$parts   = preg_split($pattern, $mod);
 
 				// Loop through each modifier (chaining)
 				foreach ($parts as $mod) {
@@ -577,18 +619,30 @@ class sluz {
 					$params    = [$pre];
 
 					if ($param_str) {
-						$new    = preg_split("/,/", $param_str);
+						// Split a string by commas only when they are not inside quotation marks
+						$new = preg_split('/,(?=(?:[^"]*"[^"]*")*[^"]*$)/', $param_str);
+						$new = array_map([$this, 'peval'], $new);
+
 						$params = array_merge($params, $new);
 					}
 
-					//printf("Calling: %s(%s)<br />\n", $func, join(", ", $params));
+					//k([$str, $parts, $func, $new, $params]);
+					//printf("Calling: %s([%s])<br />\n", $func, join(", ", $params[0]));
 
 					if (!is_callable($func)) {
 						list($line, $col, $file) = $this->get_char_location($this->char_pos, $this->tpl_file);
 						return $this->error_out("Unknown function call <code>$func</code> in <code>$file</code> on line #$line", 47204);
 					}
 
-					$pre = call_user_func_array($func, $params);
+					try {
+						$pre = call_user_func_array($func, $params);
+					} catch (Exception $e) {
+						$msg = "Exception: " . $e->getMessage();
+						$this->error_out($msg, 79134);
+					} catch (TypeError $e) {
+						$msg = "TypeError: " . $e->getMessage();
+						$this->error_out($msg, 58200);
+					}
 				}
 
 				$ret = $pre;
@@ -605,6 +659,7 @@ class sluz {
 		return $ret;
 	}
 
+	// Find the line/column based on char offset in a file
 	private function get_char_location($pos, $tpl_file) {
 		// If we're in an {include} the tpl is that temporarily
 		if ($this->inc_tpl_file) {
@@ -641,7 +696,7 @@ class sluz {
 		return [-1, -1, $tpl_file];
 	}
 
-	// parse an if statement
+	// Parse an if statement
 	private function if_block($str) {
 		$oc = $this->open_char;
 		$cc = $this->close_char;
@@ -793,16 +848,21 @@ class sluz {
 		$ret = "";
 
 		// Make sure the block has something parseble... at least a $ or "
-		if (!preg_match("/[\"\d$]/", $str)) {
+		if (!preg_match("/[\"\d$(]/", $str)) {
 			list($line, $col, $file) = $this->get_char_location($this->char_pos, $this->tpl_file);
 			return $this->error_out("Unknown block type <code>$str</code> in <code>$file</code> on line #$line", 73467);
 		}
 
+		$err   = false;
 		$blk   = $m[1] ?? "";
 		$after = $this->convert_variables_in_string($blk);
-		$ret   = $this->peval($after);
+		$ret   = $this->peval($after, $err);
 
-		if (!$ret) {
+		$valid_type = (is_string($ret) || is_numeric($ret));
+
+		// The evaluated block has to return SOMETHING printable (not null/false/obj)
+		// Even "" is fine
+		if ($err || !$valid_type) {
 			list($line, $col, $file) = $this->get_char_location($this->char_pos, $this->tpl_file);
 			return $this->error_out("Unknown tag <code>$str</code> in <code>$file</code> on line #$line", 18933);
 		}
@@ -810,6 +870,7 @@ class sluz {
 		return $ret;
 	}
 
+	// Find the position of the closing tag in a string. This *IS* nesting aware
 	function find_ending_tag($haystack, $open_tag, $close_tag) {
 		// Do a quick check up to the FIRST closing tag to see if we find it
 		$pos         = strpos($haystack, $close_tag);
@@ -853,6 +914,7 @@ class sluz {
 		return false;
 	}
 
+	// Break up a string into tokens: pieces of {} and the text between them
 	function get_tokens($str) {
 		$oc = $this->open_char;
 		$cc = $this->close_char;
@@ -864,6 +926,7 @@ class sluz {
 		return $x;
 	}
 
+	// Is the string part of an if token
 	function is_if_token($str) {
 		if ($str === '{else}') {
 			return true;
@@ -882,6 +945,7 @@ class sluz {
 		return false;
 	}
 
+	// Take an array of tokens and build a list of if/else rules
 	private function get_if_rules_from_tokens($toks) {
 		$oc = $this->open_char;
 		$cc = $this->close_char;
@@ -970,6 +1034,17 @@ class sluz {
 
 		return $ret;
 	}
+
+	// Get/Set parent tpl
+	function parent_tpl($tpl) {
+		if (isset($tpl)) {
+			$this->parent_tpl = $tpl;
+
+			return $this->parent_tpl;
+		} else {
+			return $this->parent_tpl;
+		}
+	}
 }
 
 // This function is *OUTSIDE* of the class so it can be called separately without
@@ -989,42 +1064,6 @@ function sluz($one, $two = null) {
 	$s->assign($one, $two);
 
 	return $s;
-}
-
-// Polyfill stolen from: https://www.php.net/manual/en/function.str-ends-with.php
-// str_ends_with() added in PHP 8.0... this can be removed when we don't need to
-// support PHP 7.x anymore
-if (!function_exists('str_ends_with')) {
-    function str_ends_with(string $haystack, string $needle): bool {
-        $needle_len = strlen($needle);
-        return ($needle_len === 0 || 0 === substr_compare($haystack, $needle, - $needle_len));
-    }
-}
-
-// Polyfill stolen from: https://www.php.net/manual/en/function.str-contains.php
-// str_contains was added in PHP 8.0...  this can be removed when we don't need to
-// support PHP 7.x anymore
-if (!function_exists('str_contains')) {
-    function str_contains($haystack, $needle) {
-        return $needle !== '' && strpos($haystack, $needle) !== false;
-    }
-}
-
-// Polyfill stolen from: https://www.php.net/manual/en/function.str-starts-with.php
-// This can be removed when we don't need to support PHP 7.x anymore
-if (!function_exists('str_starts_with')) {
-    function str_starts_with($haystack, $needle) {
-        return (string)$needle !== '' && strncmp($haystack, $needle, strlen($needle)) === 0;
-    }
-}
-
-// Polyfill stolen from: https://www.php.net/manual/en/function.str-ends-with.php
-// This can be removed when we don't need to support PHP 7.x anymore
-if (! function_exists('str_ends_with')) {
-    function str_ends_with(string $haystack, string $needle): bool {
-        $needle_len = strlen($needle);
-        return ($needle_len === 0 || 0 === substr_compare($haystack, $needle, - $needle_len));
-    }
 }
 
 // vim: tabstop=4 shiftwidth=4 noexpandtab autoindent softtabstop=4

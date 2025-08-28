@@ -11,8 +11,18 @@ $sluz               = new sluz;
 $sluz->debug        = 0;
 $sluz->in_unit_test = true;
 
+$simple = 0;
+if (in_array('--simple', $argv ?? [])) {
+	$simple = 1;
+}
+
 // Check if there is a filter at the command line
 $filter = $argv[1] ?? $_GET['filter'] ?? "";
+
+// If we passed `--simple` we don't want to set that as the filter
+if (str_starts_with($filter, '--')) {
+	$filter = '';
+}
 
 // Test counters
 $pass_count = 0;
@@ -90,6 +100,24 @@ sluz_test('{$last|truncate:4|truncate:2}'          , 'Ba'         , 'Basic #32 -
 sluz_test('{$first|substr:2}'                      , 'ott'        , 'Basic #33 - PHP function with one param');
 sluz_test('{$first|substr:2,2}'                    , 'ot'         , 'Basic #34 - PHP function with two params');
 sluz_test('{if !$cust.age}unknown{else}{$age}{/if}', 'unknown'    , 'Basic #35 - Negated hash lookup');
+sluz_test('{$y|join_comma}'                        , '2, 4, 6'    , 'Basic #36 - Function with default param');
+sluz_test('{$y|join_comma:9}'                      , '29496'      , 'Basic #37 - Function with integer param');
+sluz_test('{$y|join_comma:"*"}'                    , '2*4*6'      , 'Basic #38 - Function with string param');
+sluz_test('{$y|join_comma:"|"}'                    , '2|4|6'      , 'Basic #39 - Function with string param pipe');
+sluz_test('{$y|join_comma:","}'                    , '2,4,6'      , 'Basic #40 - Function with string param pipe comma');
+sluz_test('{$y|join_comma:"\'"}'                   , "2'4'6"      , 'Basic #41 - Function with string param pipe single quote');
+sluz_test('{1.1234 + 2.3456}'                      , "3.469"      , 'Basic #42 - Simple math that returns floating point');
+
+// Bare functions must return a string
+sluz_test('{hello_world()}' , "Hello world", 'Function #1 - Hello world');
+sluz_test('{return_false()}', "ERROR-18933", 'Function #2 - Return false');
+sluz_test('{return_null()}' , "ERROR-18933", 'Function #3 - Return null');
+
+// Generic blocks EXPECTED to return an error
+sluz_test('{junk}'           , "ERROR-73467", 'Error #1 - bare string');
+sluz_test('{junk(}'          , "ERROR-18933", 'Error #2 - string with action char');
+sluz_test('{$number + array}', "ERROR-18933", 'Error #3 - syntax error');
+sluz_test('{if debug}'       , "ERROR-73467", 'Error #4 - syntax error');
 
 sluz_test('{if $debug}DEBUG{/if}'                                , 'DEBUG'   , 'If #1 - Simple');
 sluz_test('{if $bogus_var}DEBUG{/if}'                            , ''        , 'If #2 - Missing var');
@@ -117,6 +145,7 @@ sluz_test('{if !$conf.main}123{else}456{/if}'                    , '456'     , '
 sluz_test('{if $x}{if $y}yes{/if}{else}no{/if}'                  , 'yes'     , 'If #24 - Nested if with an else');
 sluz_test('{if true}a{else}b{if true}c{/if}{/if}'                , 'a'       , 'If #25 - Nested with true');
 sluz_test('{if false}a{else}b{if true}c{/if}{/if}'               , 'bc'      , 'If #26 - Nested with false');
+sluz_test('{if true}{/if}'                                       , ''        , 'If #27 - If with "" for payload');
 
 sluz_test('{foreach $array as $num}{$num}{/foreach}'                         , 'onetwothree'            , 'Foreach #1 - Simple');
 sluz_test('{foreach $array as $num}\n{$num}\n{/foreach}'                     , '\none\n\ntwo\n\nthree\n', 'Foreach #2 - Simple with whitespace');
@@ -198,11 +227,26 @@ sluz_test("<include 'tpls/json.stpl'>"      , "{\"name\": \"Scott\"}\n", 'Altern
 // We have to reset the delimters for the HTML tests to run
 $sluz->open_char  = '{';
 $sluz->close_char = '}';
+// Fetch tests
+//////////////////////////////////////////////////////////////////////////////////////////
+
+sluz_fetch_test(["tpls/extra.stpl"], "/extra.stpl/s"    , "Fetch #1 - Simple fetch");
+sluz_fetch_test(["tpls/child.stpl" , "tpls/parent.stpl"], "/0fd197af.*21c1a4c5/s", "Parent/Child #1 - Fetch with two params");
+
+// Set and then reset the parent tpl
+$x = $sluz->parent_tpl("tpls/parent.stpl");
+sluz_fetch_test(["tpls/child.stpl"], "/0fd197af.*21c1a4c5/s", "Parent/Child #2 - Fetch with preset parent");
+$sluz->parent_tpl = "";
+
+//////////////////////////////////////////////////////////////////////////////////////////
 
 $total = $pass_count + $fail_count;
 
 if ($is_cli) {
-	print "\n";
+	if (!$simple) {
+		print "\n";
+	}
+
 	printf("Tests run on PHP %s\n", phpversion());
 	if ($total === 0) {
 		print $red . "Warning:$reset no tests were run?\n";
@@ -244,6 +288,64 @@ if ($is_cli) {
 
 ////////////////////////////////////////////////////////
 
+function sluz_fetch_test($files, $pattern, $test_name) {
+	global $sluz;
+	global $pass_count;
+	global $fail_count;
+	global $test_output;
+	global $filter;
+	global $is_cli;
+	global $ok_str;
+	global $fail_str;
+	global $simple;
+
+	if (!empty($filter) && !preg_match("/$filter/i", $test_name)) { return; }
+
+	////////////////////////////////////////
+
+	$lead = "Test '$test_name' ";
+	$pad  = str_repeat(" ", 80 - (strlen($lead)));
+
+	$out = "";
+	if ($is_cli) {
+		$out = "$lead $pad";
+	}
+
+	$ok    = "\033[32m";
+	$fail  = "\033[31m";
+	$reset = "\033[0m";
+	$white = "\033[1m";
+
+	$l = $white . "[" . $reset;
+	$r = $white . "]" . $reset;
+
+	////////////////////////////////////////
+
+	$child  = $files[0] ?? "";
+	$parent = $files[1] ?? null;
+
+	$str = $sluz->fetch($child, $parent);
+
+	if (preg_match($pattern, $str)) {
+		$pass_count++;
+		$test_output[] = [$test_name,0];
+
+		if ($is_cli) {
+			$out .= $ok_str . "\n";
+		}
+	} else {
+		if ($is_cli) {
+			$out .= $fail_str . "\n";
+		}
+		$fail_count++;
+		$test_output[] = [$test_name, "Expected $pattern"];
+	}
+
+	if (!$simple) {
+		print $out;
+	}
+}
+
 function sluz_test($input, $expected, $test_name) {
 	global $sluz;
 	global $pass_count;
@@ -253,6 +355,7 @@ function sluz_test($input, $expected, $test_name) {
 	global $filter;
 	global $is_cli;
 	global $test_output;
+	global $simple;
 
 	if (!empty($filter) && !preg_match("/$filter/i", $test_name)) { return; }
 
@@ -273,8 +376,9 @@ function sluz_test($input, $expected, $test_name) {
 	$lead = "Test '$test_name' ";
 	$pad  = str_repeat(" ", 80 - (strlen($lead)));
 
+	$out = "";
 	if ($is_cli) {
-		print "$lead $pad";
+		$out = "$lead $pad";
 	}
 
 	$ok    = "\033[32m";
@@ -292,7 +396,7 @@ function sluz_test($input, $expected, $test_name) {
 
 	if ($is_regexp && preg_match($expected, $html)) {
 		if ($is_cli) {
-			print $ok_str . "\n";
+			$out .= $ok_str . "\n";
 		}
 		$test_output[] = [$test_name,0];
 		$pass_count++;
@@ -302,8 +406,8 @@ function sluz_test($input, $expected, $test_name) {
 		$line = $d[0]['line'];
 
 		if ($is_cli) {
-			print $fail_str . "\n";
-			print "  * Expected $expected but got $html (from: $file #$line)\n";
+			$out .= $fail_str . "\n";
+			$out .= "  * Expected $expected but got $html (from: $file #$line)\n";
 		}
 
 		$test_output[] = [$test_name,"Expected $expected but got $html<br />(from: $file #$line)"];
@@ -311,7 +415,7 @@ function sluz_test($input, $expected, $test_name) {
 		$fail_count++;
 	} elseif ($html === $expected) {
 		if ($is_cli) {
-			print $ok_str . "\n";
+			$out .= $ok_str . "\n";
 		}
 
 		$test_output[] = [$test_name,0];
@@ -323,13 +427,17 @@ function sluz_test($input, $expected, $test_name) {
 		$line = $d[0]['line'];
 
 		if ($is_cli) {
-			print $fail_str . "\n";
-			print "  * Expected $expected but got $html (from: $file #$line)\n";
+			$out .= $fail_str . "\n";
+			$out .= "  * Expected $expected but got $html (from: $file #$line)\n";
 		}
 
 		$test_output[] = [$test_name,"Expected $expected but got $html<br />(from: $file #$line)"];
 
 		$fail_count++;
+	}
+
+	if (!$simple) {
+		print $out;
 	}
 }
 
@@ -337,6 +445,23 @@ function sluz_test($input, $expected, $test_name) {
 function truncate($str, int $len) {
 	$ret = substr($str, 0, $len);
 	return $ret;
+}
+
+// Join an array with commas or custom separator
+function join_comma(array $arr, string $separator = ", ") {
+	return join($separator, $arr);
+}
+
+function hello_world() {
+	return "Hello world";
+}
+
+function return_false() {
+	return false;
+}
+
+function return_null() {
+	return null;
 }
 
 // vim: tabstop=4 shiftwidth=4 noexpandtab autoindent softtabstop=4

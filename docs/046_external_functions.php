@@ -4,7 +4,7 @@
 // Templates can call external functions. Any function that's callable in    //
 // normal scope can be used: global PHP functions, or user functions.        //
 // Functions will be called with the template variable being the first       //
-// and parameter, and other params after. You may need to write wrapper      //
+// parameter, and other params after. You may need to write wrapper          //
 // functions to make this work in your environment.                          //
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -18,8 +18,8 @@ print $s->fetch("tpls/046_external_functions.stpl");
 
 ///////////////////////////////////////////////////////////////////////////////
 
-function join_comma(array $arr) {
-	return join(", ", $arr);
+function join_comma(array $arr, string $separator = ", ") {
+	return join($separator, $arr);
 }
 
 function initials($str) {
