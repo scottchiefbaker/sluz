@@ -11,8 +11,18 @@ $sluz               = new sluz;
 $sluz->debug        = 0;
 $sluz->in_unit_test = true;
 
+$simple = 0;
+if (in_array('--simple', $argv)) {
+	$simple = 1;
+}
+
 // Check if there is a filter at the command line
 $filter = $argv[1] ?? $_GET['filter'] ?? "";
+
+// If we passed `--simple` we don't want to set that as the filter
+if (str_starts_with($filter, '--')) {
+	$filter = '';
+}
 
 // Test counters
 $pass_count = 0;
@@ -217,7 +227,10 @@ $sluz->parent_tpl = "";
 $total = $pass_count + $fail_count;
 
 if ($is_cli) {
-	print "\n";
+	if (!$simple) {
+		print "\n";
+	}
+
 	printf("Tests run on PHP %s\n", phpversion());
 	if ($total === 0) {
 		print $red . "Warning:$reset no tests were run?\n";
@@ -268,6 +281,7 @@ function sluz_fetch_test($files, $pattern, $test_name) {
 	global $is_cli;
 	global $ok_str;
 	global $fail_str;
+	global $simple;
 
 	if (!empty($filter) && !preg_match("/$filter/i", $test_name)) { return; }
 
@@ -276,8 +290,9 @@ function sluz_fetch_test($files, $pattern, $test_name) {
 	$lead = "Test '$test_name' ";
 	$pad  = str_repeat(" ", 80 - (strlen($lead)));
 
+	$out = "";
 	if ($is_cli) {
-		print "$lead $pad";
+		$out = "$lead $pad";
 	}
 
 	$ok    = "\033[32m";
@@ -300,14 +315,18 @@ function sluz_fetch_test($files, $pattern, $test_name) {
 		$test_output[] = [$test_name,0];
 
 		if ($is_cli) {
-			print $ok_str . "\n";
+			$out .= $ok_str . "\n";
 		}
 	} else {
 		if ($is_cli) {
-			print $fail_str . "\n";
+			$out .= $fail_str . "\n";
 		}
 		$fail_count++;
 		$test_output[] = [$test_name, "Expected $pattern"];
+	}
+
+	if (!$simple) {
+		print $out;
 	}
 }
 
@@ -320,6 +339,7 @@ function sluz_test($input, $expected, $test_name) {
 	global $filter;
 	global $is_cli;
 	global $test_output;
+	global $simple;
 
 	if (!empty($filter) && !preg_match("/$filter/i", $test_name)) { return; }
 
@@ -340,8 +360,9 @@ function sluz_test($input, $expected, $test_name) {
 	$lead = "Test '$test_name' ";
 	$pad  = str_repeat(" ", 80 - (strlen($lead)));
 
+	$out = "";
 	if ($is_cli) {
-		print "$lead $pad";
+		$out = "$lead $pad";
 	}
 
 	$ok    = "\033[32m";
@@ -359,7 +380,7 @@ function sluz_test($input, $expected, $test_name) {
 
 	if ($is_regexp && preg_match($expected, $html)) {
 		if ($is_cli) {
-			print $ok_str . "\n";
+			$out .= $ok_str . "\n";
 		}
 		$test_output[] = [$test_name,0];
 		$pass_count++;
@@ -369,8 +390,8 @@ function sluz_test($input, $expected, $test_name) {
 		$line = $d[0]['line'];
 
 		if ($is_cli) {
-			print $fail_str . "\n";
-			print "  * Expected $expected but got $html (from: $file #$line)\n";
+			$out .= $fail_str . "\n";
+			$out .= "  * Expected $expected but got $html (from: $file #$line)\n";
 		}
 
 		$test_output[] = [$test_name,"Expected $expected but got $html<br />(from: $file #$line)"];
@@ -378,7 +399,7 @@ function sluz_test($input, $expected, $test_name) {
 		$fail_count++;
 	} elseif ($html === $expected) {
 		if ($is_cli) {
-			print $ok_str . "\n";
+			$out .= $ok_str . "\n";
 		}
 
 		$test_output[] = [$test_name,0];
@@ -390,13 +411,17 @@ function sluz_test($input, $expected, $test_name) {
 		$line = $d[0]['line'];
 
 		if ($is_cli) {
-			print $fail_str . "\n";
-			print "  * Expected $expected but got $html (from: $file #$line)\n";
+			$out .= $fail_str . "\n";
+			$out .= "  * Expected $expected but got $html (from: $file #$line)\n";
 		}
 
 		$test_output[] = [$test_name,"Expected $expected but got $html<br />(from: $file #$line)"];
 
 		$fail_count++;
+	}
+
+	if (!$simple) {
+		print $out;
 	}
 }
 
