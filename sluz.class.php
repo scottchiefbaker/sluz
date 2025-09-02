@@ -123,6 +123,7 @@ class sluz {
 			if ($is_open && $has_len) {
 				$len   = $i - $start;
 				$block = substr($str, $start, $len);
+				$block = rtrim($block, "\r\n");
 
 				$blocks[] = [$block, $i];
 				$start    = $i;
@@ -162,6 +163,7 @@ class sluz {
 					}
 				}
 
+				$block     = rtrim($block, "\r\n");
 				$blocks[]  = [$block, $i];
 				$start    += strlen($block);
 				$i         = $start;
@@ -186,7 +188,9 @@ class sluz {
 
 		// If we're not at the end of the string, add the last block
 		if ($start < $slen) {
-			$blocks[] = [substr($str, $start), $i];
+			$block    = substr($str, $start);
+			$block    = rtrim($block, "\r\n");
+			$blocks[] = [$block, $i];
 		}
 
 		$this->stats['get_blocks_time_ms'] = intval((microtime(1) - $start_time) * 1000);
