@@ -1042,9 +1042,11 @@ class sluz {
 
 	// Remove *one* level of carriage return at the end of the string
 	private function wtrim($str) {
-		$ret = preg_replace("/\r?\n\$/", "", $str, 1);
+		if (substr($str, -1) === "\n") {
+			$str = substr($str, 0, -1);
+		}
 
-		return $ret;
+		return $str;
 	}
 }
 
