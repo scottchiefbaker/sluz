@@ -234,6 +234,13 @@ class sluz {
 		return $html;
 	}
 
+	public function parse_string($tpl_str) {
+		$blocks = $this->get_blocks($tpl_str);
+		$html   = $this->process_blocks($blocks);
+
+		return $html;
+	}
+
 	// Guess the TPL filename based on the PHP file
 	public function guess_tpl_file($php_file) {
 		$ret = "tpls/" . preg_replace('/\.php$/', '.stpl', basename($php_file));
