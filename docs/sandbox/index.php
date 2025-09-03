@@ -111,7 +111,12 @@
 	</head>
 
 <body class="" data-bs-theme="dark">
-	<h2 class="bg-dark-subtle text-light p-2">Sluz sandbox <a href="#" title="Use sample data" id="use_defaults">#</a></h2>
+	<div class="container-xxl">
+		<div class="row">
+			<h2 class="col-10 bg-dark-subtle text-light p-2 ps-3">Sluz sandbox</h2>
+			<h2 class="col-2 text-end bg-dark-subtle text-light p-2 pe-3"><a href="#" title="Use sample data" id="use_defaults">#</a></h2>
+		</div>
+	</div>
 
 	<div class="container-fluid row">
 		<div class="col">
