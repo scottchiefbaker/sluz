@@ -9,16 +9,13 @@ if (preg_match("/--time (\d+)/", $arg_str, $m)) {
 }
 
 require_once(__DIR__ . "/../sluz.class.php");
-$x        = new sluz();
-$sluz_ver = $x->version;
+$s        = new sluz();
+$sluz_ver = $s->version;
 $php_ver  = phpversion();
 
 $loops = 0;
 while (microtime(1) - $start < $runtime_secs) {
 	$lstart = microtime(1);
-
-	require_once(__DIR__ . "/../sluz.class.php");
-	$s = new sluz();
 
 	///////////////////////////////////////////////////////////////////////////////
 
