@@ -2,10 +2,10 @@
 	$json = $_POST['json'] ?? "";
 	$tpl  = $_POST['tpl']  ?? "";
 
-	if ($json && $tpl) {
-		require("../../sluz.class.php");
+	require("../../sluz.class.php");
+	$s = new sluz();
 
-		$s   = new sluz();
+	if ($json && $tpl) {
 		$obj = json_decode($json, true);
 		$s->assign($obj);
 
@@ -113,7 +113,7 @@
 <body class="" data-bs-theme="dark">
 	<div class="container-fluid">
 		<div class="row">
-			<h2 class="col-10 bg-dark-subtle text-light p-2 ps-3">Sluz sandbox</h2>
+			<h2 class="col-10 bg-dark-subtle text-light p-2 ps-3">Sluz v<?PHP print $s->version ?> sandbox</h2>
 			<h2 class="col-2 text-end bg-dark-subtle text-light p-2 pe-3"><a href="#" title="Use sample data" id="use_defaults">#</a></h2>
 		</div>
 	</div>
