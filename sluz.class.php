@@ -256,7 +256,7 @@ class sluz {
 	public function get_php_file() {
 		$x    = debug_backtrace();
 		$last = count($x) - 1;
-		$ret  = basename($x[$last]['file'] ?? "");
+		$ret  = $x[$last]['file'] ?? "";
 
 		return $ret;
 	}
