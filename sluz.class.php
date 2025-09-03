@@ -20,6 +20,7 @@ class sluz {
 
 	private $var_prefix   = "sluz_pfx"; // Variable prefix for extract()
 	private $php_file     = null;       // Path to the calling PHP file
+	private $php_file_dir = null;       // Path to the calling PHP directory
 	private $simple_mode  = false;      // Boolean are we in simple mode
 	private $fetch_called = false;      // Boolean used in simple if fetch has been called
 	private $char_pos     = -1;         // Character offset in the TPL
@@ -131,6 +132,7 @@ class sluz {
 			if ($is_open && $has_len) {
 				$len   = $i - $start;
 				$block = substr($str, $start, $len);
+				$block = $this->wtrim($block);
 
 				$blocks[] = [$block, $i];
 				$start    = $i;
@@ -170,6 +172,7 @@ class sluz {
 					}
 				}
 
+				$block     = $this->wtrim($block);
 				$blocks[]  = [$block, $i];
 				$start    += strlen($block);
 				$i         = $start;
@@ -194,7 +197,9 @@ class sluz {
 
 		// If we're not at the end of the string, add the last block
 		if ($start < $slen) {
-			$blocks[] = [substr($str, $start), $i];
+			$block    = substr($str, $start);
+			$block    = $this->wtrim($block);
+			$blocks[] = [$block, $i];
 		}
 
 		$this->stats['get_blocks_time_ms'] = intval((microtime(1) - $start_time) * 1000);
@@ -219,12 +224,13 @@ class sluz {
 	// Guess is 'tpls/[scriptname_minus_dot_php].stpl
 	public function fetch($tpl_file = "", $parent = null) {
 		if (!$this->php_file) {
-			$this->php_file = $this->get_php_file();
+			$this->php_file     = $this->get_php_file();
+			$this->php_file_dir = dirname($this->php_file);
         }
 
 		// We use ABSOLUTE paths here because this may be called in the destructor which has a cwd() of '/'
 		if (!$tpl_file) {
-			$tpl_file = dirname($this->php_file) . '/' . $this->guess_tpl_file($this->php_file);
+			$tpl_file = $this->php_file_dir . '/' . $this->guess_tpl_file($this->php_file);
 		}
 
 		$parent_tpl = $parent ?? $this->parent_tpl;
@@ -242,6 +248,13 @@ class sluz {
 		return $html;
 	}
 
+	public function parse_string($tpl_str) {
+		$blocks = $this->get_blocks($tpl_str);
+		$html   = $this->process_blocks($blocks);
+
+		return $html;
+	}
+
 	// Guess the TPL filename based on the PHP file
 	public function guess_tpl_file($php_file) {
 		$ret = "tpls/" . preg_replace('/\.php$/', '.stpl', basename($php_file));
@@ -253,7 +266,7 @@ class sluz {
 	public function get_php_file() {
 		$x    = debug_backtrace();
 		$last = count($x) - 1;
-		$ret  = basename($x[$last]['file'] ?? "");
+		$ret  = $x[$last]['file'] ?? "";
 
 		return $ret;
 	}
@@ -286,6 +299,10 @@ class sluz {
 		// If we're in simple mode and we have a __halt_compiler() we can assume inline mode
 		$inline_simple = $this->simple_mode && $this->get_inline_content($this->php_file);
 		$is_inline     = ($tpl_file === SLUZ_INLINE) || $inline_simple;
+
+		if ($this->php_file_dir) {
+			$tf  = $this->php_file_dir . "/$tf";
+		}
 
 		if ($is_inline) {
 			$str = $this->get_inline_content($this->php_file);
@@ -748,6 +765,10 @@ class sluz {
 		$save    = $this->tpl_vars;
 		$inc_tpl = $this->extract_include_file($str);
 
+		if ($this->php_file_dir) {
+			$inc_tpl = $this->php_file_dir . "/$inc_tpl";
+		}
+
 		// Extra variables to include sub templates
 		if (preg_match_all("/(\w+)=(['\"](.+?)['\"])/", $str, $m)) {
 			for ($i = 0; $i < count($m[0]); $i++) {
@@ -1044,6 +1065,15 @@ class sluz {
 		} else {
 			return $this->parent_tpl;
 		}
+	}
+
+	// Remove *one* level of carriage return at the end of the string
+	private function wtrim($str) {
+		if (substr($str, -1) === "\n") {
+			$str = substr($str, 0, -1);
+		}
+
+		return $str;
 	}
 }
 
