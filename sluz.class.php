@@ -96,10 +96,15 @@ class sluz {
 		$slen   = strlen($str);
 
 		for ($i = 0; $i < $slen; $i++) {
-			$char = $str[$i];
+			$char      = $str[$i];
+			$is_open   = $char === "{";
+			$is_closed = $char === "}";
 
-			$is_open    = $char === "{";
-			$is_closed  = $char === "}";
+			// If it's not an opening or closing tag it's not a block
+			if (!$is_open && !$is_closed) {
+				continue;
+			}
+
 			$has_len    = $start != $i;
 			$is_comment = false;
 
