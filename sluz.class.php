@@ -104,8 +104,17 @@ class sluz {
 			$is_open   = $char === "{";
 			$is_closed = $char === "}";
 
-			// If it's not an opening or closing tag it's not a block
+			// If it's not an opening or closing tag we jump ahead to the next delim
 			if (!$is_open && !$is_closed) {
+				$next_open = strpos($str, '{', $i);
+				if ($next_open === false) { $next_open = $slen; }
+
+				$next_close = strpos($str, '}', $i);
+				if ($next_close === false) { $next_close = $slen; }
+
+				// The next char to look at is the first open/close delim
+				$i = min($next_open, $next_close) -1;
+
 				continue;
 			}
 
