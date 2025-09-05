@@ -21,7 +21,6 @@ class sluz {
 	private $simple_mode  = false;      // Boolean are we in simple mode
 	private $fetch_called = false;      // Boolean used in simple if fetch has been called
 	private $char_pos     = -1;         // Character offset in the TPL
-	private $stats        = [];         // Store statistics related to parsing
 
 	public function __construct() { }
 	public function __destruct()  {
@@ -194,9 +193,6 @@ class sluz {
 			$blocks[] = [$block, $i];
 		}
 
-		$this->stats['get_blocks_time_ms'] = intval((microtime(1) - $start_time) * 1000);
-		$this->stats['block_count']        = count($blocks);
-
 		return $blocks;
 	}
 
@@ -274,13 +270,7 @@ class sluz {
 			$html     .= $this->process_block($block, $char_pos);
 		}
 
-		$this->stats['process_blocks_time_ms'] = intval((microtime(1) - $start_time) * 1000);
-
 		return $html;
-	}
-
-	public function get_stats() {
-		return $this->stats;
 	}
 
 	// Load the template file into a string
@@ -305,8 +295,6 @@ class sluz {
 		}
 
 		if (empty($str)) { $str = ""; }
-
-		$this->stats['get_tpl_content_time_ms'] = intval((microtime(1) - $start_time) * 1000);
 
 		return $str;
 	}
