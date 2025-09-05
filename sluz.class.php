@@ -95,7 +95,11 @@ class sluz {
 		$blocks = [];
 		$slen   = strlen($str);
 
-		for ($i = 0; $i < $slen; $i++) {
+		// Start looking for blocks at the first delim
+		$z = strpos($str, '{');
+		if ($z === false) { $z = $slen; }
+
+		for ($i = $z; $i < $slen; $i++) {
 			$char      = $str[$i];
 			$is_open   = $char === "{";
 			$is_closed = $char === "}";
