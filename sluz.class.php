@@ -143,7 +143,9 @@ class sluz {
 				$block = substr($str, $start, $len);
 				$block = $this->wtrim($block);
 
-				$blocks[] = [$block, $i];
+				if ($block) {
+					$blocks[] = [$block, $i];
+				}
 				$start    = $i;
 			// If it's a "}" it's a closing block that starts at $start
 			} elseif ($is_closed) {
@@ -182,7 +184,9 @@ class sluz {
 				}
 
 				$block     = $this->wtrim($block);
-				$blocks[]  = [$block, $i];
+				if ($block) {
+					$blocks[]  = [$block, $i];
+				}
 				$start    += strlen($block);
 				$i         = $start;
 			}
@@ -208,7 +212,9 @@ class sluz {
 		if ($start < $slen) {
 			$block    = substr($str, $start);
 			$block    = $this->wtrim($block);
-			$blocks[] = [$block, $i];
+			if ($block) {
+				$blocks[] = [$block, $i];
+			}
 		}
 
 		return $blocks;
