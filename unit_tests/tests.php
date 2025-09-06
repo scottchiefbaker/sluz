@@ -209,6 +209,8 @@ sluz_test(['{*{$first}*}']                                                     ,
 sluz_test(['{*{$first} {$last}*}']                                             , 0, 'Get blocks #9 - Comments with variables');
 sluz_test([' {* {$foo} *} ']                                                   , 2, 'Get blocks #10 - Comments with variables and whitespace');
 sluz_test(['{foreach $array as $i}{foreach $array as $i}x{/foreach}{/foreach}'], 1, 'Get blocks #11 - Nested foreach');
+sluz_test(["{\$foo}\n{\$bar}"]                                                 , 2, 'Get blocks #12 - Only whitespace block');
+sluz_test(["{\$foo}\n\n{\$bar}"]                                               , 3, 'Get blocks #13 - Double whitespace block');
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // Fetch tests
