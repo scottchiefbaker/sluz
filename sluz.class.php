@@ -741,6 +741,10 @@ class sluz {
 			preg_match("/{if (.+?)}(.+){\/if}/s", $str, $m);
 			$cond     = $m[1] ?? "";
 			$payload  = $m[2] ?? "";
+
+			// This makes input -> output whitespace more correct
+			$payload  = trim($payload, "\n");
+
 			$rules[0] = [$cond, $payload];
 		} else {
 			$toks  = $this->get_tokens($str);
