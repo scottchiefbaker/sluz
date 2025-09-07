@@ -192,9 +192,7 @@ sluz_test("{\$x}\n{\$x}"                           , "7\n7"     , 'Whitespace in
 sluz_test("{foreach \$y as \$x}{\$x}{/foreach}"    , "246"      , 'Whitespace input/output #4');
 sluz_test("{foreach \$y as \$x}\n{\$x}\n{/foreach}", "2\n4\n6\n", 'Whitespace input/output #5');
 sluz_test("{if \$x}{\$x}{/if}"                     , "7"        , 'Whitespace input/output #6');
-
-// This is an anomaly but not a HUGE deal
-//sluz_test("{if \$x}\n{\$x}\n{/if}"                 , "7\n"      , 'Whitespace formatting #7');
+sluz_test("{if \$x}\n{\$x}\n{/if}"                 , "7\n"      , 'Whitespace input/output #7');
 
 sluz_test('{* Comment *}'           , '', 'Comment #1 - With text');
 sluz_test('{* ********* *}'         , '', 'Comment #2 - ******');

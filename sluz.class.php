@@ -740,7 +740,7 @@ class sluz {
 			$payload  = $m[2] ?? "";
 
 			// This makes input -> output whitespace more correct
-			$payload  = trim($payload, "\n");
+			$payload  = ltrim($payload, "\n");
 
 			$rules[0] = [$cond, $payload];
 		} else {
