@@ -141,7 +141,6 @@ class sluz {
 			if ($is_open && $has_len) {
 				$len   = $i - $start;
 				$block = substr($str, $start, $len);
-				$block = $this->wtrim($block);
 
 				if ($block) {
 					$blocks[] = [$block, $i];
@@ -183,7 +182,6 @@ class sluz {
 					}
 				}
 
-				$block     = $this->wtrim($block);
 				if ($block) {
 					$blocks[]  = [$block, $i];
 				}
@@ -211,7 +209,6 @@ class sluz {
 		// If we're not at the end of the string, add the last block
 		if ($start < $slen) {
 			$block    = substr($str, $start);
-			$block    = $this->wtrim($block);
 			if ($block) {
 				$blocks[] = [$block, $i];
 			}
@@ -1078,15 +1075,6 @@ class sluz {
 		} else {
 			return $this->parent_tpl;
 		}
-	}
-
-	// Remove *one* level of carriage return at the end of the string
-	private function wtrim($str) {
-		if (substr($str, -1) === "\n") {
-			$str = substr($str, 0, -1);
-		}
-
-		return $str;
 	}
 }
 
