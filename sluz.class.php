@@ -11,7 +11,6 @@ class sluz {
 
 	public $debug         = 0;          // Enable debug mode
 	public $in_unit_test  = false;      // Boolean if we are in unit testing mode
-	public $use_mo        = true;       // Use micro- optimiziations
 	public $tpl_vars      = [];         // Array of variables assigned to the TPL
 	public $parent_tpl    = null;       // Path to parent TPL
 
@@ -365,11 +364,9 @@ class sluz {
 	// Extract data from an array in the form of $foo.key.baz
 	public function array_dive(string $needle, array $haystack) {
 		// Do a simple hash lookup first before we dive deep (we may get lucky)
-		if ($this->use_mo) {
-			$x = $haystack[$needle] ?? null;
-			if ($x) {
-				return $x;
-			}
+		$x = $haystack[$needle] ?? null;
+		if ($x) {
+			return $x;
 		}
 
 		// Split at the periods
@@ -574,11 +571,9 @@ class sluz {
 
 	// A smart wrapper around eval()
 	private function peval($str, &$err = 0) {
-		if ($this->use_mo) {
-			$x = $this->micro_optimize($str);
-			if ($x) {
-				return $x;
-			}
+		$x = $this->micro_optimize($str);
+		if ($x) {
+			return $x;
 		}
 
 		extract($this->tpl_vars, EXTR_PREFIX_ALL, $this->var_prefix);
@@ -726,12 +721,8 @@ class sluz {
 	private function if_block($str) {
 		// If it's a simple {if $name}Output{/if} we can save a lot of
 		// time parsing detailed rules
-		if ($this->use_mo) {
-			// If there is no {else} or {elseif}
-			$is_simple = (strpos($str, "{else", 7) === false);
-		} else {
-			$is_simple = false;
-		}
+		// i.e. there is no {else} or {elseif}
+		$is_simple = (strpos($str, "{else", 7) === false);
 
 		if ($is_simple) {
 			//k($str);
