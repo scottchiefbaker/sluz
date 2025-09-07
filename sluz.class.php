@@ -823,6 +823,12 @@ class sluz {
 		$payload = $m[5]; // code block to parse on iteration
 		$blocks  = $this->get_blocks($payload);
 
+		// This makes input -> output whitespace more correct
+		$first = $blocks[0][0] ?? "";
+		if ($first === "\n") {
+			array_shift($blocks);
+		}
+
 		$src = $this->peval($src);
 
 		// If $src isn't an array we convert it to one so foreach doesn't barf
