@@ -186,13 +186,14 @@ sluz_test('{literal}{literal}{/literal}{/literal}', '{literal}{/literal}', 'Lite
 sluz_test(' { '                                   , ' { '                , 'Literal #6 - { with whitespace');
 sluz_test('{}'                                    , '{}'                 , 'Literal #7 - Raw {}');
 
-sluz_test("{\$x}{\$x}"                             , '77'       , 'Whitespace input/output #1');
-sluz_test("{\$x} {\$x}"                            , '7 7'      , 'Whitespace input/output #2');
-sluz_test("{\$x}\n{\$x}"                           , "7\n7"     , 'Whitespace input/output #3');
-sluz_test("{foreach \$y as \$x}{\$x}{/foreach}"    , "246"      , 'Whitespace input/output #4');
-sluz_test("{foreach \$y as \$x}\n{\$x}\n{/foreach}", "2\n4\n6\n", 'Whitespace input/output #5');
-sluz_test("{if \$x}{\$x}{/if}"                     , "7"        , 'Whitespace input/output #6');
-sluz_test("{if \$x}\n{\$x}\n{/if}"                 , "7\n"      , 'Whitespace input/output #7');
+sluz_test("{\$x}{\$x}"                                   , '77'           , 'Whitespace input/output #1');
+sluz_test("{\$x} {\$x}"                                  , '7 7'          , 'Whitespace input/output #2');
+sluz_test("{\$x}\n{\$x}"                                 , "7\n7"         , 'Whitespace input/output #3');
+sluz_test("{foreach \$y as \$x}{\$x}{/foreach}"          , "246"          , 'Whitespace input/output #4');
+sluz_test("{foreach \$y as \$x}\n{\$x}\n{/foreach}"      , "2\n4\n6\n"    , 'Whitespace input/output #5');
+sluz_test("{if \$x}{\$x}{/if}"                           , "7"            , 'Whitespace input/output #6');
+sluz_test("{if \$x}\n{\$x}\n{/if}"                       , "7\n"          , 'Whitespace input/output #7');
+sluz_test("{foreach \$y as \$x}\n{\$x}\n{/foreach}\nlast", "2\n4\n6\nlast", 'Whitespace input/output #8');
 
 sluz_test('{* Comment *}'           , '', 'Comment #1 - With text');
 sluz_test('{* ********* *}'         , '', 'Comment #2 - ******');
