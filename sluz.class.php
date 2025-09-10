@@ -803,19 +803,23 @@ class sluz {
 		return $ret;
 	}
 
+	// Remove ONE \n from the beginning of a string
+	function ltrim_one(string $str) {
+		if (isset($str[0]) && $str[0] === "\n") {
+			return substr($str, 1);
+		}
+
+		return $str;
+	}
+
 	// Parse a foreach block
 	private function foreach_block($m) {
 		$src     = $this->convert_variables_in_string($m[1]); // src array
 		$okey    = $m[2]; // orig key
 		$oval    = $m[4]; // orig val
 		$payload = $m[5]; // code block to parse on iteration
+		$payload = $this->ltrim_one($payload, "\n"); // Input -> Output \n parity
 		$blocks  = $this->get_blocks($payload);
-
-		// This makes input -> output whitespace more correct
-		$first = $blocks[0][0] ?? "";
-		if ($first === "\n") {
-			array_shift($blocks);
-		}
 
 		$src = $this->peval($src);
 
