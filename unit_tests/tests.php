@@ -409,7 +409,7 @@ function sluz_test($input, $expected, $test_name) {
 			$out .= "  * Expected $expected but got $html (from: $file #$line)\n";
 		}
 
-		$test_output[] = [$test_name,"Expected $expected but got $html<br />(from: $file #$line)"];
+		$test_output[] = [$test_name,"Expected <code>$expected</code> but got <code>$html</code><br />(from: $file #$line)"];
 
 		$fail_count++;
 	} elseif ($html === $expected) {
@@ -430,7 +430,7 @@ function sluz_test($input, $expected, $test_name) {
 			$out .= "  * Expected $expected but got $html (from: $file #$line)\n";
 		}
 
-		$test_output[] = [$test_name,"Expected $expected but got $html<br />(from: $file #$line)"];
+		$test_output[] = [$test_name,"Expected <code>$expected</code> but got <code>$html</code><br />(from: $file #$line)"];
 
 		$fail_count++;
 	}
