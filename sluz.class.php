@@ -227,7 +227,7 @@ class sluz {
 			$cur_is_if = str_starts_with($str, '{if') || str_starts_with($str, '{for');
 
 			if ($prev_is_if) {
-				$blocks[$i][0] = $this->ltrim_one($str);
+				$blocks[$i][0] = $this->ltrim_one($str, "\n");
 			}
 
 			$prev_is_if = $cur_is_if;
@@ -754,7 +754,7 @@ class sluz {
 			$payload  = $m[2] ?? "";
 
 			// This makes input -> output whitespace more correct
-			$payload  = ltrim($payload, "\n");
+			$payload  = $this->ltrim_one($payload, "\n");
 
 			$rules[0] = [$cond, $payload];
 		} else {
@@ -827,8 +827,8 @@ class sluz {
 	}
 
 	// Remove ONE \n from the beginning of a string
-	function ltrim_one(string $str) {
-		if (isset($str[0]) && $str[0] === "\n") {
+	function ltrim_one(string $str, $char) {
+		if (isset($str[0]) && $str[0] === $char) {
 			return substr($str, 1);
 		}
 
