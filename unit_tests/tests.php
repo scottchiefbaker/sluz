@@ -389,6 +389,10 @@ function sluz_test($input, $expected, $test_name) {
 
 	if (!$is_regexp) { $expected = var_export($expected, true); }
 
+	// Make the \n in the unit tests visible
+	$expected = preg_replace("/\n/", "\\n", $expected);
+	$html     = preg_replace("/\n/", "\\n", $html);
+
 	if ($is_regexp && preg_match($expected, $html)) {
 		if ($is_cli) {
 			$out .= $ok_str . "\n";
