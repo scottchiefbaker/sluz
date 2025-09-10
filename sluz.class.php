@@ -258,7 +258,7 @@ class sluz {
 
 		// We use ABSOLUTE paths here because this may be called in the destructor which has a cwd() of '/'
 		if (!$tpl_file) {
-			$tpl_file = $this->php_file_dir . '/' . $this->guess_tpl_file($this->php_file);
+			$tpl_file = $this->guess_tpl_file($this->php_file);
 		}
 
 		$parent_tpl = $parent ?? $this->parent_tpl;
@@ -285,7 +285,9 @@ class sluz {
 
 	// Guess the TPL filename based on the PHP file
 	public function guess_tpl_file($php_file) {
-		$ret = "tpls/" . preg_replace('/\.php$/', '.stpl', basename($php_file));
+		$base     = basename($php_file);
+		$tpl_name = preg_replace('/\.php$/', '.stpl', $base);
+		$ret      = "tpls/$tpl_name";
 
 		return $ret;
 	}
@@ -615,8 +617,9 @@ class sluz {
 
 	// Turn on simple mode
 	public function enable_simple_mode($php_file) {
-		$this->php_file    = $php_file;
-		$this->simple_mode = true;
+		$this->php_file     = $php_file;
+		$this->php_file_dir = dirname($php_file);
+		$this->simple_mode  = true;
 	}
 
 	///////////////////////////////////////////////////////////////////////////////
