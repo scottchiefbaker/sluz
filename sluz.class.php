@@ -213,6 +213,26 @@ class sluz {
 			}
 		}
 
+		// If the *previous* block was an {if} or {foreach} you we remove one \n
+		// to maintain parity between input and output whitespace.
+		//
+		// This allows templates like:
+		//
+		// {foreach $name as $x}
+		// {$x}
+		// {/foreach}
+		$prev_is_if = false;
+		for ($i = 0; $i < count($blocks); $i++) {
+			$str       = $blocks[$i][0] ?? "";
+			$cur_is_if = str_starts_with($str, '{if') || str_starts_with($str, '{for');
+
+			if ($prev_is_if) {
+				$blocks[$i][0] = $this->ltrim_one($str);
+			}
+
+			$prev_is_if = $cur_is_if;
+		}
+
 		return $blocks;
 	}
 
