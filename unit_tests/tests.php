@@ -148,7 +148,7 @@ sluz_test('{if false}a{else}b{if true}c{/if}{/if}'               , 'bc'      , '
 sluz_test('{if true}{/if}'                                       , ''        , 'If #27 - If with "" for payload');
 
 sluz_test('{foreach $array as $num}{$num}{/foreach}'                         , 'onetwothree'            , 'Foreach #1 - Simple');
-sluz_test('{foreach $array as $num}\n{$num}\n{/foreach}'                     , '\none\n\ntwo\n\nthree\n', 'Foreach #2 - Simple with whitespace');
+sluz_test("{foreach \$array as \$num}\n{\$num}\n{/foreach}"                  , "one\ntwo\nthree\n"      , 'Foreach #2 - Simple with whitespace');
 sluz_test('{foreach $members as $x}{$x.first}{/foreach}'                     , 'ScottJason'             , 'Foreach #3 - Hash');
 sluz_test('{foreach $arrayd as $x}{$x.1}{/foreach}'                          , '246'                    , 'Foreach #4 - Array');
 sluz_test('{foreach $arrayd as $key => $val}{$key}:{$val.0}{/foreach}'       , '0:11:32:5'              , 'Foreach #6 - Key/val array');
@@ -186,6 +186,15 @@ sluz_test('{literal}{literal}{/literal}{/literal}', '{literal}{/literal}', 'Lite
 sluz_test(' { '                                   , ' { '                , 'Literal #6 - { with whitespace');
 sluz_test('{}'                                    , '{}'                 , 'Literal #7 - Raw {}');
 
+sluz_test("{\$x}{\$x}"                                   , '77'           , 'Whitespace input/output #1');
+sluz_test("{\$x} {\$x}"                                  , '7 7'          , 'Whitespace input/output #2');
+sluz_test("{\$x}\n{\$x}"                                 , "7\n7"         , 'Whitespace input/output #3');
+sluz_test("{foreach \$y as \$x}{\$x}{/foreach}"          , "246"          , 'Whitespace input/output #4');
+sluz_test("{foreach \$y as \$x}\n{\$x}\n{/foreach}"      , "2\n4\n6\n"    , 'Whitespace input/output #5');
+sluz_test("{if \$x}{\$x}{/if}"                           , "7"            , 'Whitespace input/output #6');
+sluz_test("{if \$x}\n{\$x}\n{/if}"                       , "7\n"          , 'Whitespace input/output #7');
+sluz_test("{foreach \$y as \$x}\n{\$x}\n{/foreach}\nlast", "2\n4\n6\nlast", 'Whitespace input/output #8');
+
 sluz_test('{* Comment *}'           , '', 'Comment #1 - With text');
 sluz_test('{* ********* *}'         , '', 'Comment #2 - ******');
 sluz_test('{**}'                    , '', 'Comment #3 - No whitespace');
@@ -209,6 +218,8 @@ sluz_test(['{*{$first}*}']                                                     ,
 sluz_test(['{*{$first} {$last}*}']                                             , 0, 'Get blocks #9 - Comments with variables');
 sluz_test([' {* {$foo} *} ']                                                   , 2, 'Get blocks #10 - Comments with variables and whitespace');
 sluz_test(['{foreach $array as $i}{foreach $array as $i}x{/foreach}{/foreach}'], 1, 'Get blocks #11 - Nested foreach');
+sluz_test(["{\$foo}\n{\$bar}"]                                                 , 3, 'Get blocks #12 - Only whitespace block');
+sluz_test(["{\$foo}\n\n{\$bar}"]                                               , 3, 'Get blocks #13 - Double whitespace block');
 
 //////////////////////////////////////////////////////////////////////////////////////////
 
@@ -394,6 +405,10 @@ function sluz_test($input, $expected, $test_name) {
 
 	if (!$is_regexp) { $expected = var_export($expected, true); }
 
+	// Make the \n in the unit tests visible
+	$expected = preg_replace("/\n/", "\\n", $expected);
+	$html     = preg_replace("/\n/", "\\n", $html);
+
 	if ($is_regexp && preg_match($expected, $html)) {
 		if ($is_cli) {
 			$out .= $ok_str . "\n";
@@ -410,7 +425,7 @@ function sluz_test($input, $expected, $test_name) {
 			$out .= "  * Expected $expected but got $html (from: $file #$line)\n";
 		}
 
-		$test_output[] = [$test_name,"Expected $expected but got $html<br />(from: $file #$line)"];
+		$test_output[] = [$test_name,"Expected <code>$expected</code> but got <code>$html</code><br />(from: $file #$line)"];
 
 		$fail_count++;
 	} elseif ($html === $expected) {
@@ -431,7 +446,7 @@ function sluz_test($input, $expected, $test_name) {
 			$out .= "  * Expected $expected but got $html (from: $file #$line)\n";
 		}
 
-		$test_output[] = [$test_name,"Expected $expected but got $html<br />(from: $file #$line)"];
+		$test_output[] = [$test_name,"Expected <code>$expected</code> but got <code>$html</code><br />(from: $file #$line)"];
 
 		$fail_count++;
 	}

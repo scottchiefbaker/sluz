@@ -5,13 +5,12 @@
 define('SLUZ_INLINE', 'INLINE_TEMPLATE'); // Just a specific string
 
 class sluz {
-	public $version       = '0.8.5';
+	public $version       = '0.8.7';
 	public $tpl_file      = null;       // The path to the TPL file
 	public $inc_tpl_file  = null;       // The path to the {include} file
 
 	public $debug         = 0;          // Enable debug mode
 	public $in_unit_test  = false;      // Boolean if we are in unit testing mode
-	public $use_mo        = true;       // Use micro- optimiziations
 	public $tpl_vars      = [];         // Array of variables assigned to the TPL
 	public $parent_tpl    = null;       // Path to parent TPL
 
@@ -24,7 +23,6 @@ class sluz {
 	private $simple_mode  = false;      // Boolean are we in simple mode
 	private $fetch_called = false;      // Boolean used in simple if fetch has been called
 	private $char_pos     = -1;         // Character offset in the TPL
-	private $stats        = [];         // Store statistics related to parsing
 
 	public function __construct() { }
 	public function __destruct()  {
@@ -104,11 +102,29 @@ class sluz {
 		$blocks = [];
 		$slen   = strlen($str);
 
-		for ($i = 0; $i < $slen; $i++) {
-			$char = $str[$i];
+		// Start looking for blocks at the first delim
+		$z = strpos($str, $oc);
+		if ($z === false) { $z = $slen; }
 
-			$is_open    = $char === $oc;
-			$is_closed  = $char === $cc;
+		for ($i = $z; $i < $slen; $i++) {
+			$char      = $str[$i];
+			$is_open   = $char === $oc;
+			$is_closed = $char === $cc;
+
+			// If it's not an opening or closing tag we jump ahead to the next delim
+			if (!$is_open && !$is_closed) {
+				$next_open = strpos($str, $oc, $i);
+				if ($next_open === false) { $next_open = $slen; }
+
+				$next_close = strpos($str, $cc, $i);
+				if ($next_close === false) { $next_close = $slen; }
+
+				// The next char to look at is the first open/close delim
+				$i = min($next_open, $next_close) -1;
+
+				continue;
+			}
+
 			$has_len    = $start != $i;
 			$is_comment = false;
 
@@ -132,9 +148,10 @@ class sluz {
 			if ($is_open && $has_len) {
 				$len   = $i - $start;
 				$block = substr($str, $start, $len);
-				$block = $this->wtrim($block);
 
-				$blocks[] = [$block, $i];
+				if ($block) {
+					$blocks[] = [$block, $i];
+				}
 				$start    = $i;
 			// If it's a "}" it's a closing block that starts at $start
 			} elseif ($is_closed) {
@@ -172,8 +189,9 @@ class sluz {
 					}
 				}
 
-				$block     = $this->wtrim($block);
-				$blocks[]  = [$block, $i];
+				if ($block) {
+					$blocks[]  = [$block, $i];
+				}
 				$start    += strlen($block);
 				$i         = $start;
 			}
@@ -189,21 +207,39 @@ class sluz {
 
 				$end += 2; // '*}' is 2 long so we add that
 
-				$end_rel    = $end - $start;
-				$start      += $end;
-				$i          = $start;
+				$end_rel  = $end - $start;
+				$start   += $end;
+				$i        = $start;
 			}
 		}
 
 		// If we're not at the end of the string, add the last block
 		if ($start < $slen) {
-			$block    = substr($str, $start);
-			$block    = $this->wtrim($block);
-			$blocks[] = [$block, $i];
+			$block = substr($str, $start);
+			if ($block) {
+				$blocks[] = [$block, $i];
+			}
 		}
 
-		$this->stats['get_blocks_time_ms'] = intval((microtime(1) - $start_time) * 1000);
-		$this->stats['block_count']        = count($blocks);
+		// If the *previous* block was an {if} or {foreach} you we remove one \n
+		// to maintain parity between input and output whitespace.
+		//
+		// This allows templates like:
+		//
+		// {foreach $name as $x}
+		// {$x}
+		// {/foreach}
+		$prev_is_if = false;
+		for ($i = 0; $i < count($blocks); $i++) {
+			$str       = $blocks[$i][0] ?? "";
+			$cur_is_if = str_starts_with($str, $oc . 'if') || str_starts_with($str, $oc . 'for');
+
+			if ($prev_is_if) {
+				$blocks[$i][0] = $this->ltrim_one($str, "\n");
+			}
+
+			$prev_is_if = $cur_is_if;
+		}
 
 		return $blocks;
 	}
@@ -230,7 +266,7 @@ class sluz {
 
 		// We use ABSOLUTE paths here because this may be called in the destructor which has a cwd() of '/'
 		if (!$tpl_file) {
-			$tpl_file = $this->php_file_dir . '/' . $this->guess_tpl_file($this->php_file);
+			$tpl_file = $this->guess_tpl_file($this->php_file);
 		}
 
 		$parent_tpl = $parent ?? $this->parent_tpl;
@@ -257,7 +293,9 @@ class sluz {
 
 	// Guess the TPL filename based on the PHP file
 	public function guess_tpl_file($php_file) {
-		$ret = "tpls/" . preg_replace('/\.php$/', '.stpl', basename($php_file));
+		$base     = basename($php_file);
+		$tpl_name = preg_replace('/\.php$/', '.stpl', $base);
+		$ret      = "tpls/$tpl_name";
 
 		return $ret;
 	}
@@ -278,17 +316,19 @@ class sluz {
 
 		foreach ($blocks as $x) {
 			$block     = $x[0];
-			$char_pos  = $x[1];
-			$html     .= $this->process_block($block, $char_pos);
+			$has_delim = ($block[0] ?? "") === $this->open_char;
+
+			// If the first char is a { it's something we need to process
+			if ($has_delim) {
+				$char_pos  = $x[1];
+				$html     .= $this->process_block($block, $char_pos);
+			// It's a static text block so we just append it
+			} else {
+				$html .= $block;
+			}
 		}
 
-		$this->stats['process_blocks_time_ms'] = intval((microtime(1) - $start_time) * 1000);
-
 		return $html;
-	}
-
-	public function get_stats() {
-		return $this->stats;
 	}
 
 	// Load the template file into a string
@@ -313,8 +353,6 @@ class sluz {
 		}
 
 		if (empty($str)) { $str = ""; }
-
-		$this->stats['get_tpl_content_time_ms'] = intval((microtime(1) - $start_time) * 1000);
 
 		return $str;
 	}
@@ -356,11 +394,9 @@ class sluz {
 	// Extract data from an array in the form of $foo.key.baz
 	public function array_dive(string $needle, array $haystack) {
 		// Do a simple hash lookup first before we dive deep (we may get lucky)
-		if ($this->use_mo) {
-			$x = $haystack[$needle] ?? null;
-			if ($x) {
-				return $x;
-			}
+		$x = $haystack[$needle] ?? null;
+		if ($x) {
+			return $x;
 		}
 
 		// Split at the periods
@@ -565,11 +601,9 @@ class sluz {
 
 	// A smart wrapper around eval()
 	private function peval($str, &$err = 0) {
-		if ($this->use_mo) {
-			$x = $this->micro_optimize($str);
-			if ($x) {
-				return $x;
-			}
+		$x = $this->micro_optimize($str);
+		if ($x) {
+			return $x;
 		}
 
 		extract($this->tpl_vars, EXTR_PREFIX_ALL, $this->var_prefix);
@@ -591,8 +625,9 @@ class sluz {
 
 	// Turn on simple mode
 	public function enable_simple_mode($php_file) {
-		$this->php_file    = $php_file;
-		$this->simple_mode = true;
+		$this->php_file     = $php_file;
+		$this->php_file_dir = dirname($php_file);
+		$this->simple_mode  = true;
 	}
 
 	///////////////////////////////////////////////////////////////////////////////
@@ -720,18 +755,18 @@ class sluz {
 
 		// If it's a simple {if $name}Output{/if} we can save a lot of
 		// time parsing detailed rules
-		if ($this->use_mo) {
-			// If there is no {else} or {elseif}
-			$is_simple = (strpos($str, "{$oc}else", 7) === false);
-		} else {
-			$is_simple = false;
-		}
+		// i.e. there is no {else} or {elseif}
+		$is_simple = (strpos($str, "{else", 7) === false);
 
 		if ($is_simple) {
 			//k($str);
 			preg_match("/{$oc}if (.+?)$cc(.+)$oc\/if$cc/s", $str, $m);
 			$cond     = $m[1] ?? "";
 			$payload  = $m[2] ?? "";
+
+			// This makes input -> output whitespace more correct
+			$payload  = $this->ltrim_one($payload, "\n");
+
 			$rules[0] = [$cond, $payload];
 		} else {
 			$toks  = $this->get_tokens($str);
@@ -802,12 +837,22 @@ class sluz {
 		return $ret;
 	}
 
+	// Remove ONE \n from the beginning of a string
+	function ltrim_one(string $str, $char) {
+		if (isset($str[0]) && $str[0] === $char) {
+			return substr($str, 1);
+		}
+
+		return $str;
+	}
+
 	// Parse a foreach block
 	private function foreach_block($m) {
 		$src     = $this->convert_variables_in_string($m[1]); // src array
 		$okey    = $m[2]; // orig key
 		$oval    = $m[4]; // orig val
 		$payload = $m[5]; // code block to parse on iteration
+		$payload = $this->ltrim_one($payload, "\n"); // Input -> Output \n parity
 		$blocks  = $this->get_blocks($payload);
 
 		$src = $this->peval($src);
@@ -1065,15 +1110,6 @@ class sluz {
 		} else {
 			return $this->parent_tpl;
 		}
-	}
-
-	// Remove *one* level of carriage return at the end of the string
-	private function wtrim($str) {
-		if (substr($str, -1) === "\n") {
-			$str = substr($str, 0, -1);
-		}
-
-		return $str;
 	}
 }
 
