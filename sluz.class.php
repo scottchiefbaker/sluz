@@ -286,7 +286,7 @@ class sluz {
 
 		foreach ($blocks as $x) {
 			$block     = $x[0];
-			$has_delim = $block[0] === '{';
+			$has_delim = ($block[0] ?? "") === '{';
 
 			// If the first char is a { it's something we need to process
 			if ($has_delim) {
