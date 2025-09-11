@@ -213,14 +213,15 @@ class sluz {
 			}
 		}
 
-		// If the *previous* block was an {if} or {foreach} you we remove one \n
-		// to maintain parity between input and output whitespace.
+		// If the *previous* block was an {if} or {foreach} we remove one leading \n
+		// to maintain parity between input and output whitespace. ^ is the whitespace
+		// we're removing.
 		//
 		// This allows templates like:
 		//
 		// {foreach $name as $x}
 		// {$x}
-		// {/foreach}
+		// {/foreach}^
 		$prev_is_if = false;
 		for ($i = 0; $i < count($blocks); $i++) {
 			$str       = $blocks[$i][0] ?? "";
