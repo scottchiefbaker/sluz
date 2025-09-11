@@ -358,14 +358,7 @@ function sluz_test($input, $expected, $test_name) {
 		$res  = $sluz->get_blocks($input[0]);
 		$html = count($res);
 	} else {
-		$blocks = $sluz->get_blocks($input);
-		$html   = '';
-
-		foreach ($blocks as $x) {
-			$input = $x[0];
-			$pos   = $x[1];
-			$html .= $sluz->process_block($input, $pos);
-		}
+		$html = $sluz->parse_string($input);
 	}
 
 	$lead = "Test '$test_name' ";
