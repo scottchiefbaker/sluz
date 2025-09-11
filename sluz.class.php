@@ -748,7 +748,6 @@ class sluz {
 		$is_simple = (strpos($str, "{else", 7) === false);
 
 		if ($is_simple) {
-			//k($str);
 			preg_match("/{if (.+?)}(.+){\/if}/s", $str, $m);
 			$cond     = $m[1] ?? "";
 			$payload  = $m[2] ?? "";
