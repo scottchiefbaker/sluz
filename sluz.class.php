@@ -307,11 +307,11 @@ class sluz {
 			$has_delim = ($block[0] ?? "") === '{';
 
 			// If the first char is a { it's something we need to process
-			if ($has_delim) {
+			if ($block && $has_delim) {
 				$char_pos  = $x[1];
 				$html     .= $this->process_block($block, $char_pos);
 			// It's a static text block so we just append it
-			} else {
+			} elseif ($block) {
 				$html .= $block;
 			}
 		}
