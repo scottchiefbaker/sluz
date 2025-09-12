@@ -57,15 +57,15 @@ class sluz {
 		// Foreach {foreach $foo as $x}{/foreach}
 		} elseif (str_starts_with($str, '{foreach ') && preg_match('/^\{foreach (\$\w[\w.]*) as \$(\w+)( => \$(\w+))?\}(.+)\{\/foreach\}$/s', $str, $m)) {
 			$ret = $this->foreach_block($m);
+		// This is for complicated variables with default values that don't match the above rule
+		} elseif (str_contains($str, "|") && preg_match('/^\{\$(\w.+)\}/', $str, $m)) {
+			$ret = $this->variable_block($m[1]);
 		// Include {include file='my.stpl' number='99'}
 		} elseif (str_starts_with($str, '{include ')) {
 			$ret = $this->include_block($str);
 		// Liternal {literal}Stuff here{/literal}
 		} elseif (str_starts_with($str, '{literal}') && preg_match('/^\{literal\}(.+)\{\/literal\}$/s', $str, $m)) {
 			$ret = $m[1];
-		// This is for complicated variables with default values that don't match the above rule
-		} elseif (str_contains($str, "|") && preg_match('/^\{\$(\w.+)\}/', $str, $m)) {
-			$ret = $this->variable_block($m[1]);
 		// Catch all for other { $num + 3 } type of blocks
 		} elseif (preg_match('/^\{(.+)}$/s', $str, $m)) {
 			$ret = $this->expression_block($str, $m);
