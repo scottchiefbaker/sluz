@@ -45,13 +45,8 @@ class sluz {
 
 		$this->char_pos = $char_pos;
 
-		// Micro-optimization for "" input!
-		if (strlen($str) === 0) {
-			return '';
-		}
-
 		// If it doesn't start with a '{' it's plain text so we just return it
-		if ($str[0] !== '{') {
+		if ($str[0] !== '{' || strlen($str) === 0) {
 			$ret = $str;
 		// Simple variable replacement {$foo} or {$foo|default:"123"}
 		} elseif (str_starts_with($str, '{$') && preg_match('/^\{\$(\w[\w\|\.\'":,]*)\s*\}$/', $str, $m)) {
