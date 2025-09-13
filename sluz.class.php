@@ -46,7 +46,7 @@ class sluz {
 		$this->char_pos = $char_pos;
 
 		// Simple variable replacement {$foo} or {$foo|default:"123"}
-		if (str_starts_with($str, '{$') && preg_match('/^\{\$(\w[\w\|\.\'":,!@#%^&*?]*)\s*\}$/', $str, $m)) {
+		if (str_starts_with($str, '{$') && preg_match('/^\{\$(\w[\w\|\.\'":,!@#%^&*?]*)\}$/', $str, $m)) {
 			$ret = $this->variable_block($m[1]);
 		// If statement {if $foo}{/if}
 		} elseif (str_starts_with($str, '{if ') && str_ends_with($str, '{/if}')) {
