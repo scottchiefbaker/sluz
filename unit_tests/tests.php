@@ -94,21 +94,23 @@ sluz_test('{$first'                                , 'ERROR-45821', 'Basic #25 -
 sluz_test('{$cust.first|default:\'Jason\'}'        , 'Scott'      , 'Basic #26 - Hash with default value, not used');
 sluz_test('{$cust.foo|default:\'Jason\'}'          , 'Jason'      , 'Basic #27 - Hash with default value, used');
 sluz_test('{$array}'                               , 'Array'      , 'Basic #29 - Array used as a scalar');
-sluz_test('{$word|truncate:3}'                     , 'cRa'        , 'Basic #30 - Modifier with param');
 sluz_test('{$word|strtolower|ucfirst}'             , 'Crazy'      , 'Basic #31 - Chaining modifiers');
-sluz_test('{$last|truncate:4|truncate:2}'          , 'Ba'         , 'Basic #32 - Two modifiers with params');
 sluz_test('{$first|substr:2}'                      , 'ott'        , 'Basic #33 - PHP function with one param');
 sluz_test('{$first|substr:2,2}'                    , 'ot'         , 'Basic #34 - PHP function with two params');
 sluz_test('{if !$cust.age}unknown{else}{$age}{/if}', 'unknown'    , 'Basic #35 - Negated hash lookup');
-sluz_test('{$y|join_comma}'                        , '2, 4, 6'    , 'Basic #36 - Function with default param');
-sluz_test('{$y|join_comma:9}'                      , '29496'      , 'Basic #37 - Function with integer param');
-sluz_test('{$y|join_comma:"*"}'                    , '2*4*6'      , 'Basic #38 - Function with string param');
-sluz_test('{$y|join_comma:"|"}'                    , '2|4|6'      , 'Basic #39 - Function with string param pipe');
-sluz_test('{$y|join_comma:","}'                    , '2,4,6'      , 'Basic #40 - Function with string param pipe comma');
-sluz_test('{$y|join_comma:"\'"}'                   , "2'4'6"      , 'Basic #41 - Function with string param pipe single quote');
-sluz_test('{$y|join_comma:"; "}'                   , "2; 4; 6"    , 'Basic #42 - Function with string param and space');
-sluz_test("{\$y|join_comma:\"\t\"}"                , "2\t4\t6"    , 'Basic #43 - Function with string param and tab');
 sluz_test('{1.1234 + 2.3456}'                      , "3.469"      , 'Basic #44 - Simple math that returns floating point');
+
+// User defined functions
+sluz_test('{$word|truncate:3}'                     , 'cRa'        , 'Custom function #1 - Modifier with param');
+sluz_test('{$last|truncate:4|truncate:2}'          , 'Ba'         , 'Custom function #2 - Two modifiers with params');
+sluz_test('{$y|join_comma}'                        , '2, 4, 6'    , 'Custom function #3 - Function with default param');
+sluz_test('{$y|join_comma:9}'                      , '29496'      , 'Custom function #4 - Function with integer param');
+sluz_test('{$y|join_comma:"*"}'                    , '2*4*6'      , 'Custom function #5 - Function with string param');
+sluz_test('{$y|join_comma:"|"}'                    , '2|4|6'      , 'Custom function #6 - Function with string param pipe');
+sluz_test('{$y|join_comma:","}'                    , '2,4,6'      , 'Custom function #7 - Function with string param pipe comma');
+sluz_test('{$y|join_comma:"\'"}'                   , "2'4'6"      , 'Custom function #8 - Function with string param pipe single quote');
+sluz_test('{$y|join_comma:"; "}'                   , "2; 4; 6"    , 'Custom function #9 - Function with string param and space');
+sluz_test("{\$y|join_comma:\"\t\"}"                , "2\t4\t6"    , 'Custom function #10 - Function with string param and tab');
 
 // Bare functions must return a string
 sluz_test('{hello_world()}' , "Hello world", 'Function #1 - Hello world');
