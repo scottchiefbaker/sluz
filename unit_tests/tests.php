@@ -106,7 +106,9 @@ sluz_test('{$y|join_comma:"*"}'                    , '2*4*6'      , 'Basic #38 -
 sluz_test('{$y|join_comma:"|"}'                    , '2|4|6'      , 'Basic #39 - Function with string param pipe');
 sluz_test('{$y|join_comma:","}'                    , '2,4,6'      , 'Basic #40 - Function with string param pipe comma');
 sluz_test('{$y|join_comma:"\'"}'                   , "2'4'6"      , 'Basic #41 - Function with string param pipe single quote');
-sluz_test('{1.1234 + 2.3456}'                      , "3.469"      , 'Basic #42 - Simple math that returns floating point');
+sluz_test('{$y|join_comma:"; "}'                   , "2; 4; 6"    , 'Basic #42 - Function with string param and space');
+sluz_test("{\$y|join_comma:\"\t\"}"                , "2\t4\t6"    , 'Basic #43 - Function with string param and tab');
+sluz_test('{1.1234 + 2.3456}'                      , "3.469"      , 'Basic #44 - Simple math that returns floating point');
 
 // Bare functions must return a string
 sluz_test('{hello_world()}' , "Hello world", 'Function #1 - Hello world');
