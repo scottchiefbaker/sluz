@@ -1,8 +1,10 @@
 <?php
 
 ///////////////////////////////////////////////////////////////////////////////
-// Sluz has if/then logic as well. If an if statement references a variable  //
-// that is not assigned it will be treated as if it were false.              //
+// Conditional syntax is available in the form of if/else.                   //
+//                                                                           //
+// Note: When an if statement references a variable that is *not assigned it //
+// will be treated as if it were false.                                      //
 ///////////////////////////////////////////////////////////////////////////////
 
 include("../sluz.class.php");

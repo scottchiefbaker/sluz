@@ -1,7 +1,7 @@
 <?php
 
 ///////////////////////////////////////////////////////////////////////////////
-// Templates can call external functions. Any function that's callable in    //
+// Templates can call external functions. Any function that is callable in   //
 // normal scope can be used: global PHP functions, or user functions.        //
 // Functions will be called with the template variable being the first       //
 // parameter, and other params after. You may need to write wrapper          //
@@ -23,7 +23,8 @@ function join_comma(array $arr, string $separator = ", ") {
 }
 
 function initials($str) {
-	$ret   = '';
+	$ret = '';
+
 	foreach (preg_split('/ /', $str) as $x) { $ret .= substr($x, 0, 1); }
 
 	return $ret;
