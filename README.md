@@ -30,7 +30,7 @@ File: `tpls/script.stpl`
 
 ## 📐 Requirements
 
-Sluz is a zero-dependency library. **Only** the `sluz.class.php` is
+Sluz is a zero-dependency library. **Only** the `sluz.class.php` file is
 needed for the library to function.
 
 ## 🥽 Testing
