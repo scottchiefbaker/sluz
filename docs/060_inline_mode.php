@@ -1,9 +1,9 @@
 <?php
 
 ///////////////////////////////////////////////////////////////////////////////
-// Instead of loading an .stpl file we use a template that's inline with     //
-// your PHP logic. This uses the __halt_compiler() pragma to allow us to     //
-// insert non-PHP code in our PHP file.                                      //
+// Instead of loading a template file we can use a template that is inline   //
+// with your PHP code. We use the __halt_compiler() pragma to allow us to    //
+// insert template content into PHP files.                                   //
 ///////////////////////////////////////////////////////////////////////////////
 
 require('../sluz.class.php');

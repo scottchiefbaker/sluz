@@ -20,11 +20,11 @@
 
 		<p>Sluz is a minimalistic PHP templating engine with an emphasis on syntax similar to <a href="https://www.smarty.net/">Smarty</a>. This allows you to separate your logic (<code>.php</code>) and your presentation (<code>.stpl</code>) files.</p>
 
-		<p>The goal of Sluz is to be a small, single PHP source file, that emulates simple Smarty-like template syntax.</p>
+		<p>The goal of Sluz is to be a <b>small</b>, single PHP source file, that emulates simple Smarty-like template syntax.</p>
 
 		<h5 class="alert alert-secondary p-2 mb-2">Requirements:</h5>
 
-		<p>Sluz requires PHP 8.0+, and has no external library requirements. Only the <code>sluz.class.php</code> is needed for the library to function.</p>
+		<p>Sluz requires PHP 8.0+, and is a zero-dependency library. Only the <code>sluz.class.php</code> file is needed for the library to function.</p>
 
 		<h5 class="alert alert-secondary p-2 mb-2">Naming:</h5>
 		<p>Sluz is pronounced "sloos". The name comes from the "S" in Smarty and "luz" which is Spanish for light. Sluz is a lite, Smarty-like templating system.</p>

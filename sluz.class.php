@@ -5,7 +5,7 @@
 define('SLUZ_INLINE', 'INLINE_TEMPLATE'); // Just a specific string
 
 class sluz {
-	public $version       = '0.8.7';
+	public $version       = '0.9.1';
 	public $tpl_file      = null;       // The path to the TPL file
 	public $inc_tpl_file  = null;       // The path to the {include} file
 
@@ -51,16 +51,8 @@ class sluz {
 
 		$this->char_pos = $char_pos;
 
-		// Micro-optimization for "" input!
-		if (strlen($str) === 0) {
-			return '';
-		}
-
-		// If it doesn't start with a '{' it's plain text so we just return it
-		if ($str[0] !== $open_char) {
-			$ret = $str;
 		// Simple variable replacement {$foo} or {$foo|default:"123"}
-		} elseif (str_starts_with($str, $open_char . '$') && preg_match('/^' . $open_char . '\$(\w[\w\|\.\'":,]*)\s*' . $close_char . '$/', $str, $m)) {
+		if (str_starts_with($str, $open_char . '$') && preg_match('/^' . $open_char . '\$(\w[\w\|\.\'";\t :,!@#%^&*?_-]*)' . $close_char . '$/', $str, $m)) {
 			$ret = $this->variable_block($m[1]);
 		// If statement {if $foo}{/if}
 		} elseif (str_starts_with($str, "{$open_char}if ") && str_ends_with($str, "{$open_char}/if{$close_char}")) {
@@ -221,14 +213,15 @@ class sluz {
 			}
 		}
 
-		// If the *previous* block was an {if} or {foreach} you we remove one \n
-		// to maintain parity between input and output whitespace.
+		// If the *previous* block was an {if} or {foreach} we remove one leading \n
+		// to maintain parity between input and output whitespace. ^ is the whitespace
+		// we're removing.
 		//
 		// This allows templates like:
 		//
 		// {foreach $name as $x}
 		// {$x}
-		// {/foreach}
+		// {/foreach}^
 		$prev_is_if = false;
 		for ($i = 0; $i < count($blocks); $i++) {
 			$str       = $blocks[$i][0] ?? "";
@@ -315,15 +308,15 @@ class sluz {
 		$html       = '';
 
 		foreach ($blocks as $x) {
-			$block     = $x[0];
-			$has_delim = ($block[0] ?? "") === $this->open_char;
+			$block      = $x[0];
+			$first_char = ($block[0] ?? "") === $this->open_char;
 
 			// If the first char is a { it's something we need to process
-			if ($has_delim) {
+			if ($first_char) {
 				$char_pos  = $x[1];
 				$html     .= $this->process_block($block, $char_pos);
 			// It's a static text block so we just append it
-			} else {
+			} elseif ($block) {
 				$html .= $block;
 			}
 		}
@@ -925,6 +918,7 @@ class sluz {
 		$ret   = $this->peval($after, $err);
 
 		$valid_type = (is_string($ret) || is_numeric($ret));
+		var_dump($ret);
 
 		// The evaluated block has to return SOMETHING printable (not null/false/obj)
 		// Even "" is fine

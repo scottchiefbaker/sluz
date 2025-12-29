@@ -4,8 +4,8 @@
 // It's common to have a global header/footer and include content in the  //
 // middle. This can be accomplished with a parent template. When a parent //
 // template is specified $__CHILD_TPL is populated with the original      //
-// template file. This can then be {include file="$__CHILD_TPL"} in the   //
-// parent.                                                                //
+// template filename. This can then be {include file="$__CHILD_TPL"} in   //
+// the parent.                                                            //
 ////////////////////////////////////////////////////////////////////////////
 
 require('../sluz.class.php');

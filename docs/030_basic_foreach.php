@@ -1,8 +1,10 @@
 <?php
 
 ///////////////////////////////////////////////////////////////////////////////
-// Foreach works on either arrays or hashes. You can use regular PHP foreach //
-// syntax with foreach ($foo as $bar) or foreach ($foo as $key => $val).     //
+// Foreach works just like native PHP, on either arrays or hashes.           //
+//                                                                           //
+// Array syntax: {foreach $foo as $bar}                                      //
+// Hash syntax : {foreach $foo as $key => $val}                              //
 ///////////////////////////////////////////////////////////////////////////////
 
 include("../sluz.class.php");
