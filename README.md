@@ -28,6 +28,14 @@ File: `tpls/script.stpl`
 <div>Welcome to Sluz version: {$version}</div>
 ```
 
+## 🤵 Composer
+
+If you are a composer user you can install Sluz with this command:
+
+```text
+composer require sluz/sluz
+```
+
 ## 📐 Requirements
 
 Sluz requires PHP 8.0+, and is a zero-dependency library. **Only** the
