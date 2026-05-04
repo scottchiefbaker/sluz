@@ -4,5 +4,10 @@
     "require": {
         "php": ">=8.0"
     },
-	"license": "GPL-3.0-or-later"
+	"license": "GPL-3.0-or-later",
+	"keywords": ["template", "templating", "smarty", "engine", "php"],
+	"homepage": "https://github.com/scottchiefbaker/sluz",
+	"autoload": {
+		"files": ["sluz.php"]
+	}
 }
