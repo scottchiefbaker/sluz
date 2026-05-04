@@ -8,6 +8,6 @@
 	"keywords": ["template", "templating", "smarty", "engine", "php"],
 	"homepage": "https://github.com/scottchiefbaker/sluz",
 	"autoload": {
-		"files": ["sluz.php"]
+		"files": ["sluz.class.php"]
 	}
 }
