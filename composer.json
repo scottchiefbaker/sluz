@@ -1,0 +1,8 @@
+{
+    "name": "scottchiefbaker/sluz",
+    "description": "Sluz is a minimalistic PHP templating engine with an emphasis on syntax similar to Smarty.",
+    "require": {
+        "php": ">=8.0"
+    },
+	"license": "GPL-3.0-or-later"
+}
