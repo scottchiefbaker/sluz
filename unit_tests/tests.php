@@ -98,6 +98,8 @@ sluz_test('{if !$cust.age}unknown{else}{$age}{/if}'  , 'unknown'    , 'Basic #28
 sluz_test('{1.1234 + 2.3456}'                        , "3.469"      , 'Basic #29 - Simple math that returns floating point');
 sluz_test('{$bogus_var|default:\'hello\'|strtoupper}', 'HELLO'      , 'Basic #30 - Default chained with modifier (empty var)');
 sluz_test('{$last|default:\'nobody\'|strtoupper}'    , 'BAKER'      , 'Basic #31 - Default chained with modifier (non-empty var)');
+sluz_test('{$number + $null}'                        , '15'         , 'Basic #32 - Mixed types: number + null');
+sluz_test('{$number + $x}'                           , '22'         , 'Basic #33 - Mixed types: number + numeric string');
 
 // User defined functions
 sluz_test('{$word|truncate:3}'                     , 'cRa'        , 'Custom function #1 - Modifier with param');
@@ -152,6 +154,8 @@ sluz_test('{if false}a{else}b{if true}c{/if}{/if}'                     , 'bc'   
 sluz_test('{if true}{/if}'                                             , ''        , 'If #27 - If with "" for payload');
 sluz_test('{if $zero}1{elseif $bogus_var}2{elseif $debug}3{else}4{/if}', '3'       , 'If #28 - Multiple elseif');
 sluz_test('{if $first == "Scott"}YES{else}NO{/if}'                     , 'YES'     , 'If #29 - Double-quoted string comparison');
+sluz_test('{if $number + 2 > 10}YES{/if}'                              , 'YES'     , 'If #30 - Arithmetic in condition (true)');
+sluz_test('{if $number - 20 > 10}YES{/if}'                             , ''        , 'If #31 - Arithmetic in condition (false)');
 
 sluz_test('{foreach $array as $num}{$num}{/foreach}'                         , 'onetwothree'            , 'Foreach #1 - Simple');
 sluz_test("{foreach \$array as \$num}\n{\$num}\n{/foreach}"                  , "one\ntwo\nthree\n"      , 'Foreach #2 - Simple with whitespace');
@@ -174,11 +178,12 @@ sluz_test('{$x}'                                                             , '
 sluz_test('{$i}'                                                             , ''                       , 'Foreach #18 - NOT overwrite variable - no initial value');
 // End of persistence foreach tests
 
-sluz_test('{foreach $y as $z}{$z}{/foreach}'                                    , '246'             , 'Foreach #19 - Foreach one char key');
-sluz_test('{foreach $array as $x}{if $__FOREACH_FIRST}FIRST{/if}{$x}{/foreach}' , 'FIRSTonetwothree', 'Foreach #20 - Foreach FIRST item');
-sluz_test('{foreach $array as $x}{$x}{if $__FOREACH_LAST}LAST{/if}{/foreach}'   , 'onetwothreeLAST' , 'Foreach #21 - Foreach LAST item');
-sluz_test('{foreach $array as $x}{$x}{$__FOREACH_INDEX}{/foreach}'              , 'one0two1three2'  , 'Foreach #22 - Foreach index');
-sluz_test('{foreach $single as $x}{$__FOREACH_FIRST}{$__FOREACH_LAST}{/foreach}', '11'              , 'Foreach #23 - Single element FIRST/LAST both true');
+sluz_test('{foreach $y as $z}{$z}{/foreach}'                                    , '246'                    , 'Foreach #19 - Foreach one char key');
+sluz_test('{foreach $array as $x}{if $__FOREACH_FIRST}FIRST{/if}{$x}{/foreach}' , 'FIRSTonetwothree'       , 'Foreach #20 - Foreach FIRST item');
+sluz_test('{foreach $array as $x}{$x}{if $__FOREACH_LAST}LAST{/if}{/foreach}'   , 'onetwothreeLAST'        , 'Foreach #21 - Foreach LAST item');
+sluz_test('{foreach $array as $x}{$x}{$__FOREACH_INDEX}{/foreach}'              , 'one0two1three2'         , 'Foreach #22 - Foreach index');
+sluz_test('{foreach $single as $x}{$__FOREACH_FIRST}{$__FOREACH_LAST}{/foreach}', '11'                     , 'Foreach #23 - Single element FIRST/LAST both true');
+sluz_test('{foreach $cust as $k => $v}{$k}:{$v},{/foreach}'                     , 'first:Scott,last:Baker,', 'Foreach #24 - String keys');
 
 sluz_test('Scott'           , 'Scott'           , 'Plain text #1 - Static text');
 sluz_test('<div>Scott</div>', '<div>Scott</div>', 'Plain text #2 - HTML');
@@ -205,12 +210,15 @@ sluz_test("{if \$x}\n{\$x}\n{/if}"                       , "7\n"          , 'Whi
 sluz_test("{foreach \$y as \$x}\n{\$x}\n{/foreach}\nlast", "2\n4\n6\nlast", 'Whitespace input/output #8');
 sluz_test("{foreach \$y as \$x}{\$x}{/foreach}\nEND"     , "246\nEND"     , 'Whitespace input/output #9');
 
-sluz_test('{* Comment *}'           , '', 'Comment #1 - With text');
-sluz_test('{* ********* *}'         , '', 'Comment #2 - ******');
-sluz_test('{**}'                    , '', 'Comment #3 - No whitespace');
-sluz_test('{*{$array|count}*}'      , '', 'Comment #4 - Variable inside');
-sluz_test('{* {* nested *} *}'      , '', 'Comment #5 - Nested');
-sluz_test('{* {* {* nested *} *} *}', '', 'Comment #6 - Triple Nested');
+sluz_test('{* Comment *}'                , ''           , 'Comment #1 - With text');
+sluz_test('{* ********* *}'              , ''           , 'Comment #2 - ******');
+sluz_test('{**}'                         , ''           , 'Comment #3 - No whitespace');
+sluz_test('{*{$array|count}*}'           , ''           , 'Comment #4 - Variable inside');
+sluz_test('{* {* nested *} *}'           , ''           , 'Comment #5 - Nested');
+sluz_test('{* {* {* nested *} *} *}'     , ''           , 'Comment #6 - Triple Nested');
+sluz_test('{* unclosed comment'          , 'ERROR-45821', 'Comment #7 - Unclosed comment');
+sluz_test("{* line1\nline2 *}"           , ''           , 'Comment #8 - Multi-line comment');
+sluz_test("{* line1\n{\$first}\nline2 *}", ''           , 'Comment #9 - Multi-line comment with variable');
 
 sluz_test("{include file='tpls/extra.stpl'}"                 , '/e1ab49cf/' , 'Include #1 - file=\'extra.stpl\'');
 sluz_test("{include 'tpls/extra.stpl'}"                      , '/e1ab49cf/' , 'Include #2 - \'extra.stpl\'');
