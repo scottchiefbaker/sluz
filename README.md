@@ -28,6 +28,26 @@ File: `tpls/script.stpl`
 <div>Welcome to Sluz version: {$version}</div>
 ```
 
+## 🧩 Template syntax
+
+| Syntax                               | Example                                          | Output              |
+|--------------------------------------|--------------------------------------------------|---------------------|
+| `{$var}`                             | `{$name}`                                        | `Jason`             |
+| `{$hash.key}` / `{$array.0}`         | `{$cust.first}`                                  | `Scott`             |
+| `{$var\|modifier}`                   | `{$animal\|strtoupper}`                          | `KITTEN`            |
+| `{$var\|mod:params}`                 | `{$greet\|substr:0,3}`                           | `Hel`               |
+| `{$var\|m1\|m2}`                     | `{$word\|strtolower\|ucfirst}`                   | `Crazy`             |
+| `{$var\|default:"val"}`              | `{$null\|default:"?"}`                           | `?`                 |
+| `{$expr}`                            | `{$number + 3}`                                  | `18`                |
+| `{if}…{elseif}…{else}…{/if}`         | `{if $x}yes{else}no{/if}`                        | `yes`               |
+| `{foreach $a as $v}`                 | `{foreach $items as $x}{$x}{/foreach}`           | `onetwothree`       |
+| `{foreach $a as $k => $v}`           | `{foreach $m as $k=>$v}{$k}{/foreach}`           | `012`               |
+| `$__FOREACH_FIRST/LAST/INDEX`        | `{if $__FOREACH_FIRST}…{/if}`                    | —                   |
+| `{include file='...'}`               | `{include file='header.stpl'}`                   | —                   |
+| `{literal}…{/literal}`               | `{literal}function foo() { {/literal}`           | `function foo() { ` |
+| `{* comment *}`                      | `{* hidden *}`                                   | *(empty)*           |
+| `{function()}`                       | `{count($array)}`                                | `3`                 |
+
 ## 🤵 Composer
 
 If you are a composer user you can install Sluz with this command:
