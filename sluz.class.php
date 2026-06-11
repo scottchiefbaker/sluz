@@ -181,10 +181,10 @@ class sluz {
 			if ($is_comment) {
 				$end = $this->find_ending_tag(substr($str, $start), '{*', '*}');
 
+				// If we don't find a closing comment tag we add the half-block to the list
+				// and it gets caught by "invalid block" later
 				if ($end === false) {
-					list($line, $col, $file) = $this->get_char_location($i, $this->tpl_file);
-					$file ??= 'inline';
-					die("<b>Template error:</b> Missing closing <code>*}</code> for comment in <code>$file</code> on line #$line");
+					continue;
 				}
 
 				$end += 2; // '*}' is 2 long so we add that
