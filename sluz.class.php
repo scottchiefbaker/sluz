@@ -194,7 +194,8 @@ class sluz {
 
 				if ($end === false) {
 					list($line, $col, $file) = $this->get_char_location($i, $this->tpl_file);
-					return $this->error_out("Missing closing <code>*}</code> for comment in <code>$file</code> on line #$line", 48724);
+					$file ??= 'inline';
+					die("<b>Template error:</b> Missing closing <code>*}</code> for comment in <code>$file</code> on line #$line");
 				}
 
 				$end += 2; // '*}' is 2 long so we add that
