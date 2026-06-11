@@ -194,6 +194,7 @@ sluz_test("{foreach \$y as \$x}\n{\$x}\n{/foreach}"      , "2\n4\n6\n"    , 'Whi
 sluz_test("{if \$x}{\$x}{/if}"                           , "7"            , 'Whitespace input/output #6');
 sluz_test("{if \$x}\n{\$x}\n{/if}"                       , "7\n"          , 'Whitespace input/output #7');
 sluz_test("{foreach \$y as \$x}\n{\$x}\n{/foreach}\nlast", "2\n4\n6\nlast", 'Whitespace input/output #8');
+sluz_test("{foreach \$y as \$x}{\$x}{/foreach}\nEND"     , "246\nEND"     , 'Whitespace input/output #9');
 
 sluz_test('{* Comment *}'           , '', 'Comment #1 - With text');
 sluz_test('{* ********* *}'         , '', 'Comment #2 - ******');
