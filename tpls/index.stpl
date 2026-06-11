@@ -51,6 +51,39 @@ print $s->fetch("tpls/script.stpl");</pre>
 			{/literal}
 		</div>
 
+		<h5 class="alert alert-secondary p-2 mt-4 mb-2">Template Syntax:</h5>
+
+		<div class="table-responsive">
+			<table class="table table-bordered table-striped table-sm">
+				<thead class="table-dark">
+					<tr>
+						<th>Syntax</th>
+						<th>Example</th>
+						<th>Output</th>
+					</tr>
+				</thead>
+				<tbody>
+					{literal}
+					<tr><td><code>{$var}</code></td><td><code>{$name}</code></td><td><code>Jason</code></td></tr>
+					<tr><td><code>{$hash.key}</code> / <code>{$array.0}</code></td><td><code>{$cust.first}</code></td><td><code>Scott</code></td></tr>
+					<tr><td><code>{$var|modifier}</code></td><td><code>{$animal|strtoupper}</code></td><td><code>KITTEN</code></td></tr>
+					<tr><td><code>{$var|mod:params}</code></td><td><code>{$greet|substr:0,3}</code></td><td><code>Hel</code></td></tr>
+					<tr><td><code>{$var|m1|m2}</code></td><td><code>{$word|strtolower|ucfirst}</code></td><td><code>Crazy</code></td></tr>
+					<tr><td><code>{$var|default:"val"}</code></td><td><code>{$null|default:"?"}</code></td><td><code>?</code></td></tr>
+					<tr><td><code>{$expr}</code></td><td><code>{$number + 3}</code></td><td><code>18</code></td></tr>
+					<tr><td><code>{if}…{elseif}…{else}…{/if}</code></td><td><code>{if $x}yes{else}no{/if}</code></td><td><code>yes</code></td></tr>
+					<tr><td><code>{foreach $a as $v}</code></td><td><code>{foreach $items as $x}{$x}{/foreach}</code></td><td><code>onetwothree</code></td></tr>
+					<tr><td><code>{foreach $a as $k => $v}</code></td><td><code>{foreach $m as $k=>$v}{$k}{/foreach}</code></td><td><code>012</code></td></tr>
+					<tr><td><code>$__FOREACH_FIRST/LAST/INDEX</code></td><td><code>{if $__FOREACH_FIRST}…{/if}</code></td><td>—</td></tr>
+					<tr><td><code>{include file='...'}</code></td><td><code>{include file='header.stpl'}</code></td><td>—</td></tr>
+					<tr><td><code>{literal}…{/literal}</code></td><td><code>{literal}function foo() { {/literal}</code></td><td><code>function foo() { </code></td></tr>
+					<tr><td><code>{* comment *}</code></td><td><code>{* hidden *}</code></td><td><em>(empty)</em></td></tr>
+					<tr><td><code>{function()}</code></td><td><code>{count($array)}</code></td><td><code>3</code></td></tr>
+					{/literal}
+				</tbody>
+			</table>
+		</div>
+
 		<div class="row">
 			<div class="col">
 				<a href="docs/index.php?doc=001_basic_vars">More documentation</a>
