@@ -634,21 +634,30 @@ class sluz {
 			$is_nothing = ($tmp === null || $tmp === "");
 			$is_default = str_contains($mod, "default:");
 
-			// Empty with a default value
-			if ($is_nothing && $is_default) {
-				$p    = explode("default:", $str, 2);
-				$dval = $p[1] ?? "";
-				$ret  = $this->peval($dval);
-			// Non-empty, but has a default value
-			} elseif (!$is_nothing && $is_default) {
-				$ret = $this->array_dive($key, $this->tpl_vars) ?? "";
-			// User function
-			} else {
-				$pre   = $this->array_dive($key, $this->tpl_vars) ?? "";
+			// If there's a default, extract just the default value and
+			// rebuild $mod to contain only chained modifiers after it
+			if ($is_default) {
+				$p           = explode("default:", $str, 2);
+				$dval        = $p[1] ?? "";
+				$pattern     = '/\|(?![^"]*"(?:(?:[^"]*"){2})*[^"]*$)/';
+				$dparts      = preg_split($pattern, $dval, 2);
+				$default_val = $this->peval($dparts[0] ?? "");
 
-				// Each modifier is separated by a | but we only split on
-				// pipes that are NOT in a quoted string. Pattern provided
-				// by ChatGPT.
+				if ($is_nothing) {
+					$pre = $default_val;
+				} else {
+					$pre = $this->array_dive($key, $this->tpl_vars) ?? "";
+				}
+
+				$mod = $dparts[1] ?? "";
+			} else {
+				$pre = $this->array_dive($key, $this->tpl_vars) ?? "";
+			}
+
+			// Each modifier is separated by a `|` so we split on those chars
+			// but we have to be careful NOT to split on quoted `|` because they
+			// might be params
+			if ($mod) {
 				$pattern = '/\|(?![^"]*"(?:(?:[^"]*"){2})*[^"]*$)/';
 				$parts   = preg_split($pattern, $mod);
 
@@ -661,9 +670,8 @@ class sluz {
 
 					if ($param_str) {
 						// Split a string by commas only when they are not inside quotation marks
-						$new = preg_split('/,(?=(?:[^"]*"[^"]*")*[^"]*$)/', $param_str);
-						$new = array_map([$this, 'peval'], $new);
-
+						$new    = preg_split('/,(?=(?:[^"]*"[^"]*")*[^"]*$)/', $param_str);
+						$new    = array_map([$this, 'peval'], $new);
 						$params = array_merge($params, $new);
 					}
 
@@ -679,15 +687,15 @@ class sluz {
 						$pre = call_user_func_array($func, $params);
 					} catch (Exception $e) {
 						$msg = "Exception: " . $e->getMessage();
-						$this->error_out($msg, 79134);
+						return $this->error_out($msg, 79134);
 					} catch (TypeError $e) {
 						$msg = "TypeError: " . $e->getMessage();
-						$this->error_out($msg, 58200);
+						return $this->error_out($msg, 58200);
 					}
 				}
-
-				$ret = $pre;
 			}
+
+			$ret = $pre;
 		} else {
 			$ret = $this->array_dive($str, $this->tpl_vars) ?? "";
 		}
