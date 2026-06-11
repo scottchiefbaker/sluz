@@ -62,6 +62,7 @@ $sluz->assign('null'        , null);
 $sluz->assign('true'        , true);
 $sluz->assign('false'       , false);
 $sluz->assign('single'      , ['only']);
+$sluz->assign('tpl_path'    , 'tpls/extra.stpl');
 $sluz->assign('conf'		, [ 'main' => true, 'debug' => false ]);
 $sluz->assign($hash);
 
@@ -113,6 +114,8 @@ sluz_test('{$y|join_comma:"\'"}'                   , "2'4'6"      , 'Custom func
 sluz_test('{$y|join_comma:"; "}'                   , "2; 4; 6"    , 'Custom function #9 - Function with string param and space');
 sluz_test("{\$y|join_comma:\"\t\"}"                , "2\t4\t6"    , 'Custom function #10 - Function with string param and tab');
 sluz_test('{$word|truncate:"abc"}'                 , 'ERROR-58200', 'Custom function #11 - TypeError in modifier');
+sluz_test('{$word|nonexistent_func}'               , 'ERROR-47204', 'Custom function #12 - Unknown modifier function');
+sluz_test('{$word|throws_exception}'               , 'ERROR-79134', 'Custom function #13 - Exception in modifier');
 
 // Bare functions must return a string
 sluz_test('{hello_world()}' , "Hello world", 'Function #1 - Hello world');
@@ -225,6 +228,8 @@ sluz_test("{include 'tpls/extra.stpl'}"                      , '/e1ab49cf/' , 'I
 sluz_test('{include}'                                        , 'ERROR-73467', 'Include #3 - No payload');
 sluz_test("{include file='tpls/extra.stpl' secret='eca4906'}", '/eca4906/'  , 'Include #4 - With variable');
 sluz_test("{include file='tpls/nonexistent.stpl'}"           , 'ERROR-18485', 'Include #5 - File not found');
+sluz_test('{include foo}'                                    , 'ERROR-18485', 'Include #6 - Malformed');
+sluz_test('{include file="$tpl_path"}'                       , '/e1ab49cf/' , 'Include #7 - With variable file path');
 
 sluz_test(['{$a}{$b}{$c}']                                                     , 3, 'Get blocks #1 - Basic variables');
 sluz_test(['{if $a}{$a}{/if}']                                                 , 1, 'Get blocks #2 - Basic variables');
@@ -239,6 +244,7 @@ sluz_test([' {* {$foo} *} ']                                                   ,
 sluz_test(['{foreach $array as $i}{foreach $array as $i}x{/foreach}{/foreach}'], 1, 'Get blocks #11 - Nested foreach');
 sluz_test(["{\$foo}\n{\$bar}"]                                                 , 3, 'Get blocks #12 - Only whitespace block');
 sluz_test(["{\$foo}\n\n{\$bar}"]                                               , 3, 'Get blocks #13 - Double whitespace block');
+sluz_test(['{* Comment *}']                                                    , 0, 'Get blocks #14 - Only comments');
 
 //////////////////////////////////////////////////////////////////////////////////////////
 
@@ -489,6 +495,10 @@ function return_false() {
 
 function return_null() {
 	return null;
+}
+
+function throws_exception($x) {
+	throw new Exception("Test exception");
 }
 
 // vim: tabstop=4 shiftwidth=4 noexpandtab autoindent softtabstop=4
