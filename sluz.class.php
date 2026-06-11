@@ -227,6 +227,13 @@ class sluz {
 			$str       = $blocks[$i][0] ?? "";
 			$cur_is_if = str_starts_with($str, $oc . 'if') || str_starts_with($str, $oc . 'for');
 
+			// A combined if/foreach block (contains closing tag) should only
+			// trigger trimming of the next block's \n if the payload already
+			// ends with \n — otherwise the \n is content, not formatting.
+			if ($cur_is_if && (str_contains($str, '{/if}') || str_contains($str, '{/foreach}'))) {
+				$cur_is_if = boolval(preg_match('/\n\{\/\w+\}$/s', $str));
+			}
+
 			if ($prev_is_if) {
 				$blocks[$i][0] = $this->ltrim_one($str, "\n");
 			}
