@@ -1024,82 +1024,64 @@ class sluz {
 		$num    = count($toks);
 		$nested = 0;
 
-		// This builds an array of which tokens are pieces of the if
-		$tmp = [];
+		$conds    = [];
+		$payloads = [];
+		$cur      = '';
+		$first    = true;
+
 		for ($i = 0; $i < $num; $i++) {
 			$item = $toks[$i];
 
 			if (str_starts_with($item, '{if')) { $nested++; }
 			if ($item === '{/if}')             { $nested--; }
 
-			// If we're in the middle of a nest, it's automatically NOT an if piece
-			if ($nested !== 1) {
-				$yes = false;
-			} else {
-				$yes = boolval($this->is_if_token($item));
-			}
-
-			// The last {/if} of a nested doesn't count
-			if ($nested === 1 && $item === '{/if}') {
-				$yes = false;
-			}
-
-			$tmp[$i] = $yes;
-		}
-
-		$tmp[$num - 1] = true;
-
-		////////////////////////////////////////////////////////////////////////
-
-		// Now that we know what pieces are the ifs we can pull those out
-		// because they are the test conditions
-		$conds = [];
-		for ($i = 0; $i < $num; $i++) {
-			$item = $tmp[$i];
-
-			if ($item) {
-				$test    = $this->is_if_token($toks[$i]);
-				$is_last = ($i === ($num - 1));
-
-				if (!$is_last) {
-					$conds[] = $test;
+			// Determine if this token is an if-control boundary ({if}, {elseif}, {else})
+			// at nesting level 1. Nested {if}/{/if} pairs are treated as payload content.
+			$is_ctrl = false;
+			$cond    = null;
+			if ($nested === 1) {
+				if ($item === '{else}') {
+					$is_ctrl = true;
+					$cond    = true;
+				} elseif (str_starts_with($item, '{if ')) {
+					$is_ctrl = true;
+					$cond    = trim(substr($item, 4, -1));
+				} elseif (str_starts_with($item, '{elseif ')) {
+					$is_ctrl = true;
+					$cond    = trim(substr($item, 8, -1));
 				}
 			}
-		}
 
-		// Last one is the final {/if} and it's always true
-		$tmp[$num] = true;
+			// The last token always acts as a control boundary so its
+			// preceding payload is captured
+			if ($i === $num - 1) {
+				$is_ctrl = true;
+			}
 
-		////////////////////////////////////////////////////////////////////////
-
-		// Everything AFTER an {if} piece is the payload to that test condition
-		$str      = '';
-		$payloads = [];
-		$first    = true;
-		for ($i = 0; $i < $num; $i++) {
-			$item = $tmp[$i];
-
-			if (!$item) {
-				$str .= $toks[$i];
-			} else {
-				if (!$first) {
-					$payloads[] = $str;
+			if ($is_ctrl) {
+				if ($first) {
+					$first = false;
+				} else {
+					$payloads[] = $cur;
 				}
 
-				$first = false;
-				$str   = '';
+				$cur = '';
+				if ($cond !== null) {
+					$conds[] = $cond;
+				}
+			} else {
+				$cur .= $item;
 			}
 		}
 
-		$cond_count = count($conds);
-		$payl_count = count($payloads);
-
-		if ($cond_count !== $payl_count) {
-			$this->error_out("Error parsing {if} conditions in '$str'", 95320);
+		if (count($conds) !== count($payloads)) {
+			$this->error_out("Error parsing [if] conditions", 95320);
 		}
 
-		$ret = [];
-		for ($i = 0; $i < count($conds); $i++) {
+		$ret  = [];
+		$cnum = count($conds);
+
+		for ($i = 0; $i < $cnum; $i++) {
 			$ret[] = [$conds[$i], $payloads[$i]];
 		}
 
