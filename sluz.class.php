@@ -144,41 +144,55 @@ class sluz {
 				$block       = substr($str, $start, $len);
 				$is_function = preg_match("/^\{(if|foreach|literal)\b/", $block, $m);
 
-				// If we're in a function, loop until we find the closing tag
+				// If this block is an opening function tag ({if}, {foreach}, {literal}),
+				// walk forward to find the matching {/if}, {/foreach}, or {/literal}.
+				// Nested blocks of the same type are handled by counting open vs close tags.
 				if ($is_function) {
-					// Go character by character until we find a '}' and see if we find the closing tag
-					for ($j = $i + 1; $j < strlen($str); $j++) {
-						$closed = ($str[$j] === "}");
+					$close_tag    = "{/$m[1]}";
+					$open_tag_str = '{' . $m[1];
 
-						// If we find a close tag we check to see if it's the final closed tag
-						if ($closed) {
-							$len = $j - $start + 1;
-							$tmp = substr($str, $start, $len);
+					// Seed open count with occurrences inside the opening tag itself
+					// (e.g. {if $x eq '{if}'} has two {if substrings)
+					$open_count  = substr_count($block, $open_tag_str);
+					$close_count = 0;
 
-							// Open tag is whatever word is after the '{'
-							$open_tag  = $m[1];
-							// Build the closing tag so we can look for it later
-							$close_tag = "{/$open_tag}";
+					// Position after the opening tag's closing } — start scanning from here
+					$last_pos = $i + 1;
 
-							$open_count  = substr_count($tmp, '{' . $open_tag);
-							$close_count = substr_count($tmp, $close_tag);
+					// Jump directly to each } instead of walking character-by-character.
+					// Between consecutive } characters, count open and close tags in that
+					// segment using substr_count with offset/length. Accumulating incrementally
+					// avoids rescanning the entire block on every }.
+					$j = $i + 1;
+					while ($j < $slen) {
+						$j = strpos($str, '}', $j);
+						if ($j === false) break;
 
-							//k([$open_tag, $close_tag, $open_count, $close_count, $tmp], KRUMO_EXPAND_ALL);
+						$seg_len      = $j - $last_pos + 1;
+						$open_count  += substr_count($str, $open_tag_str, $last_pos, $seg_len);
+						$close_count += substr_count($str, $close_tag, $last_pos, $seg_len);
+						$last_pos     = $j + 1;
 
-							// If this closing bracket is the closing tag we found the pair
-							if ($open_count === $close_count && (str_ends_with($tmp, $close_tag))) {
+						// When open and close counts match, verify this } ends the correct
+						// close tag (not a coincidental } inside another construct)
+						if ($open_count === $close_count) {
+							$tmp = substr($str, $start, $j - $start + 1);
+							if (str_ends_with($tmp, $close_tag)) {
 								$block = $tmp;
 								break;
 							}
 						}
+
+						$j++;
 					}
 				}
 
 				if ($block) {
-					$blocks[]  = [$block, $i];
+					$blocks[] = [$block, $i];
 				}
-				$start    += strlen($block);
-				$i         = $start;
+
+				$start += strlen($block);
+				$i      = $start;
 			}
 
 			// If it's a comment we slurp all the chars until the first '*}' and make that the block
