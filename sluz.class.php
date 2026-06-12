@@ -285,6 +285,7 @@ class sluz {
 		return $html;
 	}
 
+	// Parse a string (not a file)
 	public function parse_string($tpl_str) {
 		$blocks = $this->get_blocks($tpl_str);
 		$html   = $this->process_blocks($blocks);
