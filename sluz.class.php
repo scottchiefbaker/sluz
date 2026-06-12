@@ -985,11 +985,7 @@ class sluz {
 
 	// Break up a string into tokens: pieces of {} and the text between them
 	function get_tokens($str) {
-		$x = preg_split('/({[^}]+})/', $str, 0, PREG_SPLIT_DELIM_CAPTURE);
-		$x = array_filter($x);
-		$x = array_values($x);
-
-		return $x;
+		return preg_split('/({[^}]+})/', $str, 0, PREG_SPLIT_DELIM_CAPTURE | PREG_SPLIT_NO_EMPTY);
 	}
 
 	// Is the string part of an if token
