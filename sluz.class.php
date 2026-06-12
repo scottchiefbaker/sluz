@@ -792,9 +792,6 @@ class sluz {
 			$rules = $this->get_if_rules_from_tokens($toks);
 		}
 
-		// Put the tpl_vars in the current scope so if works against them
-		extract($this->tpl_vars, EXTR_PREFIX_ALL, $this->var_prefix);
-
 		$ret = "";
 		foreach ($rules as $x) {
 			$test    = $x[0];
