@@ -999,11 +999,7 @@ class sluz {
 		$oc = $this->open_char;
 		$cc = $this->close_char;
 
-		$x = preg_split('/(' . $oc . '[^' . $cc . ']+' . $cc. ')/', $str, 0, PREG_SPLIT_DELIM_CAPTURE);
-		$x = array_filter($x);
-		$x = array_values($x);
-
-		return $x;
+		return preg_split('/(' . $oc . '[^}]+' . $cc . ')/', $str, 0, PREG_SPLIT_DELIM_CAPTURE | PREG_SPLIT_NO_EMPTY);
 	}
 
 	// Is the string part of an if token
