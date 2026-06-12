@@ -27,7 +27,7 @@
 		<p>Sluz requires PHP 8.0+, and is a zero-dependency library. Only the <code>sluz.class.php</code> file is needed for the library to function.</p>
 
 		<h5 class="alert alert-secondary p-2 mb-2">Naming:</h5>
-		<p>Sluz is pronounced "sloos". The name comes from the "S" in Smarty and "luz" which is Spanish for light. Sluz is a lite, Smarty-like templating system.</p>
+		<p>Sluz is pronounced "slooz". The name comes from the "S" in Smarty and "luz" which is Spanish for light. Sluz is a lite, Smarty-like templating system.</p>
 
 		<h5 class="alert alert-secondary p-2 mt-4 mb-2">Getting started:</h5>
 
