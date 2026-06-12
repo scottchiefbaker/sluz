@@ -74,7 +74,7 @@ php unit_tests/tests.php
 ```
 
 **Note:** Care was take to ensure that no `E_NOTICE` warnings are emitted
-to insure Sluz is `error_reporting(E_ALL)` compliant.
+to insure Sluz is `error_reporting(E\_ALL)` compliant.
 
 ## 📖 Documentation
 
