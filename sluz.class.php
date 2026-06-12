@@ -81,8 +81,6 @@ class sluz {
 
 	// Break the text up in to tokens/blocks to process by process_block()
 	public function get_blocks($str) {
-		$start_time = microtime(1);
-
 		$start  = 0;
 		$blocks = [];
 		$slen   = strlen($str);
@@ -341,8 +339,7 @@ class sluz {
 
 	// Load the template file into a string
 	private function get_tpl_content($tpl_file) {
-		$start_time = microtime(1);
-		$tf         = $this->tpl_file = $tpl_file;
+		$tf = $this->tpl_file = $tpl_file;
 
 		// If we're in simple mode and we have a __halt_compiler() we can assume inline mode
 		$inline_simple = $this->simple_mode && $this->get_inline_content($this->php_file);
