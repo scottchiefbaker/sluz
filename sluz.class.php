@@ -1028,11 +1028,14 @@ class sluz {
 			return true;
 		}
 
-		// Return the conditional for this
-		if (preg_match('/' . $this->open_char . '(if|elseif) (.+?)' . $this->close_char . '/', $str, $m)) {
-			$ret = trim($m[2] ?? "");
-			return $ret;
-		};
+		$oc = $this->open_char;
+		if (str_starts_with($str, $oc . 'if ')) {
+			return trim(substr($str, 4, -1));
+		}
+
+		if (str_starts_with($str, $oc . 'elseif ')) {
+			return trim(substr($str, 8, -1));
+		}
 
 		return false;
 	}
