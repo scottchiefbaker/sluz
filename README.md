@@ -87,6 +87,6 @@ There is extensive documentation in the `docs/` with real world examples of the 
 
 ## 🔤 Naming
 
-Sluz is pronounced "sloos". The name comes from the "S" in Smarty
+Sluz is pronounced "slooz". The name comes from the "S" in Smarty
 and "luz" which is Spanish for light. Sluz is a lite, Smarty-like
 templating system.
