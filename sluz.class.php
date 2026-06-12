@@ -16,14 +16,18 @@ class sluz {
 	public $open_char    = '{';
 	public $close_char   = '}';
 
-	private $var_prefix   = "sluz_pfx"; // Variable prefix for extract()
-	private $php_file     = null;       // Path to the calling PHP file
-	private $php_file_dir = null;       // Path to the calling PHP directory
-	private $simple_mode  = false;      // Boolean are we in simple mode
-	private $fetch_called = false;      // Boolean used in simple if fetch has been called
-	private $char_pos     = -1;         // Character offset in the TPL
+	private $var_prefix     = "sluz_pfx"; // Variable prefix for extract()
+	private $var_prefix_str = null;       // Cached '$' + prefix + '_' for fast lookups
+	private $php_file       = null;       // Path to the calling PHP file
+	private $php_file_dir   = null;       // Path to the calling PHP directory
+	private $simple_mode    = false;      // Boolean are we in simple mode
+	private $fetch_called   = false;      // Boolean used in simple if fetch has been called
+	private $char_pos       = -1;         // Character offset in the TPL
 
-	public function __construct() { }
+	public function __construct() {
+		$this->var_prefix_str = '$' . $this->var_prefix . '_';
+	}
+
 	public function __destruct()  {
 		// In simple mode we auto print the output
 		if ($this->simple_mode && !$this->fetch_called) {
@@ -557,7 +561,7 @@ class sluz {
 		// If it starts with a '$' we might be able to cheat
 		if ($first_char === '$') {
 			// Remove the prefix so we can look it up raw
-			$new = str_replace('$' . $this->var_prefix . '_', '', $input);
+			$new = substr($input, strlen($this->var_prefix_str));
 			$ret = $this->tpl_vars[$new] ?? null;
 
 			return $ret;
@@ -566,7 +570,7 @@ class sluz {
 		// If it starts with a '!$' we might be able to cheat and invert
 		if (str_starts_with($input, '!$')) {
 			// Remove the prefix so we can look it up raw
-			$new = str_replace('!$' . $this->var_prefix . '_', '', $input);
+			$new = substr($input, strlen($this->var_prefix_str) + 1);
 			$ret = $this->tpl_vars[$new] ?? null;
 
 			if ($ret !== null) {
