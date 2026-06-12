@@ -1008,11 +1008,13 @@ class sluz {
 			return true;
 		}
 
-		// Return the conditional for this
-		if (preg_match("/({if|{elseif) (.+?)}/", $str, $m)) {
-			$ret = trim($m[2] ?? "");
-			return $ret;
-		};
+		if (str_starts_with($str, '{if ')) {
+			return trim(substr($str, 4, -1));
+		}
+
+		if (str_starts_with($str, '{elseif ')) {
+			return trim(substr($str, 8, -1));
+		}
 
 		return false;
 	}
