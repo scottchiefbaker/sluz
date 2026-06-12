@@ -306,8 +306,7 @@ class sluz {
 
 	// Turn an array of blocks into output HTML
 	private function process_blocks(array $blocks) {
-		$start_time = microtime(1);
-		$html       = '';
+		$html = '';
 
 		foreach ($blocks as $x) {
 			$block      = $x[0];
