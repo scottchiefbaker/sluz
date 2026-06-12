@@ -638,7 +638,7 @@ class sluz {
 	private function variable_block($str) {
 
 		// If it has a '|' it's either a function call or 'default'
-		if (preg_match("/(.+?)\|(.*)/", $str, $m)) {
+		if (str_contains($str, '|') && preg_match("/(.+?)\|(.*)/", $str, $m)) {
 			$key = $m[1];
 			$mod = $m[2];
 
