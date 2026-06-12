@@ -80,6 +80,11 @@ to insure Sluz is `error_reporting(E\_ALL)` compliant.
 
 There is extensive documentation in the `docs/` with real world examples of the syntax.
 
+## 🧬 See Also
+
+* [Template::Sluz](https://github.com/scottchiefbaker/perl-Template-Sluz) / Perl
+* [Template-Sluz](https://github.com/scottchiefbaker/js-Template-Sluz) / JavaScript
+
 ## 🔤 Naming
 
 Sluz is pronounced "sloos". The name comes from the "S" in Smarty
