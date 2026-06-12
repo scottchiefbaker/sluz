@@ -426,6 +426,13 @@ class sluz {
 			return $str;
 		}
 
+		// Fast path: no dots means just prefix variables, skip callback overhead
+		if (!str_contains($str, '.')) {
+			$str = preg_replace('/\$(\w+)/', '$' . $this->var_prefix . '_$1', $str);
+
+			return $str;
+		}
+
 		// Process flat arrays in the test like $cust.name or $array[3]
 		$callback = array($this, 'dot_to_bracket_callback');
 		$str      = preg_replace_callback('/(\$\w[\w\.]*)/', $callback, $str);
