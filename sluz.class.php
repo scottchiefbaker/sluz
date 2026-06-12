@@ -658,12 +658,12 @@ class sluz {
 				if ($is_nothing) {
 					$pre = $default_val;
 				} else {
-					$pre = $this->array_dive($key, $this->tpl_vars) ?? "";
+					$pre = $tmp;
 				}
 
 				$mod = $dparts[1] ?? "";
 			} else {
-				$pre = $this->array_dive($key, $this->tpl_vars) ?? "";
+				$pre = $tmp;
 			}
 
 			// Each modifier is separated by a `|` so we split on those chars
