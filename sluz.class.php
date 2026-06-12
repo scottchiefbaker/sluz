@@ -604,7 +604,7 @@ class sluz {
 	// A smart wrapper around eval()
 	private function peval($str, &$err = 0) {
 		$x = $this->micro_optimize($str);
-		if ($x) {
+		if ($x !== null) {
 			return $x;
 		}
 
