@@ -882,26 +882,18 @@ class sluz {
 		// Save the current values so we can restore them later
 		$save = $this->tpl_vars;
 
+		// Check to see if the block contains any of the FOREACH special vars
+		$need_meta = str_contains($payload, '$__FOREACH');
+
 		$ret  = '';
 		$idx  = 0;
 		$last = count($src) - 1;
-		// Temp set a key/val so when we process this section it's correct
 		foreach ($src as $key => $val) {
-			// Set if we're on the FIRST iteration
-			if ($idx === 0) {
-				$this->tpl_vars['__FOREACH_FIRST'] = true;
-			} else {
-				$this->tpl_vars['__FOREACH_FIRST'] = false;
+			if ($need_meta) {
+				$this->tpl_vars['__FOREACH_FIRST'] = ($idx === 0);
+				$this->tpl_vars['__FOREACH_LAST']  = ($idx === $last);
+				$this->tpl_vars['__FOREACH_INDEX'] = $idx;
 			}
-
-			// Set if we're on the LAST iteration
-			if ($idx === $last) {
-				$this->tpl_vars['__FOREACH_LAST'] = true;
-			} else {
-				$this->tpl_vars['__FOREACH_LAST'] = false;
-			}
-
-			$this->tpl_vars['__FOREACH_INDEX'] = $idx;
 
 			// This is a key/val pair: foreach $key => $val
 			if ($oval) {
