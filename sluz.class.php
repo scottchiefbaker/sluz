@@ -1041,27 +1041,6 @@ class sluz {
 		return preg_split('/({[^}]+})/', $str, 0, PREG_SPLIT_DELIM_CAPTURE | PREG_SPLIT_NO_EMPTY);
 	}
 
-	// Is the string part of an if token
-	function is_if_token($str) {
-		if ($str === '{else}') {
-			return true;
-		}
-
-		if ($str === '{/if}') {
-			return true;
-		}
-
-		if (str_starts_with($str, '{if ')) {
-			return trim(substr($str, 4, -1));
-		}
-
-		if (str_starts_with($str, '{elseif ')) {
-			return trim(substr($str, 8, -1));
-		}
-
-		return false;
-	}
-
 	// Get/Set parent tpl
 	function parent_tpl($tpl) {
 		if (isset($tpl)) {
