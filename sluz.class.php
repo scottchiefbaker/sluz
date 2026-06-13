@@ -662,9 +662,10 @@ class sluz {
 	private function variable_block($str) {
 
 		// If it has a '|' it's either a function call or 'default'
-		if (str_contains($str, '|') && preg_match("/(.+?)\|(.*)/", $str, $m)) {
-			$key = $m[1];
-			$mod = $m[2];
+		$ppos = strpos($str, '|');
+		if ($ppos !== false) {
+			$key = substr($str, 0, $ppos);
+			$mod = substr($str, $ppos + 1);
 
 			$tmp        = $this->array_dive($key, $this->tpl_vars) ?? "";
 			$is_nothing = ($tmp === null || $tmp === "");
