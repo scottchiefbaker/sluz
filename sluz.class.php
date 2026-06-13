@@ -800,28 +800,78 @@ class sluz {
 			// This makes input -> output whitespace more correct
 			$payload  = $this->ltrim_one($payload, "\n");
 
-			$rules[0] = [$cond, $payload];
-		} else {
-			$toks  = $this->get_tokens($str);
-			$rules = $this->get_if_rules_from_tokens($toks);
+			if (!$this->peval($this->convert_variables_in_string($cond))) {
+				return "";
+			}
+
+			$blocks = $this->get_blocks($payload);
+
+			return $this->process_blocks($blocks);
 		}
 
-		$ret = "";
-		foreach ($rules as $x) {
-			$test    = $x[0];
-			$payload = $x[1];
-			$testp   = $this->convert_variables_in_string($test);
+		// Complex path: walk the tokens once, evaluating each condition as soon
+		// as its payload is accumulated, and short-circuit on the first match.
+		$toks     = $this->get_tokens($str);
+		$num      = count($toks);
+		$nested   = 0;
+		$cur      = '';
+		$cur_cond = null;
+		$first    = true;
 
-			if ($this->peval($testp)) {
-				$blocks  = $this->get_blocks($payload);
-				$ret    .= $this->process_blocks($blocks);
+		// Process each token in order, tracking {if} nesting depth and accumulating
+		// the current branch's payload until a control boundary (or {/if}) is hit
+		for ($i = 0; $i < $num; $i++) {
+			$item = $toks[$i];
 
-				// One of the tests was true so we stop processing
-				break;
+			if (str_starts_with($item, '{if')) { $nested++; }
+			if ($item === '{/if}')             { $nested--; }
+
+			// Determine if this token is an if-control boundary ({if}, {elseif}, {else})
+			// at nesting level 1. Nested {if}/{/if} pairs are treated as payload content.
+			$is_ctrl   = false;
+			$next_cond = null;
+			if ($nested === 1) {
+				if ($item === '{else}') {
+					$is_ctrl   = true;
+					$next_cond = true;
+				} elseif (str_starts_with($item, '{if ')) {
+					$is_ctrl   = true;
+					$next_cond = trim(substr($item, 4, -1));
+				} elseif (str_starts_with($item, '{elseif ')) {
+					$is_ctrl   = true;
+					$next_cond = trim(substr($item, 8, -1));
+				}
+			}
+
+			// The last token always acts as a control boundary so its
+			// preceding payload is captured
+			if ($i === $num - 1) {
+				$is_ctrl = true;
+			}
+
+			// At a control boundary, test the just-completed payload's condition;
+			// on the first match, process and return immediately
+			if ($is_ctrl) {
+				if (!$first) {
+					$passed = ($cur_cond === true)
+						|| (bool) $this->peval($this->convert_variables_in_string((string) $cur_cond));
+
+					if ($passed) {
+						$blocks = $this->get_blocks($cur);
+
+						return $this->process_blocks($blocks);
+					}
+				}
+
+				$first    = false;
+				$cur      = '';
+				$cur_cond = $next_cond;
+			} else {
+				$cur .= $item;
 			}
 		}
 
-		return $ret;
+		return "";
 	}
 
 	// Parse an include block
