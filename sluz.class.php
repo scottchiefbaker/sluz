@@ -898,6 +898,7 @@ class sluz {
 		// Save the current values so we can restore them later
 		$save = $this->tpl_vars;
 
+		// Check to see if the block contains any of the FOREACH special vars
 		$need_meta = str_contains($payload, '$__FOREACH');
 
 		$ret  = '';
