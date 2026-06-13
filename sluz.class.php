@@ -419,7 +419,7 @@ class sluz {
 		}
 
 		// If we find a scalar it's the end of the line, anything else is just
-		// another branch, so it doesn't cound as finding something
+		// another branch, so it doesn't count as finding something
 		if (is_scalar($arr) || is_array($arr)) {
 			$ret = $arr;
 		} else {
