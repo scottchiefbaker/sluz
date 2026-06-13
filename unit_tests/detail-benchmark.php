@@ -10,7 +10,7 @@ $opts       = getopt('f:n:', ['filter:', 'iterations:']);
 $filter     = $opts['f'] ?? $opts['filter'] ?? '';
 $ITERATIONS = (int)($opts['n'] ?? $opts['iterations'] ?? $ITERATIONS);
 
-if (is_numeric($argv[1])) {
+if (!empty($argv[1]) && is_numeric($argv[1])) {
     $ITERATIONS = (int)$argv[1];
 }
 
