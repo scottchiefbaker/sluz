@@ -965,26 +965,31 @@ class sluz {
 		return $ret;
 	}
 
-	// Parse a simple expression block
+	// Parse a simple expression block — the catch-all for {…} blocks that
+	// aren't variables, if/foreach/include/literal. Covers math ({3 + 4}),
+	// string ops ({"hello" . " world"}), and bare variable expressions.
+	//
+	// $str is the full block e.g. "{$x + 3}", $m[1] is the inner content "$x + 3".
 	private function expression_block($str, $m) {
-		$ret = "";
+		$blk = $m[1] ?? "";
 
-		// Make sure the block has something parseble... at least a $ or "
-		if (!preg_match("/[\"\d$(]/", $str)) {
+		// Cheap pre-filter: skip eval entirely if the block contains none of
+		// the characters that could form a valid PHP expression (no quotes,
+		// digits, $, or parens). These are bare words like {foo} or stray
+		// braces — nothing evaluable.
+		if (!preg_match("/[\"\d$(]/", $blk)) {
 			list($line, $col, $file) = $this->get_char_location($this->char_pos, $this->tpl_file);
 			return $this->error_out("Unknown block type <code>$str</code> in <code>$file</code> on line #$line", 73467);
 		}
 
-		$err   = false;
-		$blk   = $m[1] ?? "";
+		// Convert variables in the block to their real values
 		$after = $this->convert_variables_in_string($blk);
 		$ret   = $this->peval($after, $err);
 
-		$valid_type = (is_string($ret) || is_numeric($ret));
-
-		// The evaluated block has to return SOMETHING printable (not null/false/obj)
-		// Even "" is fine
-		if ($err || !$valid_type) {
+		// peval sets $err to -1 on a ParseError; also reject non-scalar
+		// results (null, false, objects, arrays) — only strings and
+		// numbers are valid template output.
+		if ($err || !(is_string($ret) || is_numeric($ret))) {
 			list($line, $col, $file) = $this->get_char_location($this->char_pos, $this->tpl_file);
 			return $this->error_out("Unknown tag <code>$str</code> in <code>$file</code> on line #$line", 18933);
 		}
