@@ -655,13 +655,13 @@ class sluz {
 			$mod = substr($str, $ppos + 1);
 
 			$tmp        = $this->array_dive($key, $this->tpl_vars) ?? "";
-			$is_nothing = ($tmp === null || $tmp === "");
+			$is_nothing = ($tmp === "");
 			$is_default = str_contains($mod, "default:");
 
 			// If there's a default, extract just the default value and
 			// rebuild $mod to contain only chained modifiers after it
 			if ($is_default) {
-				$p           = explode("default:", $str, 2);
+				$p           = explode("default:", $mod, 2);
 				$dval        = $p[1] ?? "";
 				$pattern     = '/\|(?![^"]*"(?:(?:[^"]*"){2})*[^"]*$)/';
 				$dparts      = preg_split($pattern, $dval, 2);
