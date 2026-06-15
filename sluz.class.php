@@ -6,22 +6,22 @@ define('SLUZ_INLINE', 'INLINE_TEMPLATE'); // Just a specific string
 
 class sluz {
 	public $version       = '0.9.3';
-	public $tpl_file      = null;       // The path to the TPL file
-	public $inc_tpl_file  = null;       // The path to the {include} file
+	public $tpl_file      = null;         // The path to the TPL file
+	public $inc_tpl_file  = null;         // The path to the {include} file
+	public $parent_tpl    = null;         // Path to parent TPL
+	public $tpl_vars      = [];           // Array of variables assigned to the TPL
+	public $debug         = false;        // Enable debug mode
+	public $in_unit_test  = false;        // Boolean if we are in unit testing mode
 
-	public $debug        = 0;          // Enable debug mode
-	public $in_unit_test = false;      // Boolean if we are in unit testing mode
-	public $tpl_vars     = [];         // Array of variables assigned to the TPL
-	public $parent_tpl   = null;       // Path to parent TPL
-	public $open_char    = '{';
-	public $close_char   = '}';
+	public $open_char    = '{';           // Alternate tag opening character
+	public $close_char   = '}';           // Alternate tag closing character
 
 	private $var_prefix     = "sluz_pfx"; // Variable prefix for extract()
 	private $var_prefix_str = null;       // Cached '$' + prefix + '_' for fast lookups
 	private $php_file       = null;       // Path to the calling PHP file
 	private $php_file_dir   = null;       // Path to the calling PHP directory
-	private $simple_mode    = false;      // Boolean are we in simple mode
-	private $fetch_called   = false;      // Boolean used in simple if fetch has been called
+	private $simple_mode    = false;      // Are we in simple mode
+	private $fetch_called   = false;      // Used in simple if fetch has been called
 	private $char_pos       = -1;         // Character offset in the TPL
 
 	public function __construct() {
