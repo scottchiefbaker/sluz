@@ -128,10 +128,9 @@ class sluz {
 			if ($is_open) {
 				$prev_c = $str[$i - 1];
 				$next_c = $str[$i + 1];
-				$chunk  = $prev_c . $char . $next_c;
 
-				// If the { is surrounded by whitespace it's not a block
-				if (preg_match("/\s[$oc$cc]\s/", $chunk)) {
+				// If the { is surrounded by whitespace it's not a block.
+				if (ctype_space($prev_c) && ctype_space($next_c)) {
 					$is_open = false;
 				}
 
@@ -153,14 +152,27 @@ class sluz {
 			} elseif ($is_closed) {
 				$len         = $i - $start + 1;
 				$block       = substr($str, $start, $len);
-				$is_function = preg_match("/^$oc(if|foreach|literal)\b/", $block, $m);
 
 				// If this block is an opening function tag ({if}, {foreach}, {literal}),
 				// walk forward to find the matching {/if}, {/foreach}, or {/literal}.
 				// Nested blocks of the same type are handled by counting open vs close tags.
+				$m = null;
+				if (str_starts_with($block, "{$oc}if")) {
+					$c = $block[3] ?? '';
+					if ($c !== '' && $c !== '_' && !ctype_alnum($c)) { $m = 'if'; }
+				} elseif (str_starts_with($block, "{$oc}foreach")) {
+					$c = $block[8] ?? '';
+					if ($c !== '' && $c !== '_' && !ctype_alnum($c)) { $m = 'foreach'; }
+				} elseif (str_starts_with($block, "{$oc}literal")) {
+					$c = $block[8] ?? '';
+					if ($c !== '' && $c !== '_' && !ctype_alnum($c)) { $m = 'literal'; }
+				}
+
+				$is_function = $m !== null;
+
 				if ($is_function) {
-					$close_tag    = "{$oc}/$m[1]{$cc}";
-					$open_tag_str = $oc . $m[1];
+					$close_tag    = "{$oc}/$m{$cc}";
+					$open_tag_str = $oc . $m;
 
 					// Seed open count with occurrences inside the opening tag itself
 					// (e.g. {if $x eq '{if}'} has two {if substrings)
@@ -218,9 +230,8 @@ class sluz {
 
 				$end += 2; // '*}' is 2 long so we add that
 
-				$end_rel  = $end - $start;
-				$start   += $end;
-				$i        = $start;
+				$start += $end;
+				$i      = $start;
 			}
 		}
 
@@ -241,8 +252,9 @@ class sluz {
 		// {foreach $name as $x}
 		// {$x}
 		// {/foreach}^
-		$prev_is_if = false;
-		for ($i = 0; $i < count($blocks); $i++) {
+		$prev_is_if  = false;
+		$block_count = count($blocks);
+		for ($i = 0; $i < $block_count; $i++) {
 			$str       = $blocks[$i][0] ?? "";
 			$cur_is_if = str_starts_with($str, "{$oc}if") || str_starts_with($str, "{$oc}for");
 
