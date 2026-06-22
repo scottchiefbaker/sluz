@@ -142,7 +142,7 @@ function get_templates() {
         ],
         'foreach_nested' => [
             'desc' => "Nested foreach",
-            'tpl'  => '{foreach $users as $u}{foreach $items as $i}{if $i eq "banana"}{$u.name}:{$i} {/if}{/foreach}{/foreach}',
+            'tpl'  => '{foreach $users as $u}{foreach $items as $i}{if $i == "banana"}{$u.name}:{$i} {/if}{/foreach}{/foreach}',
         ],
         'foreach_empty' => [
             'desc' => "Foreach over empty list",
