@@ -73,8 +73,8 @@ To run the tests issue this command at the CLI:
 php unit_tests/tests.php
 ```
 
-**Note:** Care was take to ensure that no `E_NOTICE` warnings are emitted
-to insure Sluz is `error_reporting(E\_ALL)` compliant.
+**Note:** Care was taken to ensure that no `E_NOTICE` warnings are emitted
+and that Sluz is `error_reporting(E_ALL)` compliant.
 
 ## 📖 Documentation
 
