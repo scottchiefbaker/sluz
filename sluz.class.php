@@ -3,6 +3,7 @@
 ////////////////////////////////////////////////////////
 
 define('SLUZ_INLINE', 'INLINE_TEMPLATE'); // Just a specific string
+define('SLUZ_IDENT_CHARS', '_0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'); // PHP identifier chars: [a-zA-Z0-9_]
 
 class sluz {
 	public $version       = '0.9.3';
@@ -602,10 +603,11 @@ class sluz {
 		if (str_starts_with($input, '!$')) {
 			// Remove the prefix so we can look it up raw
 			$new = substr($input, strlen($this->var_prefix_str) + 1);
-			$ret = $this->tpl_vars[$new] ?? null;
 
-			if ($ret !== null) {
-				return !$ret;
+			// Only handle pure variable names (no operators, brackets, etc).
+			// Complex expressions like '!$var == 1' must fall through to eval.
+			if ($new !== '' && strspn($new, SLUZ_IDENT_CHARS) === strlen($new)) {
+				return !($this->tpl_vars[$new] ?? null);
 			}
 		}
 
