@@ -102,6 +102,13 @@ sluz_test('{$last|default:\'nobody\'|strtoupper}'    , 'BAKER'      , 'Basic #31
 sluz_test('{$number + $null}'                        , '15'         , 'Basic #32 - Mixed types: number + null');
 sluz_test('{$number + $x}'                           , '22'         , 'Basic #33 - Mixed types: number + numeric string');
 
+// Character class fix: forward slash and backslash in modifier arguments
+sluz_test('{$empty_string|default:"N/A"}'          , 'N/A'         , 'Basic #34 - Default with forward slash (empty)');
+sluz_test('{$first|default:"N/A"}'                 , 'Scott'       , 'Basic #35 - Default with forward slash (non-empty)');
+sluz_test('{$empty_string|default:"path/to/file"}' , 'path/to/file', 'Basic #36 - Default with path containing slashes');
+sluz_test('{$empty_string|default:"yes/no"}'       , 'yes/no'      , 'Basic #37 - Default with slash abbreviation');
+sluz_test('{$empty_string|default:"C:\\"}'         , 'C:\\'        , 'Basic #38 - Default with forward slash');
+
 // User defined functions
 sluz_test('{$word|truncate:3}'                     , 'cRa'        , 'Custom function #1 - Modifier with param');
 sluz_test('{$last|truncate:4|truncate:2}'          , 'Ba'         , 'Custom function #2 - Two modifiers with params');
