@@ -158,14 +158,18 @@ sluz_test('{if $true}123{else}456{/if}'                                , '123'  
 sluz_test('{if !$true}123{else}456{/if}'                               , '456'     , 'If #21 - Boolean inverted');
 sluz_test('{if $conf.main}123{else}456{/if}'                           , '123'     , 'If #22 - Hash boolean');
 sluz_test('{if !$conf.main}123{else}456{/if}'                          , '456'     , 'If #23 - Hash boolean inverted');
-sluz_test('{if $x}{if $y}yes{/if}{else}no{/if}'                        , 'yes'     , 'If #24 - Nested if with an else');
-sluz_test('{if true}a{else}b{if true}c{/if}{/if}'                      , 'a'       , 'If #25 - Nested with true');
-sluz_test('{if false}a{else}b{if true}c{/if}{/if}'                     , 'bc'      , 'If #26 - Nested with false');
-sluz_test('{if true}{/if}'                                             , ''        , 'If #27 - If with "" for payload');
-sluz_test('{if $zero}1{elseif $bogus_var}2{elseif $debug}3{else}4{/if}', '3'       , 'If #28 - Multiple elseif');
-sluz_test('{if $first == "Scott"}YES{else}NO{/if}'                     , 'YES'     , 'If #29 - Double-quoted string comparison');
-sluz_test('{if $number + 2 > 10}YES{/if}'                              , 'YES'     , 'If #30 - Arithmetic in condition (true)');
-sluz_test('{if $number - 20 > 10}YES{/if}'                             , ''        , 'If #31 - Arithmetic in condition (false)');
+sluz_test('{if !$zero}123{else}456{/if}'                               , '123'     , 'If #24 - Negated zero (falsy)');
+sluz_test('{if !$false}123{else}456{/if}'                              , '123'     , 'If #25 - Negated false (falsy)');
+sluz_test('{if !$null}123{else}456{/if}'                               , '123'     , 'If #26 - Negated null (falsy)');
+sluz_test('{if !$empty_string}123{else}456{/if}'                       , '123'     , 'If #27 - Negated empty string (falsy)');
+sluz_test('{if $x}{if $y}yes{/if}{else}no{/if}'                        , 'yes'     , 'If #28 - Nested if with an else');
+sluz_test('{if true}a{else}b{if true}c{/if}{/if}'                      , 'a'       , 'If #29 - Nested with true');
+sluz_test('{if false}a{else}b{if true}c{/if}{/if}'                     , 'bc'      , 'If #30 - Nested with false');
+sluz_test('{if true}{/if}'                                             , ''        , 'If #31 - If with "" for payload');
+sluz_test('{if $zero}1{elseif $bogus_var}2{elseif $debug}3{else}4{/if}', '3'       , 'If #32 - Multiple elseif');
+sluz_test('{if $first == "Scott"}YES{else}NO{/if}'                     , 'YES'     , 'If #33 - Double-quoted string comparison');
+sluz_test('{if $number + 2 > 10}YES{/if}'                              , 'YES'     , 'If #34 - Arithmetic in condition (true)');
+sluz_test('{if $number - 20 > 10}YES{/if}'                             , ''        , 'If #35 - Arithmetic in condition (false)');
 
 sluz_test('{foreach $array as $num}{$num}{/foreach}'                         , 'onetwothree'            , 'Foreach #1 - Simple');
 sluz_test("{foreach \$array as \$num}\n{\$num}\n{/foreach}"                  , "one\ntwo\nthree\n"      , 'Foreach #2 - Simple with whitespace');
