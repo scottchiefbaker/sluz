@@ -415,6 +415,13 @@ class sluz {
 			return $x;
 		}
 
+		// Fast path: no dots means the direct lookup above was the only option.
+		// Return whatever it found (even falsy values like 0, "", false) without
+		// the overhead of explode() + loop.
+		if (!str_contains($needle, '.')) {
+			return $haystack[$needle] ?? null;
+		}
+
 		// Split at the periods
 		$parts = explode(".", $needle);
 
