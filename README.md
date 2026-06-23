@@ -38,6 +38,7 @@ File: `tpls/script.stpl`
 | `{$var\|mod:params}`                 | `{$greet\|substr:0,3}`                           | `Hel`               |
 | `{$var\|mod1\|mod2}`                 | `{$word\|strtolower\|ucfirst}`                   | `Crazy`             |
 | `{$var\|default:"val"}`              | `{$null\|default:"?"}`                           | `?`                 |
+| `{$var\|escape}`                     | `{$name\|escape}`                                | `&lt;script&gt;`   |
 | `{$expr}`                            | `{$number + 3}`                                  | `18`                |
 | `{if}…{elseif}…{else}…{/if}`         | `{if $x}yes{else}no{/if}`                        | `yes`               |
 | `{foreach $a as $v}`                 | `{foreach $items as $x}{$x}{/foreach}`           | `onetwothree`       |
@@ -47,6 +48,25 @@ File: `tpls/script.stpl`
 | `{literal}…{/literal}`               | `{literal}function foo() { {/literal}`           | `function foo() { ` |
 | `{* comment *}`                      | `{* hidden *}`                                   | *(empty)*           |
 | `{function()}`                       | `{count($array)}`                                | `3`                 |
+
+## 🔒 Security
+
+Template variables hold untrusted data (form input, database rows, URL
+parameters) by default. The `{$var}` construct emits the value verbatim,
+so a template that renders user data without escaping is vulnerable to
+cross-site scripting (XSS).
+
+Always use the `escape` modifier on untrusted output:
+
+```
+{$user_input|escape}          {* HTML-encode (default) *}
+{$redirect_url|escape:"url"}  {* URL-encode *}
+{$inline_js|escape:"js"}      {* JavaScript-string-encode *}
+```
+
+By default `escape` uses PHP's `htmlspecialchars()` with `ENT_QUOTES |
+ENT_SUBSTITUTE` and UTF-8 encoding, which converts `<`, `>`, `"`, and
+`'` to their HTML entity equivalents.
 
 ## 🤵 Composer
 

@@ -109,6 +109,17 @@ sluz_test('{$empty_string|default:"path/to/file"}' , 'path/to/file', 'Basic #36 
 sluz_test('{$empty_string|default:"yes/no"}'       , 'yes/no'      , 'Basic #37 - Default with slash abbreviation');
 sluz_test('{$empty_string|default:"C:\\"}'         , 'C:\\'        , 'Basic #38 - Default with forward slash');
 
+// Escape modifier (XSS prevention)
+$sluz->assign('xss', '<script>alert(1)</script>');
+
+sluz_test('{$first|escape}'                , 'Scott'                                                              , 'Escape #1 - No special chars passthrough');
+sluz_test('{$xss|escape}'                  , '&lt;script&gt;alert(1)&lt;/script&gt;'                              , 'Escape #2 - HTML encoding');
+sluz_test('{$xss|escape:"html"}'           , '&lt;script&gt;alert(1)&lt;/script&gt;'                              , 'Escape #3 - Explicit HTML');
+sluz_test('{$xss|escape:"url"}'            , '%3Cscript%3Ealert%281%29%3C%2Fscript%3E'                             , 'Escape #4 - URL encoding');
+sluz_test('{$xss|escape:"js"}'             , '"\u003Cscript\u003Ealert(1)\u003C\/script\u003E"'                   , 'Escape #5 - JS encoding');
+sluz_test('{$null|default:"safe"|escape}'  , 'safe'                                                               , 'Escape #6 - Default chained with escape');
+sluz_test('{$empty_string|default:"text"|escape}', 'text'                                                        , 'Escape #7 - Default with escape on empty');
+
 // User defined functions
 sluz_test('{$word|truncate:3}'                     , 'cRa'        , 'Custom function #1 - Modifier with param');
 sluz_test('{$last|truncate:4|truncate:2}'          , 'Ba'         , 'Custom function #2 - Two modifiers with params');
