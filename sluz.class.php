@@ -24,6 +24,7 @@ class sluz {
 	private $simple_mode    = false;      // Are we in simple mode
 	private $fetch_called   = false;      // Used in simple if fetch has been called
 	private $char_pos       = -1;         // Character offset in the TPL
+	private $escape_html    = false;      // Auto-escape HTML in variable output
 
 	public function __construct() {
 		$this->var_prefix_str = '$' . $this->var_prefix . '_';
@@ -763,6 +764,14 @@ class sluz {
 			return 'Array';
 		}
 
+		// Auto-escape HTML unless the modifier chain already contains escape or raw
+		if ($this->escape_html) {
+			$has_escape = ($ppos !== false) && (str_contains($mod, 'escape') || str_contains($mod, 'raw'));
+			if (!$has_escape) {
+				$ret = htmlspecialchars((string) $ret, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+			}
+		}
+
 		return $ret;
 	}
 
@@ -1190,6 +1199,13 @@ class sluz {
 			return $this->parent_tpl;
 		}
 	}
+
+	// Enable/disable auto-escaping of HTML in variable output
+	public function setEscapeHtml($enable = true) {
+		$this->escape_html = (bool) $enable;
+
+		return $this;
+	}
 }
 
 // Safely encode a value to prevent XSS. Supports 'html' (default), 'url', and 'js'.
@@ -1203,6 +1219,11 @@ function escape($str, $type = 'html') {
 	}
 
 	return htmlspecialchars($str, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+}
+
+// Return value unchanged — used with setEscapeHtml() to opt out of auto-escaping
+function raw($str) {
+	return $str;
 }
 
 // This function is *OUTSIDE* of the class so it can be called separately without
