@@ -68,7 +68,7 @@ By default `escape` uses PHP's `htmlspecialchars()` with `ENT_QUOTES |
 ENT_SUBSTITUTE` and UTF-8 encoding, which converts `<`, `>`, `"`, and
 `'` to their HTML entity equivalents.
 
-### Auto-escape
+### 🛡️ Auto-escape
 
 For stricter safety you can enable automatic HTML escaping of all
 variable output. When enabled, every `{$var}` is escaped unless the
