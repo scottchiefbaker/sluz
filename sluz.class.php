@@ -1192,6 +1192,19 @@ class sluz {
 	}
 }
 
+// Safely encode a value to prevent XSS. Supports 'html' (default), 'url', and 'js'.
+function escape($str, $type = 'html') {
+	$str = (string) $str;
+
+	if ($type === 'url') {
+		return rawurlencode($str);
+	} elseif ($type === 'js') {
+		return json_encode($str, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP);
+	}
+
+	return htmlspecialchars($str, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+}
+
 // This function is *OUTSIDE* of the class so it can be called separately without
 // instantiating the class
 function sluz($one, $two = null) {
