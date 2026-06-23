@@ -1,0 +1,7 @@
+<h1>Escape Modifier</h1>
+
+<p>HTML escaped: {$name|escape}</p>
+
+<p>URL escaped: {$url_path|escape:"url"}</p>
+
+<p>JS escaped: {$js_val|escape:"js"}</p>
