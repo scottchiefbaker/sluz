@@ -68,6 +68,27 @@ By default `escape` uses PHP's `htmlspecialchars()` with `ENT_QUOTES |
 ENT_SUBSTITUTE` and UTF-8 encoding, which converts `<`, `>`, `"`, and
 `'` to their HTML entity equivalents.
 
+### Auto-escape
+
+For stricter safety you can enable automatic HTML escaping of all
+variable output. When enabled, every `{$var}` is escaped unless the
+template explicitly opts out with `|raw`.
+
+```php
+$s->setEscapeHtml(true);
+```
+
+```
+{$user_input}                {* auto-escaped *}
+{$user_input|escape}         {* not double-escaped *}
+{$user_input|escape:"url"}   {* URL-escaped, not overridden *}
+{$trusted_html|raw}          {* opt-out: output verbatim *}
+```
+
+**Note:** Auto-escaping only applies to `{$var}` variable blocks.
+Expression blocks like `{$x + 3}` and function calls like
+`{count($array)}` are not auto-escaped.
+
 ## 🤵 Composer
 
 If you are a composer user you can install Sluz with this command:

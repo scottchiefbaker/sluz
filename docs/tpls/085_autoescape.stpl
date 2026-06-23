@@ -1,0 +1,11 @@
+<h1>Auto-escape Mode</h1>
+
+<p>Raw variable: {$name}</p>
+
+<p>User input (auto-escaped): {$user_input}</p>
+
+<p>Trusted HTML with |raw: {$trusted_html|raw}</p>
+
+<p>Chained with |escape (no double-escape): {$user_input|escape}</p>
+
+<p>Chained with |strtoupper then auto-escaped: {$name|strtoupper}</p>

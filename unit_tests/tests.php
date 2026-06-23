@@ -120,6 +120,23 @@ sluz_test('{$xss|escape:"js"}'             , '"\u003Cscript\u003Ealert(1)\u003C\
 sluz_test('{$null|default:"safe"|escape}'  , 'safe'                                                               , 'Escape #6 - Default chained with escape');
 sluz_test('{$empty_string|default:"text"|escape}', 'text'                                                        , 'Escape #7 - Default with escape on empty');
 
+// Auto-escape tests (separate sluz instance with setEscapeHtml enabled)
+$ae = new sluz();
+$ae->in_unit_test = true;
+$ae->setEscapeHtml(true);
+$ae->assign('xss'  , '<script>alert(1)</script>');
+$ae->assign('first', 'Scott');
+$ae->assign('safe' , 'hello');
+
+sluz_auto_escape_test('{$xss}'                       , '&lt;script&gt;alert(1)&lt;/script&gt;', 'Auto Escape #1 - Variable auto-escaped');
+sluz_auto_escape_test('{$xss|escape}'                , '&lt;script&gt;alert(1)&lt;/script&gt;', 'Auto Escape #2 - Explicit escape, no double-escape');
+sluz_auto_escape_test('{$xss|escape:"url"}'          , '%3Cscript%3Ealert%281%29%3C%2Fscript%3E', 'Auto Escape #3 - Explicit URL escape not overridden');
+sluz_auto_escape_test('{$xss|strtoupper}'            , '&lt;SCRIPT&gt;ALERT(1)&lt;/SCRIPT&gt;', 'Auto Escape #4 - Modifier then auto-escape');
+sluz_auto_escape_test('{$xss|raw}'                   , '<script>alert(1)</script>', 'Auto Escape #5 - raw opt-out');
+sluz_auto_escape_test('{$first}'                     , 'Scott', 'Auto Escape #6 - Safe string passthrough');
+sluz_auto_escape_test('{$safe}'                      , 'hello', 'Auto Escape #7 - Safe string passthrough');
+sluz_auto_escape_test('{$x + 3}'                     , '3', 'Auto Escape #8 - Expression block not escaped');
+
 // User defined functions
 sluz_test('{$word|truncate:3}'                     , 'cRa'        , 'Custom function #1 - Modifier with param');
 sluz_test('{$last|truncate:4|truncate:2}'          , 'Ba'         , 'Custom function #2 - Two modifiers with params');
@@ -472,6 +489,73 @@ function sluz_test($input, $expected, $test_name) {
 
 		$test_output[] = [$test_name,"Expected <code>$expected</code> but got <code>$html</code><br />(from: $file #$line)"];
 
+		$fail_count++;
+	}
+
+	if (!$simple) {
+		print $out;
+	}
+}
+
+// Test helper for auto-escape: uses a dedicated sluz instance with setEscapeHtml(true)
+function sluz_auto_escape_test($input, $expected, $test_name) {
+	global $ae;
+	global $pass_count;
+	global $fail_count;
+	global $ok_str;
+	global $fail_str;
+	global $filter;
+	global $is_cli;
+	global $test_output;
+	global $simple;
+
+	if (!empty($filter) && !preg_match("/$filter/i", $test_name)) { return; }
+
+	$html = $ae->parse_string($input);
+
+	$lead = "Test '$test_name' ";
+	$pad  = str_repeat(" ", 80 - (strlen($lead)));
+
+	$out = "";
+	if ($is_cli) {
+		$out = "$lead $pad";
+	}
+
+	$is_regexp = preg_match("|^/(.+?)/$|", $expected ?? "");
+	$html      = var_export($html, true);
+
+	if (!$is_regexp) { $expected = var_export($expected, true); }
+
+	$expected = preg_replace("/\n/", "\\n", $expected);
+	$html     = preg_replace("/\n/", "\\n", $html);
+
+	if ($is_regexp && preg_match($expected, $html)) {
+		if ($is_cli) { $out .= $ok_str . "\n"; }
+		$test_output[] = [$test_name,0];
+		$pass_count++;
+	} elseif ($is_regexp && !preg_match($expected, $html)) {
+		$d    = debug_backtrace();
+		$file = $d[0]['file'];
+		$line = $d[0]['line'];
+		if ($is_cli) {
+			$out .= $fail_str . "\n";
+			$out .= "  * Expected $expected but got $html (from: $file #$line)\n";
+		}
+		$test_output[] = [$test_name,"Expected <code>$expected</code> but got <code>$html</code><br />(from: $file #$line)"];
+		$fail_count++;
+	} elseif ($html === $expected) {
+		if ($is_cli) { $out .= $ok_str . "\n"; }
+		$test_output[] = [$test_name,0];
+		$pass_count++;
+	} else {
+		$d    = debug_backtrace();
+		$file = $d[0]['file'];
+		$line = $d[0]['line'];
+		if ($is_cli) {
+			$out .= $fail_str . "\n";
+			$out .= "  * Expected $expected but got $html (from: $file #$line)\n";
+		}
+		$test_output[] = [$test_name,"Expected <code>$expected</code> but got <code>$html</code><br />(from: $file #$line)"];
 		$fail_count++;
 	}
 
