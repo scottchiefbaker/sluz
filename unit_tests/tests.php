@@ -298,6 +298,28 @@ sluz_fetch_test(["tpls/child.stpl"], "/0fd197af.*21c1a4c5/s", "Parent/Child #2 -
 $sluz->parent_tpl = "";
 
 //////////////////////////////////////////////////////////////////////////////////////////
+// Alternate delimiter tests ([ / ])
+//////////////////////////////////////////////////////////////////////////////////////////
+
+$sluz->set_delimiters('[', ']');
+
+sluz_test('[$first]'                                , 'Scott'       , 'AltDelim #1 - Basic variable');
+sluz_test('[$animal|strtoupper]'                    , 'KITTEN'      , 'AltDelim #2 - Modifier');
+sluz_test('[$word|strtolower|ucfirst]'              , 'Crazy'       , 'AltDelim #3 - Modifier chaining');
+sluz_test('[if $debug]DEBUG[/if]'                   , 'DEBUG'       , 'AltDelim #4 - If block');
+sluz_test('[if !$debug]NOPE[else]YES[/if]'          , 'YES'         , 'AltDelim #5 - If/else');
+sluz_test('[foreach $array as $i][$i][/foreach]'    , 'onetwothree' , 'AltDelim #6 - Foreach');
+sluz_test('[* comment *]'                           , ''            , 'AltDelim #7 - Comment');
+sluz_test('[literal]{$first}[/literal]'             , '{$first}'    , 'AltDelim #8 - Literal');
+sluz_test(['[$a][$b][$c]']                          , 3             , 'AltDelim #9 - Block counting');
+sluz_test('[$first'                                 , 'ERROR-45821' , 'AltDelim #10 - Unclosed tag');
+
+// Restore default delimiters
+$sluz->set_delimiters('{', '}');
+
+sluz_test('{$first}', 'Scott', 'AltDelim #11 - Default delimiters restored');
+
+//////////////////////////////////////////////////////////////////////////////////////////
 
 $total = $pass_count + $fail_count;
 
