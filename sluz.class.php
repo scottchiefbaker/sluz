@@ -1187,12 +1187,14 @@ class sluz {
 function escape($str, $type = 'html') {
 	$str = (string) $str;
 
-	if ($type === 'url') {
+	if ($type === 'html') {
+		return htmlspecialchars($str, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+	} elseif ($type === 'url') {
 		return rawurlencode($str);
 	} elseif ($type === 'js') {
 		return json_encode($str, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP);
 	} else {
-		return htmlspecialchars($str, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+		return "Unknown escape type '$type' #65491";
 	}
 }
 
