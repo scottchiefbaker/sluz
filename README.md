@@ -49,6 +49,29 @@ File: `tpls/script.stpl`
 | `{* comment *}`                      | `{* hidden *}`                                   | *(empty)*           |
 | `{function()}`                       | `{count($array)}`                                | `3`                 |
 
+## 🏷️ Alternate Delimiters
+
+By default Sluz uses `{` and `}` as delimiters. If your content
+frequently contains braces (e.g. CSS, JSON, JavaScript), you can
+switch to a different single-character pair:
+
+```php
+$s->set_delimiters('[', ']');
+```
+
+With the above, all template tags use `[` and `]`:
+
+```
+[{$name}]
+[if $admin]Hello admin[/if]
+[foreach $items as $item][/foreach]
+[* this is a comment *]
+[literal]{$name} is not parsed[/literal]
+```
+
+**Constraints:** Both delimiters must be single characters and must
+not be the same character.
+
 ## 🔒 Security
 
 Template variables hold untrusted data (form input, database rows, URL
