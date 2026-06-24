@@ -36,6 +36,7 @@ print $s->parse_string('Hello {$name}');                // parse string, not fil
 $s->display('tpls/file.stpl');                          // fetch + print
 $s->parse('tpls/file.stpl');                            // alias for fetch()
 $s->parent_tpl('tpls/parent.stpl');                     // get/set parent template
+$s->set_delimiters('[', ']');                           // custom delimiters (default { / })
 $s->debug = 1;                                          // verbose debug output
 $s->in_unit_test = true;                                // suppress error output during testing
 ```

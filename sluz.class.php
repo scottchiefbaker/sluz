@@ -22,9 +22,33 @@ class sluz {
 	private $fetch_called   = false;      // Used in simple if fetch has been called
 	private $char_pos       = -1;         // Character offset in the TPL
 	private $escape_html    = false;      // Auto-escape HTML in variable output
+	private $left_delim     = '{';        // Left/opening delimiter
+	private $right_delim    = '}';        // Right/closing delimiter
+
+	// Cached delimiter-dependent values — rebuilt by rebuild_delim_cache()
+	private $dlre_cached       = null;
+	private $drre_cached       = null;
+	private $if_tag            = null;
+	private $foreach_tag       = null;
+	private $literal_tag       = null;
+	private $close_if          = null;
+	private $close_foreach     = null;
+	private $else_tag          = null;
+	private $elseif_tag        = null;
+	private $if_space_tag      = null;
+	private $comment_open      = null;
+	private $comment_close     = null;
+	private $var_pattern       = null;
+	private $foreach_pattern   = null;
+	private $literal_pattern   = null;
+	private $catchall_pattern  = null;
+	private $if_simple_pattern = null;
+	private $tokens_pattern    = null;
+	private $newline_pattern   = null;
 
 	public function __construct() {
 		$this->var_prefix_str = '$' . $this->var_prefix . '_';
+		$this->rebuild_delim_cache();
 	}
 
 	public function __destruct()  {
@@ -46,30 +70,32 @@ class sluz {
 
 	// Convert template blocks in to output strings
 	public function process_block(string $str, int $char_pos = -1) {
-		$ret = '';
-
 		$this->char_pos = $char_pos;
 
+		$ld  = $this->left_delim;
+		$rd  = $this->right_delim;
+		$ret = '';
+
 		// Simple variable replacement {$foo} or {$foo|default:"123"}
-		if (str_starts_with($str, '{$') && preg_match('/^\{\$(\w[\w\|\.\'";\\t :,!@#%^&*?_\/\\\\-]*)\}$/', $str, $m)) {
+		if (str_starts_with($str, $ld . '$') && preg_match($this->var_pattern, $str, $m)) {
 			$ret = $this->variable_block($m[1]);
 		// If statement {if $foo}{/if}
-		} elseif (str_starts_with($str, '{if ') && str_ends_with($str, '{/if}')) {
+		} elseif (str_starts_with($str, $this->if_space_tag) && str_ends_with($str, $this->close_if)) {
 			$ret = $this->if_block($str);
 		// Foreach {foreach $foo as $x}{/foreach}
-		} elseif (str_starts_with($str, '{foreach ') && preg_match('/^\{foreach (\$\w[\w.]*) as \$(\w+)( => \$(\w+))?\}(.+)\{\/foreach\}$/s', $str, $m)) {
+		} elseif (str_starts_with($str, $this->foreach_tag . ' ') && preg_match($this->foreach_pattern, $str, $m)) {
 			$ret = $this->foreach_block($m);
 		// Include {include file='my.stpl' number='99'}
-		} elseif (str_starts_with($str, '{include ')) {
+		} elseif (str_starts_with($str, $ld . 'include ')) {
 			$ret = $this->include_block($str);
-		// Liternal {literal}Stuff here{/literal}
-		} elseif (str_starts_with($str, '{literal}') && preg_match('/^\{literal\}(.+)\{\/literal\}$/s', $str, $m)) {
+		// Literal {literal}Stuff here{/literal}
+		} elseif (str_starts_with($str, $this->literal_tag) && preg_match($this->literal_pattern, $str, $m)) {
 			$ret = $m[1];
 		// Catch all for other { $num + 3 } type of blocks
-		} elseif (preg_match('/^\{(.+)}$/s', $str, $m)) {
+		} elseif (preg_match($this->catchall_pattern, $str, $m)) {
 			$ret = $this->expression_block($str, $m);
 		// If it starts with '{' (from above) but does NOT contain a closing tag
-		} elseif (!str_ends_with($str, '}')) {
+		} elseif (!str_ends_with($str, $rd)) {
 			list($line, $col, $file) = $this->get_char_location($this->char_pos, $this->tpl_file);
 			return $this->error_out("Unclosed tag <code>$str</code> in <code>$file</code> on line #$line", 45821);
 		// Something went WAY wrong
@@ -85,22 +111,28 @@ class sluz {
 		$start  = 0;
 		$blocks = [];
 		$slen   = strlen($str);
+		$ld     = $this->left_delim;
+		$rd     = $this->right_delim;
+
+		$name_len_if      = strlen($this->if_tag);
+		$name_len_foreach = strlen($this->foreach_tag);
+		$name_len_literal = strlen($this->literal_tag);
 
 		// Start looking for blocks at the first delim
-		$z = strpos($str, '{');
+		$z = strpos($str, $ld);
 		if ($z === false) { $z = $slen; }
 
 		for ($i = $z; $i < $slen; $i++) {
 			$char      = $str[$i];
-			$is_open   = $char === "{";
-			$is_closed = $char === "}";
+			$is_open   = $char === $ld;
+			$is_closed = $char === $rd;
 
 			// If it's not an opening or closing tag we jump ahead to the next delim
 			if (!$is_open && !$is_closed) {
-				$next_open = strpos($str, '{', $i);
+				$next_open = strpos($str, $ld, $i);
 				if ($next_open === false) { $next_open = $slen; }
 
-				$next_close = strpos($str, '}', $i);
+				$next_close = strpos($str, $rd, $i);
 				if ($next_close === false) { $next_close = $slen; }
 
 				// The next char to look at is the first open/close delim
@@ -131,36 +163,36 @@ class sluz {
 			if ($is_open && $has_len) {
 				$len   = $i - $start;
 				$block = substr($str, $start, $len);
+				$start = $i;
 
 				if ($block) {
 					$blocks[] = [$block, $i];
 				}
-				$start    = $i;
 			// If it's a "}" it's a closing block that starts at $start
 			} elseif ($is_closed) {
-				$len         = $i - $start + 1;
-				$block       = substr($str, $start, $len);
+				$len   = $i - $start + 1;
+				$block = substr($str, $start, $len);
 
 				// If this block is an opening function tag ({if}, {foreach}, {literal}),
 				// walk forward to find the matching {/if}, {/foreach}, or {/literal}.
 				// Nested blocks of the same type are handled by counting open vs close tags.
 				$m = null;
-				if (str_starts_with($block, '{if')) {
-					$c = $block[3] ?? '';
+				if (str_starts_with($block, $this->if_tag)) {
+					$c = $block[$name_len_if] ?? '';
 					if ($c !== '' && $c !== '_' && !ctype_alnum($c)) { $m = 'if'; }
-				} elseif (str_starts_with($block, '{foreach')) {
-					$c = $block[8] ?? '';
+				} elseif (str_starts_with($block, $this->foreach_tag)) {
+					$c = $block[$name_len_foreach] ?? '';
 					if ($c !== '' && $c !== '_' && !ctype_alnum($c)) { $m = 'foreach'; }
-				} elseif (str_starts_with($block, '{literal')) {
-					$c = $block[8] ?? '';
+				} elseif (str_starts_with($block, $this->literal_tag)) {
+					$c = $block[$name_len_literal] ?? '';
 					if ($c !== '' && $c !== '_' && !ctype_alnum($c)) { $m = 'literal'; }
 				}
 
 				$is_function = $m !== null;
 
 				if ($is_function) {
-					$close_tag    = "{/$m}";
-					$open_tag_str = '{' . $m;
+					$close_tag    = $ld . "/$m" . $rd;
+					$open_tag_str = $ld . $m;
 
 					// Seed open count with occurrences inside the opening tag itself
 					// (e.g. {if $x eq '{if}'} has two {if substrings)
@@ -176,7 +208,7 @@ class sluz {
 					// avoids rescanning the entire block on every }.
 					$j = $i + 1;
 					while ($j < $slen) {
-						$j = strpos($str, '}', $j);
+						$j = strpos($str, $rd, $j);
 						if ($j === false) break;
 
 						$seg_len      = $j - $last_pos + 1;
@@ -208,7 +240,7 @@ class sluz {
 
 			// If it's a comment we slurp all the chars until the first '*}' and make that the block
 			if ($is_comment) {
-				$end = $this->find_ending_tag(substr($str, $start), '{*', '*}');
+				$end = $this->find_ending_tag(substr($str, $start), $this->comment_open, $this->comment_close);
 
 				// If we don't find a closing comment tag we add the half-block to the list
 				// and it gets caught by "invalid block" later
@@ -216,8 +248,7 @@ class sluz {
 					continue;
 				}
 
-				$end += 2; // '*}' is 2 long so we add that
-
+				$end   += strlen($this->comment_close);
 				$start += $end;
 				$i      = $start;
 			}
@@ -225,7 +256,8 @@ class sluz {
 
 		// If we're not at the end of the string, add the last block
 		if ($start < $slen) {
-			$block    = substr($str, $start);
+			$block = substr($str, $start);
+
 			if ($block) {
 				$blocks[] = [$block, $i];
 			}
@@ -242,15 +274,18 @@ class sluz {
 		// {/foreach}^
 		$prev_is_if  = false;
 		$block_count = count($blocks);
+		$if_prefix   = $ld . 'if';
+		$for_prefix  = $ld . 'for';
+
 		for ($i = 0; $i < $block_count; $i++) {
 			$str       = $blocks[$i][0] ?? "";
-			$cur_is_if = str_starts_with($str, '{if') || str_starts_with($str, '{for');
+			$cur_is_if = str_starts_with($str, $if_prefix) || str_starts_with($str, $for_prefix);
 
 			// A combined if/foreach block (contains closing tag) should only
 			// trigger trimming of the next block's \n if the payload already
 			// ends with \n — otherwise the \n is content, not formatting.
-			if ($cur_is_if && (str_contains($str, '{/if}') || str_contains($str, '{/foreach}'))) {
-				$cur_is_if = boolval(preg_match('/\n\{\/\w+\}$/s', $str));
+			if ($cur_is_if && (str_contains($str, $this->close_if) || str_contains($str, $this->close_foreach))) {
+				$cur_is_if = boolval(preg_match($this->newline_pattern, $str));
 			}
 
 			if ($prev_is_if) {
@@ -335,7 +370,7 @@ class sluz {
 
 		foreach ($blocks as $x) {
 			$block      = $x[0];
-			$first_char = ($block[0] ?? "") === '{';
+			$first_char = ($block[0] ?? "") === $this->left_delim;
 
 			// If the first char is a { it's something we need to process
 			if ($first_char) {
@@ -800,15 +835,17 @@ class sluz {
 
 	// Parse an if statement
 	private function if_block($str) {
+		$ld = $this->left_delim;
+
 		// If it's a simple {if $name}Output{/if} we can save a lot of
 		// time parsing detailed rules
 		// i.e. there is no {else} or {elseif}
-		$is_simple = (strpos($str, "{else", 7) === false);
+		$is_simple = (strpos($str, $this->else_tag, strlen($ld) + 3) === false);
 
 		if ($is_simple) {
-			preg_match("/{if (.+?)}(.+){\/if}/s", $str, $m);
-			$cond     = $m[1] ?? "";
-			$payload  = $m[2] ?? "";
+			preg_match($this->if_simple_pattern, $str, $m);
+			$cond    = $m[1] ?? "";
+			$payload = $m[2] ?? "";
 
 			// This makes input -> output whitespace more correct
 			$payload  = $this->ltrim_one($payload, "\n");
@@ -836,23 +873,23 @@ class sluz {
 		for ($i = 0; $i < $num; $i++) {
 			$item = $toks[$i];
 
-			if (str_starts_with($item, '{if')) { $nested++; }
-			if ($item === '{/if}')             { $nested--; }
+			if (str_starts_with($item, $this->if_tag)) { $nested++; }
+			if ($item === $this->close_if)             { $nested--; }
 
 			// Determine if this token is an if-control boundary ({if}, {elseif}, {else})
 			// at nesting level 1. Nested {if}/{/if} pairs are treated as payload content.
 			$is_ctrl   = false;
 			$next_cond = null;
 			if ($nested === 1) {
-				if ($item === '{else}') {
+				if ($item === $this->else_tag) {
 					$is_ctrl   = true;
 					$next_cond = true;
-				} elseif (str_starts_with($item, '{if ')) {
+				} elseif (str_starts_with($item, $this->if_space_tag)) {
 					$is_ctrl   = true;
-					$next_cond = trim(substr($item, 4, -1));
-				} elseif (str_starts_with($item, '{elseif ')) {
+					$next_cond = trim(substr($item, strlen($ld) + 3, -strlen($this->right_delim)));
+				} elseif (str_starts_with($item, $this->elseif_tag)) {
 					$is_ctrl   = true;
-					$next_cond = trim(substr($item, 8, -1));
+					$next_cond = trim(substr($item, strlen($ld) + 7, -strlen($this->right_delim)));
 				}
 			}
 
@@ -1029,9 +1066,9 @@ class sluz {
 	// Find the position of the closing tag in a string. This *IS* nesting aware
 	function find_ending_tag($haystack, $open_tag, $close_tag) {
 		// Do a quick check up to the FIRST closing tag to see if we find it
-		$pos         = strpos($haystack, $close_tag);
-		$substr      = substr($haystack,0, $pos);
-		$open_count  = substr_count($substr, $open_tag);
+		$pos        = strpos($haystack, $close_tag);
+		$substr     = substr($haystack,0, $pos);
+		$open_count = substr_count($substr, $open_tag);
 
 		if ($open_count === 1) {
 			return $pos;
@@ -1072,7 +1109,7 @@ class sluz {
 
 	// Break up a string into tokens: pieces of {} and the text between them
 	function get_tokens($str) {
-		return preg_split('/({[^}]+})/', $str, 0, PREG_SPLIT_DELIM_CAPTURE | PREG_SPLIT_NO_EMPTY);
+		return preg_split($this->tokens_pattern, $str, 0, PREG_SPLIT_DELIM_CAPTURE | PREG_SPLIT_NO_EMPTY);
 	}
 
 	// Get/Set parent tpl
@@ -1086,11 +1123,63 @@ class sluz {
 		}
 	}
 
+	// Escaped delimiters for use in regex patterns (cached)
+	private function dlre() { return $this->dlre_cached; }
+	private function drre() { return $this->drre_cached; }
+
+	// Rebuild all cached delimiter-dependent values
+	private function rebuild_delim_cache() {
+		$ld = $this->left_delim;
+		$rd = $this->right_delim;
+
+		$this->dlre_cached = preg_quote($ld, '/');
+		$this->drre_cached = preg_quote($rd, '/');
+
+		$ldre = $this->dlre_cached;
+		$rdre = $this->drre_cached;
+
+		$this->if_tag        = $ld . 'if';
+		$this->foreach_tag   = $ld . 'foreach';
+		$this->literal_tag   = $ld . 'literal';
+		$this->close_if      = $ld . '/if' . $rd;
+		$this->close_foreach = $ld . '/foreach' . $rd;
+		$this->else_tag      = $ld . 'else' . $rd;
+		$this->elseif_tag    = $ld . 'elseif ';
+		$this->if_space_tag  = $ld . 'if ';
+		$this->comment_open  = $ld . '*';
+		$this->comment_close = '*' . $rd;
+
+		$this->var_pattern       = '/^'  . $ldre . '\$(\w[\w\|\.\'";\\t :,!@#%^&*?_\/\\\\-]*)' . $rdre . '$/';
+		$this->foreach_pattern   = '/^'  . $ldre . 'foreach (\$\w[\w.]*) as \$(\w+)( => \$(\w+))?' . $rdre . '(.+)' . $ldre . '\/foreach' . $rdre . '$/s';
+		$this->literal_pattern   = '/^'  . $ldre . 'literal' . $rdre . '(.+)' . $ldre . '\/literal' . $rdre . '$/s';
+		$this->catchall_pattern  = '/^'  . $ldre . '(.+)' . $rdre . '$/s';
+		$this->if_simple_pattern = '/'   . $ldre . 'if (.+?)' . $rdre . '(.+)' . $ldre . '\/if' . $rdre . '/s';
+		$this->tokens_pattern    = '/('  . $ldre . '[^' . $rdre . ']+' . $rdre . ')/';
+		$this->newline_pattern   = '/\n' . $ldre . '\/\w+' . $rdre . '$/s';
+	}
+
 	// Enable/disable auto-escaping of HTML in variable output
 	public function setEscapeHtml($enable = true) {
 		$this->escape_html = (bool) $enable;
 
 		return $this;
+	}
+
+	// Set alternate single-character delimiters (default is { / })
+	// Comment delimiters are derived: left_delim + '*' and '*' + right_delim
+	public function set_delimiters($left, $right) {
+		if (strlen($left) !== 1 || strlen($right) !== 1) {
+			throw new \InvalidArgumentException("Delimiters must be single characters");
+		}
+
+		if ($left === $right) {
+			throw new \InvalidArgumentException("Left and right delimiters must be different");
+		}
+
+		$this->left_delim  = $left;
+		$this->right_delim = $right;
+
+		$this->rebuild_delim_cache();
 	}
 }
 
@@ -1102,9 +1191,9 @@ function escape($str, $type = 'html') {
 		return rawurlencode($str);
 	} elseif ($type === 'js') {
 		return json_encode($str, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP);
+	} else {
+		return htmlspecialchars($str, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
 	}
-
-	return htmlspecialchars($str, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
 }
 
 // Return value unchanged — used with setEscapeHtml() to opt out of auto-escaping
