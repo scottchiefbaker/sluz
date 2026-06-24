@@ -119,6 +119,7 @@ sluz_test('{$xss|escape:"url"}'            , '%3Cscript%3Ealert%281%29%3C%2Fscri
 sluz_test('{$xss|escape:"js"}'             , '"\u003Cscript\u003Ealert(1)\u003C\/script\u003E"'                   , 'Escape #5 - JS encoding');
 sluz_test('{$null|default:"safe"|escape}'  , 'safe'                                                               , 'Escape #6 - Default chained with escape');
 sluz_test('{$empty_string|default:"text"|escape}', 'text'                                                        , 'Escape #7 - Default with escape on empty');
+sluz_test('{$first|escape:"invalid"}'             , "Unknown escape type 'invalid' #65491"                         , 'Escape #8 - Invalid escape type');
 
 // Auto-escape tests (separate sluz instance with setEscapeHtml enabled)
 $ae = new sluz();
