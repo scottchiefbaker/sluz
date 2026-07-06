@@ -922,6 +922,7 @@ class sluz {
 						|| (bool) $this->peval($this->convert_variables_in_string((string) $cur_cond));
 
 					if ($passed) {
+						$cur    = $this->ltrim_one($cur, "\n");
 						$blocks = $this->get_blocks($cur);
 
 						return $this->process_blocks($blocks);
