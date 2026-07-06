@@ -262,9 +262,10 @@ sluz_test('{* {* {* nested *} *} *}'     , ''           , 'Comment #6 - Triple N
 sluz_test('{* unclosed comment'          , 'ERROR-45821', 'Comment #7 - Unclosed comment');
 sluz_test("{* line1\nline2 *}"           , ''           , 'Comment #8 - Multi-line comment');
 sluz_test("{* line1\n{\$first}\nline2 *}", ''           , 'Comment #9 - Multi-line comment with variable');
-sluz_test("{* line1 *}\n{* line2 *}"     , "\n"         , 'Comment #10 - Two subsequent comment lines');
+sluz_test("{* line1 *}\n{* line2 *}"     , ''           , 'Comment #10 - Two subsequent comment lines');
 sluz_test("{* a *}{* b *}"               , ''           , 'Comment #11 - Adjacent comments no whitespace');
 sluz_test("{* a *} {* b *}"              , ' '          , 'Comment #12 - Comments separated by a space');
+sluz_test("a\n{* a *}\n{* b *}\nz"       , "a\nz"       , 'Comment #13 - Comments on a line do not output \n');
 
 sluz_test("{include file='tpls/extra.stpl'}"                 , '/e1ab49cf/' , 'Include #1 - file=\'extra.stpl\'');
 sluz_test("{include 'tpls/extra.stpl'}"                      , '/e1ab49cf/' , 'Include #2 - \'extra.stpl\'');
