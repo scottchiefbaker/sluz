@@ -250,7 +250,7 @@ class sluz {
 
 				$end   += strlen($this->comment_close);
 				$start += $end;
-				$i      = $start;
+				$i      = $start - 1;
 			}
 		}
 
