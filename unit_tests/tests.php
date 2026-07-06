@@ -331,9 +331,7 @@ sluz_test('{$first}', 'Scott', 'AltDelim #11 - Default delimiters restored');
 $total = $pass_count + $fail_count;
 
 if ($is_cli) {
-	if (!$simple) {
-		print "\n";
-	}
+	print "\n";
 
 	printf("Tests run on PHP %s\n", phpversion());
 	if ($total === 0) {
@@ -417,10 +415,10 @@ function sluz_fetch_test($files, $pattern, $test_name) {
 	if (preg_match($pattern, $str)) {
 		$pass_count++;
 		$test_output[] = [$test_name,0];
-
 		if ($is_cli) {
 			$out .= $ok_str . "\n";
 		}
+		if ($simple) { $out = ''; }
 	} else {
 		if ($is_cli) {
 			$out .= $fail_str . "\n";
@@ -429,9 +427,7 @@ function sluz_fetch_test($files, $pattern, $test_name) {
 		$test_output[] = [$test_name, "Expected $pattern"];
 	}
 
-	if (!$simple) {
-		print $out;
-	}
+	print $out;
 }
 
 function sluz_test($input, $expected, $test_name) {
@@ -483,6 +479,7 @@ function sluz_test($input, $expected, $test_name) {
 		if ($is_cli) {
 			$out .= $ok_str . "\n";
 		}
+		if ($simple) { $out = ''; }
 		$test_output[] = [$test_name,0];
 		$pass_count++;
 	} elseif ($is_regexp && !preg_match($expected, $html)) {
@@ -502,7 +499,7 @@ function sluz_test($input, $expected, $test_name) {
 		if ($is_cli) {
 			$out .= $ok_str . "\n";
 		}
-
+		if ($simple) { $out = ''; }
 		$test_output[] = [$test_name,0];
 
 		$pass_count++;
@@ -521,9 +518,7 @@ function sluz_test($input, $expected, $test_name) {
 		$fail_count++;
 	}
 
-	if (!$simple) {
-		print $out;
-	}
+	print $out;
 }
 
 // Test helper for auto-escape: uses a dedicated sluz instance with setEscapeHtml(true)
@@ -560,6 +555,7 @@ function sluz_auto_escape_test($input, $expected, $test_name) {
 
 	if ($is_regexp && preg_match($expected, $html)) {
 		if ($is_cli) { $out .= $ok_str . "\n"; }
+		if ($simple) { $out = ''; }
 		$test_output[] = [$test_name,0];
 		$pass_count++;
 	} elseif ($is_regexp && !preg_match($expected, $html)) {
@@ -574,6 +570,7 @@ function sluz_auto_escape_test($input, $expected, $test_name) {
 		$fail_count++;
 	} elseif ($html === $expected) {
 		if ($is_cli) { $out .= $ok_str . "\n"; }
+		if ($simple) { $out = ''; }
 		$test_output[] = [$test_name,0];
 		$pass_count++;
 	} else {
@@ -588,9 +585,7 @@ function sluz_auto_escape_test($input, $expected, $test_name) {
 		$fail_count++;
 	}
 
-	if (!$simple) {
-		print $out;
-	}
+	print $out;
 }
 
 // This is just to test user functions/modifiers
