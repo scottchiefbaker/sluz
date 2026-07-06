@@ -6,7 +6,7 @@ define('SLUZ_INLINE', 'INLINE_TEMPLATE'); // Just a specific string
 define('SLUZ_IDENT_CHARS', '_0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'); // PHP identifier chars: [a-zA-Z0-9_]
 
 class sluz {
-	public $version       = '0.9.5';
+	public $version       = '0.9.6';
 	public $tpl_file      = null;         // The path to the TPL file
 	public $inc_tpl_file  = null;         // The path to the {include} file
 	public $parent_tpl    = null;         // Path to parent TPL
