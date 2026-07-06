@@ -117,6 +117,7 @@ class sluz {
 		$name_len_if      = strlen($this->if_tag);
 		$name_len_foreach = strlen($this->foreach_tag);
 		$name_len_literal = strlen($this->literal_tag);
+		$prev_was_comment = false; // Tracks if previous construct was a comment
 
 		// Start looking for blocks at the first delim
 		$z = strpos($str, $ld);
@@ -164,6 +165,12 @@ class sluz {
 				$len   = $i - $start;
 				$block = substr($str, $start, $len);
 				$start = $i;
+
+				// Strip leading \n if previous block was a comment (comment line ending)
+				if ($prev_was_comment) {
+					$block = $this->ltrim_one($block, "\n");
+					$prev_was_comment = false;
+				}
 
 				if ($block) {
 					$blocks[] = [$block, $i];
@@ -234,6 +241,7 @@ class sluz {
 					$blocks[] = [$block, $i];
 				}
 
+				$prev_was_comment = false; // Non-comment block consumed, reset flag
 				$start += strlen($block);
 				$i      = $start;
 			}
@@ -251,12 +259,19 @@ class sluz {
 				$end   += strlen($this->comment_close);
 				$start += $end;
 				$i      = $start - 1;
+				$prev_was_comment = true; // So trailing \n (line ending) gets stripped
 			}
 		}
 
 		// If we're not at the end of the string, add the last block
 		if ($start < $slen) {
 			$block = substr($str, $start);
+
+			// Strip leading \n if trailing text follows a comment
+			if ($prev_was_comment) {
+				$block = $this->ltrim_one($block, "\n");
+				$prev_was_comment = false;
+			}
 
 			if ($block) {
 				$blocks[] = [$block, $i];
