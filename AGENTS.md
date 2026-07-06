@@ -2,12 +2,12 @@
 
 ## Project
 
-Single-file (1075 LOC) PHP templating engine with Smarty-like syntax. Zero dependencies, PHP ≥8.0.
+Single-file PHP templating engine with Smarty-like syntax. Zero dependencies, PHP ≥8.0.
 
 - Class: `sluz` (lowercase) in `sluz.class.php`
 - Composer autoload: `"files": ["sluz.class.php"]` — no PSR-4 namespace
 - Template extension: `.stpl`
-- Version string: `$sluz->version` (current `0.9.3`)
+- Version string: `$sluz->version` (current `0.9.5`)
 
 ## Commands
 
@@ -37,8 +37,12 @@ $s->display('tpls/file.stpl');                          // fetch + print
 $s->parse('tpls/file.stpl');                            // alias for fetch()
 $s->parent_tpl('tpls/parent.stpl');                     // get/set parent template
 $s->set_delimiters('[', ']');                           // custom delimiters (default { / })
+$s->setEscapeHtml(true);                                // auto-escape all {$var} output
 $s->debug = 1;                                          // verbose debug output
 $s->in_unit_test = true;                                // suppress error output during testing
+// Global helper functions usable in templates:
+//   {$var|escape}  — htmlspecialchars (default), or "url", "js"
+//   {$var|raw}     — opt out of auto-escaping
 ```
 
 ## Modes
@@ -65,7 +69,5 @@ $s->in_unit_test = true;                                // suppress error output
 - Must be `error_reporting(E_ALL)` compliant — no `E_NOTICE` allowed.
 - `foreach` loop vars do NOT persist after the loop block (tested explicitly).
 - `$__FOREACH_FIRST`/`$__FOREACH_LAST`/`$__FOREACH_INDEX` are reserved variable names inside `{foreach}`.
-- `docs/tpls/` templates are paired with `docs/*.php` scripts; they live alongside runnable examples.
-- `.gitattributes` controls Packagist archive — `/docs`, `/unit_tests`, `/tpls`, `/x.php`, `/index.php` excluded from distribution.
+- `.gitattributes` controls Packagist archive — see the file for excluded paths.
 - `.gitignore` excludes scratch files `x.php`, `tpls/x.stpl`, `tpls/child.stpl`, `tpls/parent.stpl`.
-- `.user.ini` is machine-local (developer tooling); not part of the library.
