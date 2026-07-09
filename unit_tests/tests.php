@@ -242,8 +242,11 @@ sluz_test('{literal}}{/literal}'                  , '}'                  , 'Lite
 sluz_test('{literal}{}{/literal}'                 , '{}'                 , 'Literal #3 - Literal + {}');
 sluz_test('{literal}{foreach}{/literal}'          , '{foreach}'          , 'Literal #4 - {literal}');
 sluz_test('{literal}{literal}{/literal}{/literal}', '{literal}{/literal}', 'Literal #5 - Meta literal');
-sluz_test(' { '                                   , ' { '                , 'Literal #6 - { with whitespace');
-sluz_test('{}'                                    , '{}'                 , 'Literal #7 - Raw {}');
+sluz_test("{literal}\nfoo\n{/literal}"            , 'foo'                , 'Literal #6 - Standalone literal block strips line \\n');
+sluz_test("x{literal}\nfoo\n{/literal}"           , "x\nfoo"             , 'Literal #7 - Inline literal (open) keeps \\n, close alone strips');
+sluz_test("{literal}\nfoo\n{/literal}y"           , "foo\ny"             , 'Literal #8 - Inline literal (close) keeps \\n, open alone strips');
+sluz_test(' { '                                   , ' { '                , 'Literal #9 - { with whitespace');
+sluz_test('{}'                                    , '{}'                 , 'Literal #10 - Raw {}');
 
 sluz_test("{\$x}{\$x}"                                   , '77'           , 'Whitespace input/output #1');
 sluz_test("{\$x} {\$x}"                                  , '7 7'          , 'Whitespace input/output #2');
