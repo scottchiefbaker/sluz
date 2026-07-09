@@ -397,14 +397,6 @@ function sluz_fetch_test($files, $pattern, $test_name) {
 		$out = "$lead $pad";
 	}
 
-	$ok    = "\033[32m";
-	$fail  = "\033[31m";
-	$reset = "\033[0m";
-	$white = "\033[1m";
-
-	$l = $white . "[" . $reset;
-	$r = $white . "]" . $reset;
-
 	////////////////////////////////////////
 
 	$child  = $files[0] ?? "";
@@ -457,14 +449,6 @@ function sluz_test($input, $expected, $test_name) {
 	if ($is_cli) {
 		$out = "$lead $pad";
 	}
-
-	$ok    = "\033[32m";
-	$fail  = "\033[31m";
-	$reset = "\033[0m";
-	$white = "\033[1m";
-
-	$l = $white . "[" . $reset;
-	$r = $white . "]" . $reset;
 
 	$is_regexp = preg_match("|^/(.+?)/$|", $expected ?? "");
 	$html      = var_export($html, true);
