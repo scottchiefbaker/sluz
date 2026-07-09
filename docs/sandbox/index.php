@@ -114,7 +114,9 @@
 	<div class="container-fluid">
 		<div class="row">
 			<h2 class="col-10 bg-dark-subtle text-light p-2 ps-3">Sluz v<?PHP print $s->version ?> sandbox</h2>
-			<h2 class="col-2 text-end bg-dark-subtle text-light p-2 pe-3"><a href="#" title="Use sample data" id="use_defaults">#</a></h2>
+			<h2 class="col-2 text-end bg-dark-subtle text-light p-2 pe-3"><a href="#" title="Use sample data" id="use_defaults"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-brilliance" viewBox="0 0 16 16">
+  <path d="M8 16A8 8 0 1 1 8 0a8 8 0 0 1 0 16M1 8a7 7 0 0 0 7 7 3.5 3.5 0 1 0 0-7 3.5 3.5 0 1 1 0-7 7 7 0 0 0-7 7"/>
+</svg></a></h2>
 		</div>
 	</div>
 
