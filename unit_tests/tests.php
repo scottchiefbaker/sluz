@@ -415,6 +415,7 @@ function sluz_fetch_test($files, $pattern, $test_name) {
 		if ($is_cli) {
 			$out .= $fail_str . "\n";
 		}
+		if ($simple) { $out = ''; }
 		$fail_count++;
 		$test_output[] = [$test_name, "Expected $pattern"];
 	}
