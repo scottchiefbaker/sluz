@@ -237,12 +237,46 @@ class sluz {
 					}
 				}
 
+				// The block's position in $str is fixed by the walk above; trimming
+				// the literal content must not shift that, so we advance $start by
+				// the original (pre-trim) length.
+				$orig_block_len = strlen($block);
+
+				// If a {literal} block sits alone on its lines (the {literal} and
+				// {/literal} tags each occupy a line of their own), trim the single
+				// \n that belongs to those lines from the literal content. This
+				// mirrors the comment-line handling above. ^ marks the stripped \n.
+				//
+				//   {literal}^
+				//   foo
+				//   {/literal}^
+				if ($m === 'literal') {
+					$ltag  = $this->literal_tag . $rd;
+					$rtag  = $ld . '/literal' . $rd;
+					$l_len = strlen($ltag);
+					$r_len = strlen($rtag);
+					$inner = substr($block, $l_len, strlen($block) - $l_len - $r_len);
+
+					$begins_line = ($start === 0) || ($str[$start - 1] === "\n");
+					$after_pos   = $start + strlen($block);
+					$ends_line   = ($after_pos >= $slen) || ($str[$after_pos] === "\n");
+
+					if ($begins_line && $inner !== "" && $inner[0] === "\n") {
+						$inner = substr($inner, 1);
+					}
+					if ($ends_line && $inner !== "" && $inner[strlen($inner) - 1] === "\n") {
+						$inner = substr($inner, 0, -1);
+					}
+
+					$block = $ltag . $inner . $rtag;
+				}
+
 				if ($block) {
 					$blocks[] = [$block, $i];
 				}
 
 				$prev_was_comment = false; // Non-comment block consumed, reset flag
-				$start += strlen($block);
+				$start += $orig_block_len;
 				$i      = $start;
 			}
 
