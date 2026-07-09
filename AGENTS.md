@@ -7,7 +7,7 @@ Single-file PHP templating engine with Smarty-like syntax. Zero dependencies, PH
 - Class: `sluz` (lowercase) in `sluz.class.php`
 - Composer autoload: `"files": ["sluz.class.php"]` — no PSR-4 namespace
 - Template extension: `.stpl`
-- Version string: `$sluz->version` (current `0.9.5`)
+- Version string: `$sluz->version` (current `0.9.6`)
 
 ## Commands
 
@@ -16,6 +16,18 @@ php unit_tests/tests.php           # full suite
 php unit_tests/tests.php "Foreach" # filter by test name substring
 php unit_tests/tests.php --simple  # quiet mode (pass/fail counts only)
 ```
+
+## Benchmarking
+
+Evaluate any changes to `sluz.class.php` for performance regressions with the detail benchmark:
+
+```sh
+php unit_tests/detail-benchmark.php            # full suite (15000 iters)
+php unit_tests/detail-benchmark.php -f foreach # filter by name/description
+php unit_tests/detail-benchmark.php -n 50000   # alternate iteration flag
+```
+
+Runs a warmup then times each template scenario (variables, modifiers, foreach, if, mixed, etc.) and prints per-scenario millis/iter-per-second plus a TOTAL. Compare TOTAL (and any scenario you touched) before and after your change to catch regressions.
 
 ## Architecture
 
@@ -63,6 +75,7 @@ $s->in_unit_test = true;                                // suppress error output
 | 68493 | Missing file in include block   |
 | 73467 | Bare word / unknown block       |
 | 79134 | Exception in modifier call      |
+| 65491 | Unknown escape type in `escape` |
 
 ## Gotchas
 
