@@ -206,29 +206,29 @@ sluz_test('{foreach $array as $num}{$num}{/foreach}'                         , '
 sluz_test("{foreach \$array as \$num}\n{\$num}\n{/foreach}"                  , "one\ntwo\nthree\n"      , 'Foreach #2 - Simple with whitespace');
 sluz_test('{foreach $members as $x}{$x.first}{/foreach}'                     , 'ScottJason'             , 'Foreach #3 - Hash');
 sluz_test('{foreach $arrayd as $x}{$x.1}{/foreach}'                          , '246'                    , 'Foreach #4 - Array');
-sluz_test('{foreach $arrayd as $key => $val}{$key}:{$val.0}{/foreach}'       , '0:11:32:5'              , 'Foreach #6 - Key/val array');
-sluz_test('{foreach $members as $id => $x}{$id}{$x.first}{/foreach}'         , '0Scott1Jason'           , 'Foreach #7 - Key/val hash');
-sluz_test('{foreach $subarr.one as $id}{$id}{/foreach}'                      , '246'                    , 'Foreach #8 - Hash key');
-sluz_test('{foreach $bogus_var as $x}one{/foreach}'                          , ''                       , 'Foreach #9 - Missing var');
-sluz_test('{foreach $empty as $x}one{/foreach}'                              , ''                       , 'Foreach #10 - Empty array');
-sluz_test('{foreach $array as $i => $x}{$i}{$x}{/foreach}'                   , '0one1two2three'         , 'Foreach #11 - One char variables');
-sluz_test('{foreach $array as $i => $x}{if $x}{$x}{/if}{/foreach}'           , 'onetwothree'            , 'Foreach #12 - Foreach with nested if');
-sluz_test('{foreach $arrayd as $i => $x}{if $x.1}{$x.1}{/if}{/foreach}'      , '246'                    , 'Foreach #13 - Foreach with nested if (array)');
-sluz_test('{foreach $null as $x}one{/foreach}'                               , ''                       , 'Foreach #14 - Null');
-sluz_test('{foreach $first as $x}{$first}{/foreach}'                         , 'Scott'                  , 'Foreach #15 - Scalar');
-sluz_test('{foreach $array as $i}{foreach $array as $i}x{/foreach}{/foreach}', 'xxxxxxxxx'              , 'Foreach #16 - Nested');
+sluz_test('{foreach $arrayd as $key => $val}{$key}:{$val.0}{/foreach}'       , '0:11:32:5'              , 'Foreach #5 - Key/val array');
+sluz_test('{foreach $members as $id => $x}{$id}{$x.first}{/foreach}'         , '0Scott1Jason'           , 'Foreach #6 - Key/val hash');
+sluz_test('{foreach $subarr.one as $id}{$id}{/foreach}'                      , '246'                    , 'Foreach #7 - Hash key');
+sluz_test('{foreach $bogus_var as $x}one{/foreach}'                          , ''                       , 'Foreach #8 - Missing var');
+sluz_test('{foreach $empty as $x}one{/foreach}'                              , ''                       , 'Foreach #9 - Empty array');
+sluz_test('{foreach $array as $i => $x}{$i}{$x}{/foreach}'                   , '0one1two2three'         , 'Foreach #10 - One char variables');
+sluz_test('{foreach $array as $i => $x}{if $x}{$x}{/if}{/foreach}'           , 'onetwothree'            , 'Foreach #11 - Foreach with nested if');
+sluz_test('{foreach $arrayd as $i => $x}{if $x.1}{$x.1}{/if}{/foreach}'      , '246'                    , 'Foreach #12 - Foreach with nested if (array)');
+sluz_test('{foreach $null as $x}one{/foreach}'                               , ''                       , 'Foreach #13 - Null');
+sluz_test('{foreach $first as $x}{$first}{/foreach}'                         , 'Scott'                  , 'Foreach #14 - Scalar');
+sluz_test('{foreach $array as $i}{foreach $array as $i}x{/foreach}{/foreach}', 'xxxxxxxxx'              , 'Foreach #15 - Nested');
 
 // These tests make sure that the foreach above that sets $i and $x don't persist after
-sluz_test('{$x}'                                                             , '7'                      , 'Foreach #17 - NOT overwrite variable - previously set');
-sluz_test('{$i}'                                                             , ''                       , 'Foreach #18 - NOT overwrite variable - no initial value');
+sluz_test('{$x}'                                                             , '7'                      , 'Foreach #16 - NOT overwrite variable - previously set');
+sluz_test('{$i}'                                                             , ''                       , 'Foreach #17 - NOT overwrite variable - no initial value');
 // End of persistence foreach tests
 
-sluz_test('{foreach $y as $z}{$z}{/foreach}'                                    , '246'                    , 'Foreach #19 - Foreach one char key');
-sluz_test('{foreach $array as $x}{if $__FOREACH_FIRST}FIRST{/if}{$x}{/foreach}' , 'FIRSTonetwothree'       , 'Foreach #20 - Foreach FIRST item');
-sluz_test('{foreach $array as $x}{$x}{if $__FOREACH_LAST}LAST{/if}{/foreach}'   , 'onetwothreeLAST'        , 'Foreach #21 - Foreach LAST item');
-sluz_test('{foreach $array as $x}{$x}{$__FOREACH_INDEX}{/foreach}'              , 'one0two1three2'         , 'Foreach #22 - Foreach index');
-sluz_test('{foreach $single as $x}{$__FOREACH_FIRST}{$__FOREACH_LAST}{/foreach}', '11'                     , 'Foreach #23 - Single element FIRST/LAST both true');
-sluz_test('{foreach $cust as $k => $v}{$k}:{$v},{/foreach}'                     , 'first:Scott,last:Baker,', 'Foreach #24 - String keys');
+sluz_test('{foreach $y as $z}{$z}{/foreach}'                                    , '246'                    , 'Foreach #18 - Foreach one char key');
+sluz_test('{foreach $array as $x}{if $__FOREACH_FIRST}FIRST{/if}{$x}{/foreach}' , 'FIRSTonetwothree'       , 'Foreach #19 - Foreach FIRST item');
+sluz_test('{foreach $array as $x}{$x}{if $__FOREACH_LAST}LAST{/if}{/foreach}'   , 'onetwothreeLAST'        , 'Foreach #20 - Foreach LAST item');
+sluz_test('{foreach $array as $x}{$x}{$__FOREACH_INDEX}{/foreach}'              , 'one0two1three2'         , 'Foreach #21 - Foreach index');
+sluz_test('{foreach $single as $x}{$__FOREACH_FIRST}{$__FOREACH_LAST}{/foreach}', '11'                     , 'Foreach #22 - Single element FIRST/LAST both true');
+sluz_test('{foreach $cust as $k => $v}{$k}:{$v},{/foreach}'                     , 'first:Scott,last:Baker,', 'Foreach #23 - String keys');
 
 sluz_test('Scott'           , 'Scott'           , 'Plain text #1 - Static text');
 sluz_test('<div>Scott</div>', '<div>Scott</div>', 'Plain text #2 - HTML');
