@@ -1199,7 +1199,7 @@ class sluz {
 		$this->comment_open  = $ld . '*';
 		$this->comment_close = '*' . $rd;
 
-		$this->var_pattern       = '/^'  . $ldre . '\$(\w[\w\|\.\'";\\t :,!@#%^&*?_\/\\\\-]*)' . $rdre . '$/';
+		$this->var_pattern       = '/^'  . $ldre . '\$(\w[\w.]*(?:\|.*)?)' . $rdre . '$/';
 		$this->foreach_pattern   = '/^'  . $ldre . 'foreach (\$\w[\w.]*) as \$(\w+)( => \$(\w+))?' . $rdre . '(.+)' . $ldre . '\/foreach' . $rdre . '$/s';
 		$this->literal_pattern   = '/^'  . $ldre . 'literal' . $rdre . '(.+)' . $ldre . '\/literal' . $rdre . '$/s';
 		$this->catchall_pattern  = '/^'  . $ldre . '(.+)' . $rdre . '$/s';
