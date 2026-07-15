@@ -115,6 +115,9 @@ sluz_test('{$x % 3}'                              , '1'           , 'Basic #42 -
 sluz_test('{$x * 3}'                              , '21'          , 'Basic #43 - Multiplication on a variable');
 sluz_test('{$first . " " . $last}'                , 'Scott Baker' , 'Basic #44 - String concatenation');
 sluz_test('{$x > 3 ? "yes" : "no"}'               , 'yes'         , 'Basic #45 - Ternary expression');
+sluz_test('{$first }'                             , 'ERROR-50981' , 'Basic #46 - Trailing whitespace inside braces is invalid');
+sluz_test('{ $first }'                            , 'ERROR-50981' , 'Basic #47 - Leading whitespace inside braces is invalid');
+sluz_test('{ 3 + 4 }'                             , 'ERROR-50981' , 'Basic #48 - Whitespace around expression is invalid');
 
 // Escape modifier (XSS prevention)
 $sluz->assign('xss', '<script>alert(1)</script>');
