@@ -103,11 +103,18 @@ sluz_test('{$number + $null}'                        , '15'         , 'Basic #32
 sluz_test('{$number + $x}'                           , '22'         , 'Basic #33 - Mixed types: number + numeric string');
 
 // Character class fix: forward slash and backslash in modifier arguments
-sluz_test('{$empty_string|default:"N/A"}'          , 'N/A'         , 'Basic #34 - Default with forward slash (empty)');
-sluz_test('{$first|default:"N/A"}'                 , 'Scott'       , 'Basic #35 - Default with forward slash (non-empty)');
-sluz_test('{$empty_string|default:"path/to/file"}' , 'path/to/file', 'Basic #36 - Default with path containing slashes');
-sluz_test('{$empty_string|default:"yes/no"}'       , 'yes/no'      , 'Basic #37 - Default with slash abbreviation');
-sluz_test('{$empty_string|default:"C:\\"}'         , 'C:\\'        , 'Basic #38 - Default with forward slash');
+sluz_test('{$empty_string|default:"N/A"}'         , 'N/A'         , 'Basic #34 - Default with forward slash (empty)');
+sluz_test('{$first|default:"N/A"}'                , 'Scott'       , 'Basic #35 - Default with forward slash (non-empty)');
+sluz_test('{$empty_string|default:"path/to/file"}', 'path/to/file', 'Basic #36 - Default with path containing slashes');
+sluz_test('{$empty_string|default:"yes/no"}'      , 'yes/no'      , 'Basic #37 - Default with slash abbreviation');
+sluz_test('{$empty_string|default:"C:\\"}'        , 'C:\\'        , 'Basic #38 - Default with forward slash');
+sluz_test('{$x - 3}'                              , '4'           , 'Basic #39 - Subtraction on a variable');
+sluz_test('{3 - $x}'                              , '-4'          , 'Basic #40 - Subtraction with leading constant');
+sluz_test('{$x / 2}'                              , '3.5'         , 'Basic #41 - Division on a variable');
+sluz_test('{$x % 3}'                              , '1'           , 'Basic #42 - Modulo on a variable');
+sluz_test('{$x * 3}'                              , '21'          , 'Basic #43 - Multiplication on a variable');
+sluz_test('{$first . " " . $last}'                , 'Scott Baker' , 'Basic #44 - String concatenation');
+sluz_test('{$x > 3 ? "yes" : "no"}'               , 'yes'         , 'Basic #45 - Ternary expression');
 
 // Escape modifier (XSS prevention)
 $sluz->assign('xss', '<script>alert(1)</script>');
