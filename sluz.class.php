@@ -93,6 +93,15 @@ class sluz {
 			$ret = $m[1];
 		// Catch all for other { $num + 3 } type of blocks
 		} elseif (preg_match($this->catchall_pattern, $str, $m)) {
+			// Blocks must not have whitespace immediately next to the delimiters
+			// e.g. {$foo } or { $foo } or { 3 + 4 } are invalid.
+			$inner = $m[1];
+			if ($inner !== '' && (ctype_space($inner[0]) || ctype_space($inner[-1]))) {
+				list($line, $col, $file) = $this->get_char_location($this->char_pos, $this->tpl_file);
+
+				return $this->error_out("Whitespace not allowed next to delimiters <code>$str</code> in <code>$file</code> on line #$line", 50981);
+			}
+
 			$ret = $this->expression_block($str, $m);
 		// If it starts with '{' (from above) but does NOT contain a closing tag
 		} elseif (!str_ends_with($str, $rd)) {
