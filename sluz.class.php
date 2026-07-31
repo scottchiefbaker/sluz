@@ -46,6 +46,12 @@ class sluz {
 	private $tokens_pattern    = null;
 	private $newline_pattern   = null;
 
+    // Profiling state
+	private $profile_log_file   = null; // Non-empty = profiling enabled + file destination
+	private $profile_counts     = [];   // Count of each process_block() branch taken
+	private $profile_time       = 0;    // Accumulated hrtime() nanoseconds
+	private $profile_entry_file = null; // Filename passed to the most recent top-level fetch()
+
 	public function __construct() {
 		$this->var_prefix_str = '$' . $this->var_prefix . '_';
 		$this->rebuild_delim_cache();
@@ -56,6 +62,30 @@ class sluz {
 		if ($this->simple_mode && !$this->fetch_called) {
 			print $this->fetch();
 		}
+
+		// Write out accumulated profiling data (once, at end of object lifetime)
+		$this->flush_profile();
+	}
+
+	// Enable profiling by setting the file path profiling data is appended to.
+	public function set_profile_log(string $path) {
+		$this->profile_log_file = $path;
+	}
+
+	// Append the current profiling snapshot as a single JSON line (ndjson) to profile_log_file.
+	public function flush_profile() {
+		if (!$this->profile_log_file || empty($this->profile_counts)) {
+			return;
+		}
+
+		$line = json_encode([
+			'timestamp' => date('c'),
+			'file'      => $this->profile_entry_file,
+			'counts'    => $this->profile_counts,
+			'time_ms'   => round($this->profile_time / 1e6, 3),
+		]) . "\n";
+
+		@file_put_contents($this->profile_log_file, $line, FILE_APPEND | LOCK_EX);
 	}
 
 	// Assign variables to pass to the TPL
@@ -78,21 +108,33 @@ class sluz {
 
 		// Simple variable replacement {$foo} or {$foo|default:"123"}
 		if (str_starts_with($str, $ld . '$') && preg_match($this->var_pattern, $str, $m)) {
-			$ret = $this->variable_block($m[1]);
+			$ret    = $this->variable_block($m[1]);
+
+			if ($this->profile_log_file) { $this->profile_hit("variable"); }
 		// If statement {if $foo}{/if}
 		} elseif (str_starts_with($str, $this->if_space_tag) && str_ends_with($str, $this->close_if)) {
-			$ret = $this->if_block($str);
+			$ret    = $this->if_block($str);
+
+			if ($this->profile_log_file) { $this->profile_hit("if"); }
 		// Foreach {foreach $foo as $x}{/foreach}
 		} elseif (str_starts_with($str, $this->foreach_tag . ' ') && preg_match($this->foreach_pattern, $str, $m)) {
-			$ret = $this->foreach_block($m);
+			$ret    = $this->foreach_block($m);
+
+			if ($this->profile_log_file) { $this->profile_hit("foreach"); }
 		// Include {include file='my.stpl' number='99'}
 		} elseif (str_starts_with($str, $ld . 'include ')) {
-			$ret = $this->include_block($str);
+			$ret    = $this->include_block($str);
+
+			if ($this->profile_log_file) { $this->profile_hit("include"); }
 		// Literal {literal}Stuff here{/literal}
 		} elseif (str_starts_with($str, $this->literal_tag) && preg_match($this->literal_pattern, $str, $m)) {
-			$ret = $m[1];
+			$ret    = $m[1];
+
+			if ($this->profile_log_file) { $this->profile_hit("literal"); }
 		// Catch all for other { $num + 3 } type of blocks
 		} elseif (preg_match($this->catchall_pattern, $str, $m)) {
+			if ($this->profile_log_file) { $this->profile_hit("expression"); }
+
 			// Blocks must not have whitespace immediately next to the delimiters
 			// e.g. {$foo } or { $foo } or { 3 + 4 } are invalid.
 			$inner = $m[1];
@@ -105,14 +147,26 @@ class sluz {
 			$ret = $this->expression_block($str, $m);
 		// If it starts with '{' (from above) but does NOT contain a closing tag
 		} elseif (!str_ends_with($str, $rd)) {
+			if ($this->profile_log_file) { $this->profile_hit("unclosed"); }
+
 			list($line, $col, $file) = $this->get_char_location($this->char_pos, $this->tpl_file);
+
 			return $this->error_out("Unclosed tag <code>$str</code> in <code>$file</code> on line #$line", 45821);
 		// Something went WAY wrong
 		} else {
 			$ret = $str;
+
+			if ($this->profile_log_file) { $this->profile_hit("fallback"); }
 		}
 
 		return $ret;
+	}
+
+	// Increment the count of a process_block() branch type (only called when profiling is enabled)
+	private function profile_hit(string $branch) {
+		$current = $this->profile_counts[$branch] ?? 0;
+
+		$this->profile_counts[$branch] = $current + 1;
 	}
 
 	// Break the text up in to tokens/blocks to process by process_block()
@@ -389,7 +443,17 @@ class sluz {
 
 		$str    = $this->get_tpl_content($tpl_file);
 		$blocks = $this->get_blocks($str);
-		$html   = $this->process_blocks($blocks);
+
+		if ($this->profile_log_file) {
+			$this->profile_entry_file = $tpl_file;
+			$t0 = hrtime(true);
+		}
+
+		$html = $this->process_blocks($blocks);
+
+		if ($this->profile_log_file) {
+			$this->profile_time += hrtime(true) - $t0;
+		}
 
 		$this->fetch_called = true;
 
@@ -399,7 +463,16 @@ class sluz {
 	// Parse a string (not a file)
 	public function parse_string($tpl_str) {
 		$blocks = $this->get_blocks($tpl_str);
-		$html   = $this->process_blocks($blocks);
+
+		if ($this->profile_log_file) {
+			$t0 = hrtime(true);
+		}
+
+		$html = $this->process_blocks($blocks);
+
+		if ($this->profile_log_file) {
+			$this->profile_time += hrtime(true) - $t0;
+		}
 
 		return $html;
 	}

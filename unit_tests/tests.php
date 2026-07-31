@@ -11,6 +11,8 @@ $sluz               = new sluz;
 $sluz->debug        = 0;
 $sluz->in_unit_test = true;
 
+$sluz->set_profile_log('/var/tmp/sluz-profile.log');
+
 $simple = 0;
 if (in_array('--simple', $argv ?? [])) {
 	$simple = 1;
@@ -340,6 +342,81 @@ $sluz->set_delimiters('{', '}');
 sluz_test('{$first}', 'Scott', 'AltDelim #11 - Default delimiters restored');
 
 //////////////////////////////////////////////////////////////////////////////////////////
+// Profiling tests
+//////////////////////////////////////////////////////////////////////////////////////////
+
+// Helper: read a profile log file, return the decoded last line (or null)
+function read_profile_log($path) {
+	if (!file_exists($path)) { return null; }
+	$line = trim(file_get_contents($path));
+	return $line === '' ? null : json_decode($line, true);
+}
+
+// Never calling set_profile_log() -> profiling stays off, flush_profile() writes nothing
+$profile_log = sys_get_temp_dir() . '/sluz_profile_test_' . getmypid() . '.log';
+@unlink($profile_log);
+
+$p1 = new sluz();
+$p1->in_unit_test = true;
+$p1->assign(['name' => 'World']);
+$p1->parse_string('{$name}');
+$p1->flush_profile();
+
+profile_assert(!file_exists($profile_log), 'Profile #1 - Disabled by default, flush_profile() writes nothing');
+
+// set_profile_log() enables profiling, counts each branch, records time, and captures the filename
+@unlink($profile_log);
+
+$p2 = new sluz();
+$p2->in_unit_test = true;
+$p2->set_profile_log($profile_log);
+$p2->assign(['name' => 'World', 'items' => [1, 2, 3]]);
+$p2->parse_string('Hello {$name}! {if $name}yes{/if} {foreach $items as $i}{$i}{/foreach}{literal}{$raw}{/literal}');
+$p2->flush_profile();
+
+$log2 = read_profile_log($profile_log);
+
+profile_assert(is_array($log2)                                , 'Profile #2 - Log file written');
+profile_assert(($log2['counts']['variable'] ?? 0) === 4        , 'Profile #3 - Variable branch counted');
+profile_assert(($log2['counts']['if']       ?? 0) === 1        , 'Profile #4 - If branch counted');
+profile_assert(($log2['counts']['foreach']  ?? 0) === 1        , 'Profile #5 - Foreach branch counted');
+profile_assert(($log2['counts']['literal']  ?? 0) === 1        , 'Profile #6 - Literal branch counted');
+profile_assert(($log2['time_ms'] ?? 0) > 0                     , 'Profile #7 - Time recorded');
+
+// fetch() (with an include) accumulates into the same counters and sets the entry filename
+@unlink($profile_log);
+
+$p3 = new sluz();
+$p3->in_unit_test = true;
+$p3->set_profile_log($profile_log);
+$p3->assign(['number' => 42, 'secret' => 'e1ab49cf']);
+$p3->fetch('tpls/extra.stpl');
+$p3->flush_profile();
+
+$log3 = read_profile_log($profile_log);
+
+profile_assert(($log3['file'] ?? null) === 'tpls/extra.stpl'   , 'Profile #8 - Entry filename captured');
+profile_assert(($log3['counts']['variable'] ?? 0) === 2        , 'Profile #9 - Counts accumulate across fetch()');
+
+// set_profile_log('') disables profiling: counting/timing stops immediately, and
+// anything collected before disabling is dropped (not auto-flushed)
+@unlink($profile_log);
+
+$p4 = new sluz();
+$p4->in_unit_test = true;
+$p4->set_profile_log($profile_log);
+$p4->assign(['name' => 'World']);
+$p4->parse_string('{$name}'); // counted (1 variable) while enabled
+
+$p4->set_profile_log(''); // disable -- drops the collected data, no flush happens here
+$p4->parse_string('{$name}{$name}'); // NOT counted, profiling is off
+$p4->flush_profile(); // no-op, profile_log_file is null
+
+profile_assert(!file_exists($profile_log), 'Profile #10 - set_profile_log(\'\') disables without flushing pending data');
+
+@unlink($profile_log);
+
+//////////////////////////////////////////////////////////////////////////////////////////
 
 $total = $pass_count + $fail_count;
 
@@ -580,6 +657,48 @@ function sluz_auto_escape_test($input, $expected, $test_name) {
 			$out .= "  * Expected $expected but got $html (from: $file #$line)\n";
 		}
 		$test_output[] = [$test_name,"Expected <code>$expected</code> but got <code>$html</code><br />(from: $file #$line)"];
+		$fail_count++;
+	}
+
+	print $out;
+}
+
+// Simple boolean assertion helper, used by the profiling tests (which check
+// counters/filenames/log contents rather than template output strings)
+function profile_assert(bool $condition, $test_name) {
+	global $pass_count;
+	global $fail_count;
+	global $ok_str;
+	global $fail_str;
+	global $filter;
+	global $is_cli;
+	global $test_output;
+	global $simple;
+
+	if (!empty($filter) && !preg_match("/$filter/i", $test_name)) { return; }
+
+	$lead = "Test '$test_name' ";
+	$pad  = str_repeat(" ", 80 - (strlen($lead)));
+
+	$out = "";
+	if ($is_cli) {
+		$out = "$lead $pad";
+	}
+
+	if ($condition) {
+		if ($is_cli) { $out .= $ok_str . "\n"; }
+		if ($simple) { $out = ''; }
+		$test_output[] = [$test_name,0];
+		$pass_count++;
+	} else {
+		$d    = debug_backtrace();
+		$file = $d[0]['file'];
+		$line = $d[0]['line'];
+		if ($is_cli) {
+			$out .= $fail_str . "\n";
+			$out .= "  * Assertion failed (from: $file #$line)\n";
+		}
+		$test_output[] = [$test_name,"Assertion failed (from: $file #$line)"];
 		$fail_count++;
 	}
 
