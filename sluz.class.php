@@ -891,6 +891,65 @@ class sluz {
 		return [-1, -1, $tpl_file];
 	}
 
+	// Fast-path evaluator for simple binary comparisons in {if}/{elseif}
+	// conditions, e.g. "$var > 10", "$user.role == 'admin'", "$x != $y".
+	// This avoids the extract()+eval() overhead (which recompiles PHP
+	// source on every call) for the overwhelming majority of real-world
+	// template conditions. Returns null if the condition doesn't match
+	// this strict shape, signalling the caller to fall back to peval().
+	private function try_fast_condition($cond) {
+		$cond = trim($cond);
+
+		static $re = '/^\$(\w[\w.]*)\s*(===|!==|==|!=|>=|<=|>|<)\s*(.+)$/s';
+		if (!preg_match($re, $cond, $m)) {
+			return null;
+		}
+
+		$left = $this->array_dive($m[1], $this->tpl_vars);
+		$op   = $m[2];
+		$rhs  = trim($m[3]);
+
+		// Resolve the right-hand side: quoted string literal, numeric
+		// literal, or another $var(.path)*. Anything more complex
+		// (function calls, arithmetic, boolean operators, parens) is
+		// rejected so it falls back to the safe eval() path.
+		if ($rhs === '') {
+			return null;
+		}
+
+		$first = $rhs[0];
+		$last  = $rhs[-1];
+
+		if (($first === "'" || $first === '"') && $first === $last && strlen($rhs) >= 2) {
+			$inner = substr($rhs, 1, -1);
+			// Reject if the inner content still has the quote char (could
+			// be an escaped/complex string) or a backslash (escape seq).
+			if (str_contains($inner, $first) || str_contains($inner, '\\')) {
+				return null;
+			}
+			$right = $inner;
+		} elseif (is_numeric($rhs)) {
+			$right = $rhs + 0;
+		} elseif ($first === '$' && preg_match('/^\$(\w[\w.]*)$/', $rhs, $rm)) {
+			$right = $this->array_dive($rm[1], $this->tpl_vars);
+		} else {
+			return null;
+		}
+
+		switch ($op) {
+			case '==':  return $left == $right;
+			case '!=':  return $left != $right;
+			case '===': return $left === $right;
+			case '!==': return $left !== $right;
+			case '>':   return $left > $right;
+			case '>=':  return $left >= $right;
+			case '<':   return $left < $right;
+			case '<=':  return $left <= $right;
+		}
+
+		return null;
+	}
+
 	// Parse an if statement
 	private function if_block($str) {
 		$ld = $this->left_delim;
@@ -908,7 +967,15 @@ class sluz {
 			// This makes input -> output whitespace more correct
 			$payload  = $this->ltrim_one($payload, "\n");
 
-			if (!$this->peval($this->convert_variables_in_string($cond))) {
+			// Try the fast path (simple comparisons)
+			$fast = $this->try_fast_condition($cond);
+			if ($fast !== null) {
+				$pass = $fast;
+			} else {
+				$pass = $this->peval($this->convert_variables_in_string($cond));
+			}
+
+			if (!$pass) {
 				return "";
 			}
 
@@ -961,8 +1028,16 @@ class sluz {
 			// on the first match, process and return immediately
 			if ($is_ctrl) {
 				if (!$first) {
-					$passed = ($cur_cond === true)
-						|| (bool) $this->peval($this->convert_variables_in_string((string) $cur_cond));
+					if ($cur_cond === true) {
+						$passed = true;
+					} else {
+						$fast = $this->try_fast_condition((string) $cur_cond);
+						if ($fast !== null) {
+							$passed = $fast;
+						} else {
+							$passed = (bool) $this->peval($this->convert_variables_in_string((string) $cur_cond));
+						}
+					}
 
 					if ($passed) {
 						$cur    = $this->ltrim_one($cur, "\n");
