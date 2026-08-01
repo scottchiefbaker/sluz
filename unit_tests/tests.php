@@ -213,6 +213,8 @@ sluz_test('{if $number + 2 > 10}YES{/if}'                                     , 
 sluz_test('{if $number - 20 > 10}YES{/if}'                                    , ''        , 'If #35 - Arithmetic in condition (false)');
 sluz_test("{if \$debug}\nYES\n{else}\nNO\n{/if}"                              , "YES\n"   , 'If #36 - if/else tags on own lines (no extra leading \\n)');
 sluz_test("{if \$bogus_var}\nONE\n{elseif \$debug}\nTWO\n{else}\nTHREE\n{/if}", "TWO\n"   , 'If #37 - if/elseif/else tags on own lines (no extra leading \\n)');
+sluz_test('{if $zero}1{elseif $debug}2{/if}'                                    , '2'       , 'If #38 - Elseif without else (true)');
+sluz_test('{if $zero}1{elseif $bogus_var}2{/if}'                                , ''        , 'If #39 - Elseif without else (false)');
 
 sluz_test('{foreach $array as $num}{$num}{/foreach}'                         , 'onetwothree'            , 'Foreach #1 - Simple');
 sluz_test("{foreach \$array as \$num}\n{\$num}\n{/foreach}"                  , "one\ntwo\nthree\n"      , 'Foreach #2 - Simple with whitespace');
