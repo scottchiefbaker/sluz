@@ -35,6 +35,7 @@ class sluz {
 	private $close_foreach     = null;
 	private $else_tag          = null;
 	private $elseif_tag        = null;
+	private $else_start        = null;
 	private $if_space_tag      = null;
 	private $comment_open      = null;
 	private $comment_close     = null;
@@ -957,7 +958,7 @@ class sluz {
 		// If it's a simple {if $name}Output{/if} we can save a lot of
 		// time parsing detailed rules
 		// i.e. there is no {else} or {elseif}
-		$is_simple = (strpos($str, $ld . "else", strlen($ld) + 4) === false);
+		$is_simple = (strpos($str, $this->else_start, strlen($ld) + 6) === false);
 
 		if ($is_simple) {
 			preg_match($this->if_simple_pattern, $str, $m);
@@ -1279,6 +1280,7 @@ class sluz {
 		$this->close_foreach = $ld . '/foreach' . $rd;
 		$this->else_tag      = $ld . 'else' . $rd;
 		$this->elseif_tag    = $ld . 'elseif ';
+		$this->else_start    = $ld . 'else'; // Matches '{else' and '{elseif'
 		$this->if_space_tag  = $ld . 'if ';
 		$this->comment_open  = $ld . '*';
 		$this->comment_close = '*' . $rd;
