@@ -957,7 +957,7 @@ class sluz {
 		// If it's a simple {if $name}Output{/if} we can save a lot of
 		// time parsing detailed rules
 		// i.e. there is no {else} or {elseif}
-		$is_simple = (strpos($str, $this->else_tag, strlen($ld) + 3) === false);
+		$is_simple = (strpos($str, $ld . "else", strlen($ld) + 4) === false);
 
 		if ($is_simple) {
 			preg_match($this->if_simple_pattern, $str, $m);
