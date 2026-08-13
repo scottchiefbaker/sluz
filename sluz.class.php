@@ -892,8 +892,9 @@ class sluz {
 		return [-1, -1, $tpl_file];
 	}
 
-	// Fast-path evaluator for simple binary comparisons in {if}/{elseif}
-	// conditions, e.g. "$var > 10", "$user.role == 'admin'", "$x != $y".
+	// Fast-path evaluator for simple variable conditions and binary comparisons
+	// in {if}/{elseif} conditions, e.g. "$user.active", "$var > 10",
+	// "$user.role == 'admin'", "$x != $y".
 	// This avoids the extract()+eval() overhead (which recompiles PHP
 	// source on every call) for the overwhelming majority of real-world
 	// template conditions. Returns null if the condition doesn't match
@@ -901,6 +902,19 @@ class sluz {
 	private function try_fast_condition($cond) {
 		$cond = trim($cond);
 
+		// Standalone variables, including dotted paths
+		static $var_re = '/^(!)?\$(\w[\w.]*)$/';
+		if (preg_match($var_re, $cond, $vm)) {
+			$value = $this->array_dive($vm[2], $this->tpl_vars);
+
+			if ($vm[1]) {
+				return !$value;
+			} else {
+				return (bool) $value;
+			}
+		}
+
+		// One variable, one comparison operator, and one scalar operand.
 		static $re = '/^\$(\w[\w.]*)\s*(===|!==|==|!=|>=|<=|>|<)\s*(.+)$/s';
 		if (!preg_match($re, $cond, $m)) {
 			return null;
