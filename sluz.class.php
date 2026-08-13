@@ -1127,14 +1127,13 @@ class sluz {
 
 	// Parse a foreach block
 	private function foreach_block($m) {
-		$src     = $this->convert_variables_in_string($m[1]); // src array
+		// Resolve simple and dotted sources directly instead of using peval().
+		$src     = $this->array_dive(substr($m[1], 1), $this->tpl_vars); // src array
 		$okey    = $m[2]; // orig key
 		$oval    = $m[4]; // orig val
 		$payload = $m[5]; // code block to parse on iteration
 		$payload = $this->ltrim_one($payload, "\n"); // Input -> Output \n parity
 		$blocks  = $this->get_blocks($payload);
-
-		$src = $this->peval($src);
 
 		// If $src isn't an array we convert it to one so foreach doesn't barf
 		if (isset($src) && !is_array($src)) {

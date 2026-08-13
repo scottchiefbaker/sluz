@@ -230,6 +230,7 @@ sluz_test('{foreach $arrayd as $i => $x}{if $x.1}{$x.1}{/if}{/foreach}'      , '
 sluz_test('{foreach $null as $x}one{/foreach}'                               , ''                       , 'Foreach #13 - Null');
 sluz_test('{foreach $first as $x}{$first}{/foreach}'                         , 'Scott'                  , 'Foreach #14 - Scalar');
 sluz_test('{foreach $array as $i}{foreach $array as $i}x{/foreach}{/foreach}', 'xxxxxxxxx'              , 'Foreach #15 - Nested');
+sluz_test('{foreach $subarr.one as $x}{$x}{/foreach}'                        , '246'                    , 'Foreach #16 - Dotted source');
 
 // These tests make sure that the foreach above that sets $i and $x don't persist after
 sluz_test('{$x}'                                                             , '7'                      , 'Foreach #16 - NOT overwrite variable - previously set');
