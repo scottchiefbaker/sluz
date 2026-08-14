@@ -6,9 +6,10 @@ require_once(__DIR__ . "/../sluz.class.php");
 $ITERATIONS = 15000;
 $filter     = '';
 
-$opts       = getopt('f:n:', ['filter:', 'iterations:']);
+$opts       = getopt('f:n:', ['filter:', 'iterations:', 'brief']);
 $filter     = $opts['f'] ?? $opts['filter'] ?? '';
 $ITERATIONS = (int)($opts['n'] ?? $opts['iterations'] ?? $ITERATIONS);
+$brief      = isset($opts['brief']);
 
 if (!empty($argv[1]) && is_numeric($argv[1])) {
     $ITERATIONS = (int)$argv[1];
@@ -27,8 +28,10 @@ $sluz->assign($vars);
 
 // Print header
 $line = str_repeat('-', 61);
-printf("%-30s %8s %10s %10s\n", "Benchmark", "Iters", "Millis", "Iter /s");
-print "$line\n";
+if (!$brief) {
+    printf("%-30s %8s %10s %10s\n", "Benchmark", "Iters", "Millis", "Iter /s");
+    print "$line\n";
+}
 
 $total_time = 0;
 $results    = [];
@@ -55,12 +58,18 @@ foreach ($templates as $name => $t) {
 
     $per_sec = $elapsed > 0 ? ($ITERATIONS * 1000) / $elapsed : 0;
 
-    printf("%-30s %8d %10d %10.1f\n", $desc, $ITERATIONS, $elapsed, $per_sec);
+    if (!$brief) {
+        printf("%-30s %8d %10d %10.1f\n", $desc, $ITERATIONS, $elapsed, $per_sec);
+    }
     $results[$name] = ['elapsed' => $elapsed, 'per_sec' => $per_sec];
 }
 
-print "$line\n";
-printf("%-30s %8s %10d\n", "TOTAL", "", $total_time);
+if ($brief) {
+    print "$total_time\n";
+} else {
+    print "$line\n";
+    printf("%-30s %8s %10d\n", "TOTAL", "", $total_time);
+}
 
 ################################################################################
 
