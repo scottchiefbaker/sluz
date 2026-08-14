@@ -1,7 +1,10 @@
 #!/usr/bin/env php
 <?php
 
-require_once(__DIR__ . "/../sluz.class.php");
+// Set the include path to be: cwd(), .., and whatever comes in from the global config
+set_include_path(getcwd() . PATH_SEPARATOR . __DIR__ . ".." . PATH_SEPARATOR . get_include_path());
+
+require_once("sluz.class.php");
 
 $ITERATIONS = 15000;
 $filter     = '';
