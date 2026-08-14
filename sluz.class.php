@@ -3,7 +3,6 @@
 ////////////////////////////////////////////////////////
 
 define('SLUZ_INLINE', 'INLINE_TEMPLATE'); // Just a specific string
-define('SLUZ_IDENT_CHARS', '_0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'); // PHP identifier chars: [a-zA-Z0-9_]
 
 class sluz {
 	public $version       = '0.9.7';
@@ -687,18 +686,6 @@ class sluz {
 			return $ret;
 		}
 
-		// If it starts with a '!$' we might be able to cheat and invert
-		if (str_starts_with($input, '!$')) {
-			// Remove the prefix so we can look it up raw
-			$new = substr($input, strlen($this->var_prefix_str) + 1);
-
-			// Only handle pure variable names (no operators, brackets, etc).
-			// Complex expressions like '!$var == 1' must fall through to eval.
-			if ($new !== '' && strspn($new, SLUZ_IDENT_CHARS) === strlen($new)) {
-				return !($this->tpl_vars[$new] ?? null);
-			}
-		}
-
 		////////////////////////////////////////////
 
 		// Optimize a simple 'string'
@@ -1270,10 +1257,6 @@ class sluz {
 			return $this->parent_tpl;
 		}
 	}
-
-	// Escaped delimiters for use in regex patterns (cached)
-	private function dlre() { return $this->dlre_cached; }
-	private function drre() { return $this->drre_cached; }
 
 	// Rebuild all cached delimiter-dependent values
 	private function rebuild_delim_cache() {
