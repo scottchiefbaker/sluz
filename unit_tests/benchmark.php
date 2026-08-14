@@ -8,7 +8,11 @@ if (preg_match("/--time (\d+)/", $arg_str, $m)) {
 	$runtime_secs = $m[1];
 }
 
-require_once(__DIR__ . "/../sluz.class.php");
+// Set the include path to be: cwd(), .., and whatever comes in from the global config
+set_include_path(getcwd() . PATH_SEPARATOR . __DIR__ . ".." . PATH_SEPARATOR . get_include_path());
+
+require_once("sluz.class.php");
+
 $s        = new sluz();
 $sluz_ver = $s->version;
 $php_ver  = phpversion();
