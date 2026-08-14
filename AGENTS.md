@@ -25,9 +25,10 @@ Evaluate any changes to `sluz.class.php` for performance regressions with the de
 php unit_tests/detail-benchmark.php            # full suite (15000 iters)
 php unit_tests/detail-benchmark.php -f foreach # filter by name/description
 php unit_tests/detail-benchmark.php -n 50000   # alternate iteration flag
+php unit_tests/detail-benchmark.php --brief    # TOTAL millis only (for automated before/after compare)
 ```
 
-Runs a warmup then times each template scenario (variables, modifiers, foreach, if, mixed, etc.) and prints per-scenario millis/iter-per-second plus a TOTAL. Compare TOTAL (and any scenario you touched) before and after your change to catch regressions.
+Runs a warmup then times each template scenario (variables, modifiers, foreach, if, mixed, etc.) and prints per-scenario millis/iter-per-second plus a TOTAL. Compare TOTAL (and any scenario you touched) before and after your change to catch regressions. Iterations can also be passed positionally (`php unit_tests/detail-benchmark.php 50000`). `unit_tests/benchmark.php` is a cruder renders-per-second smoke benchmark.
 
 ## Architecture
 
