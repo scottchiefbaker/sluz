@@ -727,8 +727,9 @@ class sluz {
 
 		try {
 			@eval($cmd);
-		} catch (ParseError $e) {
-			// Ooops
+		} catch (Throwable $e) {
+			// Ooops — parse errors AND runtime errors (undefined function,
+			// undefined constant, division by zero, ...)
 			$err = -1;
 		}
 
@@ -974,7 +975,12 @@ class sluz {
 			if ($fast !== null) {
 				$pass = $fast;
 			} else {
-				$pass = $this->peval($this->convert_variables_in_string($cond));
+				$err  = 0;
+				$pass = $this->peval($this->convert_variables_in_string($cond), $err);
+				if ($err) {
+					list($line, $col, $file) = $this->get_char_location($this->char_pos, $this->tpl_file);
+					return $this->error_out("Unable to evaluate condition <code>$cond</code> in <code>$file</code> on line #$line", 18933);
+				}
 			}
 
 			if (!$pass) {
@@ -1037,7 +1043,12 @@ class sluz {
 						if ($fast !== null) {
 							$passed = $fast;
 						} else {
-							$passed = (bool) $this->peval($this->convert_variables_in_string((string) $cur_cond));
+							$err    = 0;
+							$passed = (bool) $this->peval($this->convert_variables_in_string((string) $cur_cond), $err);
+							if ($err) {
+								list($line, $col, $file) = $this->get_char_location($this->char_pos, $this->tpl_file);
+								return $this->error_out("Unable to evaluate condition <code>$cur_cond</code> in <code>$file</code> on line #$line", 18933);
+							}
 						}
 					}
 
