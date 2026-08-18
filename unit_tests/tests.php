@@ -297,7 +297,7 @@ sluz_test("{include 'tpls/extra.stpl'}"                      , '/e1ab49cf/' , 'I
 sluz_test('{include}'                                        , 'ERROR-73467', 'Include #3 - No payload');
 sluz_test("{include file='tpls/extra.stpl' secret='eca4906'}", '/eca4906/'  , 'Include #4 - With variable');
 sluz_test("{include file='tpls/nonexistent.stpl'}"           , 'ERROR-18485', 'Include #5 - File not found');
-sluz_test('{include foo}'                                    , 'ERROR-18485', 'Include #6 - Malformed');
+sluz_test('{include foo}'                                    , 'ERROR-68493', 'Include #6 - Malformed');
 sluz_test('{include file="$tpl_path"}'                       , '/e1ab49cf/' , 'Include #7 - With variable file path');
 
 sluz_test(['{$a}{$b}{$c}']                                                     , 3, 'Get blocks #1 - Basic variables');
@@ -321,6 +321,7 @@ sluz_test(['{* Comment *}']                                                    ,
 
 sluz_fetch_test(["tpls/extra.stpl"], "/extra.stpl/s"    , "Fetch #1 - Simple fetch");
 sluz_fetch_test(["tpls/child.stpl" , "tpls/parent.stpl"], "/0fd197af.*21c1a4c5/s", "Parent/Child #1 - Fetch with two params");
+sluz_fetch_test(["tpls/nonexistent.stpl"], "/ERROR-42280/", "Fetch #2 - Missing template file");
 
 // Set and then reset the parent tpl
 $x = $sluz->parent_tpl("tpls/parent.stpl");
