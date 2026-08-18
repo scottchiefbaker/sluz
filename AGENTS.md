@@ -65,18 +65,19 @@ $s->in_unit_test = true;                                // suppress error output
 
 ## Error codes
 
-| Code  | Meaning                        |
-|-------|--------------------------------|
-| 18485 | Unable to load include template |
-| 18933 | Bad function/expression         |
-| 42280 | Unable to load template file    |
-| 45821 | Unclosed tag                    |
+| Code  | Meaning                           |
+|-------|-----------------------------------|
+| 18485 | Unable to load include template   |
+| 18933 | Bad function/expression           |
+| 42280 | Unable to load template file      |
+| 45821 | Unclosed tag                      |
 | 47204 | Unknown function call in modifier |
-| 58200 | TypeError in modifier call      |
-| 68493 | Missing file in include block   |
-| 73467 | Bare word / unknown block       |
-| 79134 | Exception in modifier call      |
-| 65491 | Unknown escape type in `escape` |
+| 50981 | Whitespace next to delimiters     |
+| 58200 | TypeError in modifier call        |
+| 68493 | Missing file in include block     |
+| 73467 | Bare word / unknown block         |
+| 79134 | Exception in modifier call        |
+| 65491 | Unknown escape type in `escape`   |
 
 ## Gotchas
 
