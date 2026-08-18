@@ -222,7 +222,9 @@ class sluz {
 					// Between consecutive } characters, count open and close tags in that
 					// segment using substr_count with offset/length. Accumulating incrementally
 					// avoids rescanning the entire block on every }.
-					$j = $i + 1;
+					$j           = $i + 1;
+					$found_close = false;
+
 					while ($j < $slen) {
 						$j = strpos($str, $rd, $j);
 						if ($j === false) break;
@@ -237,12 +239,21 @@ class sluz {
 						if ($open_count === $close_count) {
 							$tmp = substr($str, $start, $j - $start + 1);
 							if (str_ends_with($tmp, $close_tag)) {
-								$block = $tmp;
+								$block       = $tmp;
+								$found_close = true;
 								break;
 							}
 						}
 
 						$j++;
+					}
+
+					// No matching close tag was found, so this is an unclosed
+					// control block. Slurp everything to the end of the string as a
+					// single unterminated block so it yields 45821 cleanly instead
+					// of a wrong-code error plus leaked trailing payload.
+					if (!$found_close) {
+						$block = substr($str, $start);
 					}
 				}
 
@@ -251,15 +262,10 @@ class sluz {
 				// the original (pre-trim) length.
 				$orig_block_len = strlen($block);
 
-				// If a {literal} block sits alone on its lines (the {literal} and
-				// {/literal} tags each occupy a line of their own), trim the single
-				// \n that belongs to those lines from the literal content. This
-				// mirrors the comment-line handling above. ^ marks the stripped \n.
-				//
-				//   {literal}^
-				//   foo
-				//   {/literal}^
-				if ($m === 'literal') {
+				// For a complete {literal} block standing alone on its lines, trim the
+				// \n that belongs to the tag lines from the literal content, mirroring
+				// the comment-line handling. Skipped for unclosed blocks (no {/literal}).
+				if ($m === 'literal' && $found_close) {
 					$ltag  = $this->literal_tag . $rd;
 					$rtag  = $ld . '/literal' . $rd;
 					$l_len = strlen($ltag);
