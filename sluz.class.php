@@ -1077,6 +1077,14 @@ class sluz {
 		$save    = $this->tpl_vars;
 		$inc_tpl = $this->extract_include_file($str);
 
+		// In unit-test mode error_out() returns "ERROR-<code>" instead of
+		// printing and exiting, so a missing/blank include file comes back
+		// as an error string rather than a filename. Propagate it rather
+		// than treating the error text as a template to load.
+		if (str_starts_with($inc_tpl, 'ERROR-')) {
+			return $inc_tpl;
+		}
+
 		if ($this->php_file_dir) {
 			$inc_tpl = $this->php_file_dir . "/$inc_tpl";
 		}
