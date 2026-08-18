@@ -174,6 +174,12 @@ sluz_test('{junk(}'          , "ERROR-18933", 'Error #2 - string with action cha
 sluz_test('{$number + array}', "ERROR-18933", 'Error #3 - syntax error');
 sluz_test('{if debug}'       , "ERROR-73467", 'Error #4 - syntax error');
 
+// Runtime errors previously escaped peval() as uncaught PHP fatals
+sluz_test('{undefined_func()}'                            , 'ERROR-18933', 'Error #5 - call to undefined function');
+sluz_test('{1/0}'                                         , 'ERROR-18933', 'Error #6 - division by zero');
+sluz_test('{if $first == Scott}YES{/if}'                  , 'ERROR-18933', 'Error #7 - undefined constant in condition');
+sluz_test('{if $bogus_var}A{elseif $first == Scott}B{/if}', 'ERROR-18933', 'Error #8 - undefined constant in elseif');
+
 sluz_test('{if $debug}DEBUG{/if}'                                             , 'DEBUG'   , 'If #1 - Simple');
 sluz_test('{if $bogus_var}DEBUG{/if}'                                         , ''        , 'If #2 - Missing var');
 sluz_test('{if $debug}{$first}{/if}'                                          , 'Scott'   , 'If #3 - Variable as payload');
