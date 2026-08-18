@@ -180,6 +180,12 @@ sluz_test('{1/0}'                                         , 'ERROR-18933', 'Erro
 sluz_test('{if $first == Scott}YES{/if}'                  , 'ERROR-18933', 'Error #7 - undefined constant in condition');
 sluz_test('{if $bogus_var}A{elseif $first == Scott}B{/if}', 'ERROR-18933', 'Error #8 - undefined constant in elseif');
 
+// Unclosed control blocks must yield 45821 with no leaked payload
+sluz_test('{if $x}foo'                                     , 'ERROR-45821', 'Error #9 - unclosed if');
+sluz_test('{if $x}foo{else}bar'                            , 'ERROR-45821', 'Error #10 - unclosed if with else');
+sluz_test('{foreach $array as $item}foo'                   , 'ERROR-45821', 'Error #11 - unclosed foreach');
+sluz_test('{literal}foo'                                   , 'ERROR-45821', 'Error #12 - unclosed literal');
+
 sluz_test('{if $debug}DEBUG{/if}'                                             , 'DEBUG'   , 'If #1 - Simple');
 sluz_test('{if $bogus_var}DEBUG{/if}'                                         , ''        , 'If #2 - Missing var');
 sluz_test('{if $debug}{$first}{/if}'                                          , 'Scott'   , 'If #3 - Variable as payload');
