@@ -64,6 +64,7 @@ $sluz->assign('false'       , false);
 $sluz->assign('single'      , ['only']);
 $sluz->assign('tpl_path'    , 'tpls/extra.stpl');
 $sluz->assign('conf'		, [ 'main' => true, 'debug' => false ]);
+$sluz->assign('deep'        , ['a' => ['b' => ['c' => 'deepval']]]);
 $sluz->assign($hash);
 
 $test_output = [];
@@ -118,18 +119,25 @@ sluz_test('{$x > 3 ? "yes" : "no"}'               , 'yes'         , 'Basic #45 -
 sluz_test('{$first }'                             , 'ERROR-50981' , 'Basic #46 - Trailing whitespace inside braces is invalid');
 sluz_test('{ $first }'                            , 'ERROR-50981' , 'Basic #47 - Leading whitespace inside braces is invalid');
 sluz_test('{ 3 + 4 }'                             , 'ERROR-50981' , 'Basic #48 - Whitespace around expression is invalid');
+sluz_test('{$zero}'                               , '0'           , 'Basic #49 - Direct output of zero (falsy)');
+sluz_test('{$true}'                               , '1'           , 'Basic #50 - Direct output of true (falsy)');
+sluz_test('{$false}'                              , ''            , 'Basic #51 - Direct output of false (falsy)');
+sluz_test('{$null}'                               , ''            , 'Basic #52 - Direct output of null (falsy)');
+sluz_test('{$deep.a.b.c}'                         , 'deepval'     , 'Basic #53 - Multi-level dot path (3 levels)');
+sluz_test('{$deep.a.b.x|default:"dflt"}'          , 'dflt'        , 'Basic #54 - Multi-level dot path with default');
+sluz_test('{$bogus_var|default:"a:b"}'            , 'a:b'         , 'Basic #55 - Default with colon inside quotes');
 
 // Escape modifier (XSS prevention)
 $sluz->assign('xss', '<script>alert(1)</script>');
 
-sluz_test('{$first|escape}'                , 'Scott'                                                              , 'Escape #1 - No special chars passthrough');
-sluz_test('{$xss|escape}'                  , '&lt;script&gt;alert(1)&lt;/script&gt;'                              , 'Escape #2 - HTML encoding');
-sluz_test('{$xss|escape:"html"}'           , '&lt;script&gt;alert(1)&lt;/script&gt;'                              , 'Escape #3 - Explicit HTML');
-sluz_test('{$xss|escape:"url"}'            , '%3Cscript%3Ealert%281%29%3C%2Fscript%3E'                             , 'Escape #4 - URL encoding');
-sluz_test('{$xss|escape:"js"}'             , '"\u003Cscript\u003Ealert(1)\u003C\/script\u003E"'                   , 'Escape #5 - JS encoding');
-sluz_test('{$null|default:"safe"|escape}'  , 'safe'                                                               , 'Escape #6 - Default chained with escape');
-sluz_test('{$empty_string|default:"text"|escape}', 'text'                                                        , 'Escape #7 - Default with escape on empty');
-sluz_test('{$first|escape:"invalid"}'             , "Unknown escape type 'invalid' #65491"                         , 'Escape #8 - Invalid escape type');
+sluz_test('{$first|escape}'                      , 'Scott'                                           , 'Escape #1 - No special chars passthrough');
+sluz_test('{$xss|escape}'                        , '&lt;script&gt;alert(1)&lt;/script&gt;'           , 'Escape #2 - HTML encoding');
+sluz_test('{$xss|escape:"html"}'                 , '&lt;script&gt;alert(1)&lt;/script&gt;'           , 'Escape #3 - Explicit HTML');
+sluz_test('{$xss|escape:"url"}'                  , '%3Cscript%3Ealert%281%29%3C%2Fscript%3E'         , 'Escape #4 - URL encoding');
+sluz_test('{$xss|escape:"js"}'                   , '"\u003Cscript\u003Ealert(1)\u003C\/script\u003E"', 'Escape #5 - JS encoding');
+sluz_test('{$null|default:"safe"|escape}'        , 'safe'                                            , 'Escape #6 - Default chained with escape');
+sluz_test('{$empty_string|default:"text"|escape}', 'text'                                            , 'Escape #7 - Default with escape on empty');
+sluz_test('{$first|escape:"invalid"}'            , "Unknown escape type 'invalid' #65491"            , 'Escape #8 - Invalid escape type');
 
 // Auto-escape tests (separate sluz instance with setEscapeHtml enabled)
 $ae = new sluz();
@@ -138,15 +146,23 @@ $ae->setEscapeHtml(true);
 $ae->assign('xss'  , '<script>alert(1)</script>');
 $ae->assign('first', 'Scott');
 $ae->assign('safe' , 'hello');
+$ae->assign('array', ['one', 'two', 'three']);
 
-sluz_auto_escape_test('{$xss}'                       , '&lt;script&gt;alert(1)&lt;/script&gt;', 'Auto Escape #1 - Variable auto-escaped');
-sluz_auto_escape_test('{$xss|escape}'                , '&lt;script&gt;alert(1)&lt;/script&gt;', 'Auto Escape #2 - Explicit escape, no double-escape');
-sluz_auto_escape_test('{$xss|escape:"url"}'          , '%3Cscript%3Ealert%281%29%3C%2Fscript%3E', 'Auto Escape #3 - Explicit URL escape not overridden');
-sluz_auto_escape_test('{$xss|strtoupper}'            , '&lt;SCRIPT&gt;ALERT(1)&lt;/SCRIPT&gt;', 'Auto Escape #4 - Modifier then auto-escape');
-sluz_auto_escape_test('{$xss|raw}'                   , '<script>alert(1)</script>', 'Auto Escape #5 - raw opt-out');
-sluz_auto_escape_test('{$first}'                     , 'Scott', 'Auto Escape #6 - Safe string passthrough');
-sluz_auto_escape_test('{$safe}'                      , 'hello', 'Auto Escape #7 - Safe string passthrough');
-sluz_auto_escape_test('{$x + 3}'                     , '3', 'Auto Escape #8 - Expression block not escaped');
+sluz_auto_escape_test('{$xss}'                            , '&lt;script&gt;alert(1)&lt;/script&gt;'  , 'Auto Escape #1 - Variable auto-escaped');
+sluz_auto_escape_test('{$xss|escape}'                     , '&lt;script&gt;alert(1)&lt;/script&gt;'  , 'Auto Escape #2 - Explicit escape, no double-escape');
+sluz_auto_escape_test('{$xss|escape:"url"}'               , '%3Cscript%3Ealert%281%29%3C%2Fscript%3E', 'Auto Escape #3 - Explicit URL escape not overridden');
+sluz_auto_escape_test('{$xss|strtoupper}'                 , '&lt;SCRIPT&gt;ALERT(1)&lt;/SCRIPT&gt;'  , 'Auto Escape #4 - Modifier then auto-escape');
+sluz_auto_escape_test('{$xss|raw}'                        , '<script>alert(1)</script>'              , 'Auto Escape #5 - raw opt-out');
+sluz_auto_escape_test('{$first}'                          , 'Scott'                                  , 'Auto Escape #6 - Safe string passthrough');
+sluz_auto_escape_test('{$safe}'                           , 'hello'                                  , 'Auto Escape #7 - Safe string passthrough');
+sluz_auto_escape_test('{$x + 3}'                          , '3'                                      , 'Auto Escape #8 - Expression block not escaped');
+sluz_auto_escape_test('{$array}'                          , 'Array'                                  , 'Auto Escape #9 - Array as scalar under auto-escape');
+sluz_auto_escape_test('{$empty_string|default:"<b>x</b>"}', '&lt;b&gt;x&lt;/b&gt;'                   , 'Auto Escape #10 - Default value is escaped');
+sluz_auto_escape_test('{$bogus_var|default:"<b>...</b>"}' , '&lt;b&gt;...&lt;/b&gt;'                 , 'Auto Escape #11 - Default escapes even when var empty');
+
+// Assigned-but-never-asserted version vars
+sluz_test('{$php_version}'  , phpversion()    , 'Basic #56 - php_version assigned and asserted');
+sluz_test('{$sluz_version}' , $sluz->version  , 'Basic #57 - sluz_version assigned and asserted');
 
 // User defined functions
 sluz_test('{$word|truncate:3}'                     , 'cRa'        , 'Custom function #1 - Modifier with param');
@@ -226,6 +242,17 @@ sluz_test("{if \$bogus_var}\nONE\n{elseif \$debug}\nTWO\n{else}\nTHREE\n{/if}", 
 sluz_test('{if $zero}1{elseif $debug}2{/if}'                                  , '2'       , 'If #38 - Elseif without else (true)');
 sluz_test('{if $zero}1{elseif $bogus_var}2{/if}'                              , ''        , 'If #39 - Elseif without else (false)');
 sluz_test('{if $conf.main}YES{/if}'                                           , 'YES'     , 'If #40 - Dotted condition fast path');
+sluz_test('{if $number != 10}YES{/if}'                                        , 'YES'     , 'If #41 - Fast path != (true)');
+sluz_test('{if $number !== 15}YES{/if}'                                       , ''        , 'If #42 - Fast path !== (false, same value)');
+sluz_test('{if $number >= 15}YES{/if}'                                        , 'YES'     , 'If #43 - Fast path >= (true)');
+sluz_test('{if $number <= 14}YES{/if}'                                        , ''        , 'If #44 - Fast path <= (false)');
+sluz_test('{if $number < 20}YES{/if}'                                         , 'YES'     , 'If #45 - Fast path < (true)');
+sluz_test('{if $number > 20}YES{/if}'                                         , ''        , 'If #46 - Fast path > (false)');
+sluz_test('{if $number > $x}YES{/if}'                                         , 'YES'     , 'If #47 - Fast path var-vs-var (15 > 7)');
+sluz_test('{if $x == $x}YES{/if}'                                             , 'YES'     , 'If #48 - Fast path var-vs-var equality');
+sluz_test("{if \$first == 'Scott'}YES{else}NO{/if}"                           , 'YES'     , 'If #49 - Single-quoted string comparison');
+sluz_test('{if $bogus_var}{elseif $cust.first}X{/if}'                         , 'X'       , 'If #50 - Elseif with dotted variable');
+sluz_test('{if $bogus}{elseif $subarr.one.0}Y{/if}'                           , 'Y'       , 'If #51 - Elseif with multi-level dotted variable');
 
 sluz_test('{foreach $array as $num}{$num}{/foreach}'                         , 'onetwothree'            , 'Foreach #1 - Simple');
 sluz_test("{foreach \$array as \$num}\n{\$num}\n{/foreach}"                  , "one\ntwo\nthree\n"      , 'Foreach #2 - Simple with whitespace');
@@ -305,6 +332,12 @@ sluz_test("{include file='tpls/extra.stpl' secret='eca4906'}", '/eca4906/'  , 'I
 sluz_test("{include file='tpls/nonexistent.stpl'}"           , 'ERROR-18485', 'Include #5 - File not found');
 sluz_test('{include foo}'                                    , 'ERROR-68493', 'Include #6 - Malformed');
 sluz_test('{include file="$tpl_path"}'                       , '/e1ab49cf/' , 'Include #7 - With variable file path');
+
+// Include must not leak variables set inside the included template into the
+// outer scope (save/restore of tpl_vars at sluz.class.php:1108/1125).
+$sluz->assign('secret', 'OUTER');
+sluz_test("{include file='tpls/extra.stpl' secret='INNER'}{\$secret}", '/(?s)INNER.*OUTER\'/', 'Include #8 - Var set inside include does not leak to outer scope');
+$sluz->assign('secret', '');
 
 sluz_test(['{$a}{$b}{$c}']                                                     , 3, 'Get blocks #1 - Basic variables');
 sluz_test(['{if $a}{$a}{/if}']                                                 , 1, 'Get blocks #2 - Basic variables');
