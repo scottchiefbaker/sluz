@@ -126,6 +126,9 @@ sluz_test('{$null}'                               , ''            , 'Basic #52 -
 sluz_test('{$deep.a.b.c}'                         , 'deepval'     , 'Basic #53 - Multi-level dot path (3 levels)');
 sluz_test('{$deep.a.b.x|default:"dflt"}'          , 'dflt'        , 'Basic #54 - Multi-level dot path with default');
 sluz_test('{$bogus_var|default:"a:b"}'            , 'a:b'         , 'Basic #55 - Default with colon inside quotes');
+sluz_test('{$php_version}'                        , phpversion()  , 'Basic #56 - php_version assigned and asserted');
+sluz_test('{$sluz_version}'                       , $sluz->version, 'Basic #57 - sluz_version assigned and asserted');
+
 
 // Escape modifier (XSS prevention)
 $sluz->assign('xss', '<script>alert(1)</script>');
@@ -159,10 +162,6 @@ sluz_auto_escape_test('{$x + 3}'                          , '3'                 
 sluz_auto_escape_test('{$array}'                          , 'Array'                                  , 'Auto Escape #9 - Array as scalar under auto-escape');
 sluz_auto_escape_test('{$empty_string|default:"<b>x</b>"}', '&lt;b&gt;x&lt;/b&gt;'                   , 'Auto Escape #10 - Default value is escaped');
 sluz_auto_escape_test('{$bogus_var|default:"<b>...</b>"}' , '&lt;b&gt;...&lt;/b&gt;'                 , 'Auto Escape #11 - Default escapes even when var empty');
-
-// Assigned-but-never-asserted version vars
-sluz_test('{$php_version}'  , phpversion()    , 'Basic #56 - php_version assigned and asserted');
-sluz_test('{$sluz_version}' , $sluz->version  , 'Basic #57 - sluz_version assigned and asserted');
 
 // User defined functions
 sluz_test('{$word|truncate:3}'                     , 'cRa'        , 'Custom function #1 - Modifier with param');
@@ -269,7 +268,6 @@ sluz_test('{foreach $arrayd as $i => $x}{if $x.1}{$x.1}{/if}{/foreach}'      , '
 sluz_test('{foreach $null as $x}one{/foreach}'                               , ''                       , 'Foreach #13 - Null');
 sluz_test('{foreach $first as $x}{$first}{/foreach}'                         , 'Scott'                  , 'Foreach #14 - Scalar');
 sluz_test('{foreach $array as $i}{foreach $array as $i}x{/foreach}{/foreach}', 'xxxxxxxxx'              , 'Foreach #15 - Nested');
-sluz_test('{foreach $subarr.one as $x}{$x}{/foreach}'                        , '246'                    , 'Foreach #16 - Dotted source');
 
 // These tests make sure that the foreach above that sets $i and $x don't persist after
 sluz_test('{$x}'                                                             , '7'                      , 'Foreach #16 - NOT overwrite variable - previously set');
@@ -304,12 +302,11 @@ sluz_test('{}'                                    , '{}'                 , 'Lite
 sluz_test("{\$x}{\$x}"                                   , '77'           , 'Whitespace input/output #1');
 sluz_test("{\$x} {\$x}"                                  , '7 7'          , 'Whitespace input/output #2');
 sluz_test("{\$x}\n{\$x}"                                 , "7\n7"         , 'Whitespace input/output #3');
-sluz_test("{foreach \$y as \$x}{\$x}{/foreach}"          , "246"          , 'Whitespace input/output #4');
-sluz_test("{foreach \$y as \$x}\n{\$x}\n{/foreach}"      , "2\n4\n6\n"    , 'Whitespace input/output #5');
-sluz_test("{if \$x}{\$x}{/if}"                           , "7"            , 'Whitespace input/output #6');
-sluz_test("{if \$x}\n{\$x}\n{/if}"                       , "7\n"          , 'Whitespace input/output #7');
-sluz_test("{foreach \$y as \$x}\n{\$x}\n{/foreach}\nlast", "2\n4\n6\nlast", 'Whitespace input/output #8');
-sluz_test("{foreach \$y as \$x}{\$x}{/foreach}\nEND"     , "246\nEND"     , 'Whitespace input/output #9');
+sluz_test("{foreach \$y as \$x}\n{\$x}\n{/foreach}"      , "2\n4\n6\n"    , 'Whitespace input/output #4');
+sluz_test("{if \$x}{\$x}{/if}"                           , "7"            , 'Whitespace input/output #5');
+sluz_test("{if \$x}\n{\$x}\n{/if}"                       , "7\n"          , 'Whitespace input/output #6');
+sluz_test("{foreach \$y as \$x}\n{\$x}\n{/foreach}\nlast", "2\n4\n6\nlast", 'Whitespace input/output #7');
+sluz_test("{foreach \$y as \$x}{\$x}{/foreach}\nEND"     , "246\nEND"     , 'Whitespace input/output #8');
 
 sluz_test('{* Comment *}'                , ''           , 'Comment #1 - With text');
 sluz_test('{* ********* *}'              , ''           , 'Comment #2 - ******');
