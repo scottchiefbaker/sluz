@@ -23,7 +23,7 @@
 	{if $total === 0}
 	<div class="alert alert-warning"><b>Warning:</b> No tests were run</div>
 	{elseif $fail_count === 0}
-	<div class="alert alert-success"><b>Hooray!</b> All tests passed successfully</div>
+	<div class="alert alert-success"><b>Hooray!</b> All {$total} tests passed successfully</div>
 	{else}
 	<div class="alert alert-danger"><b>Warning:</b> {$fail_count} tests failed</div>
 	{/if}
