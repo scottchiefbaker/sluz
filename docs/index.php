@@ -4,7 +4,7 @@ include("../sluz.class.php");
 $s = new sluz();
 
 $doc      = $_GET['doc'] ?? "";
-$doc_file = $doc . ".php";
+$doc_file = basename($doc . ".php");
 
 // If we just request index.php we get this
 if (!isset($_GET['doc'])) {
