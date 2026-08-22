@@ -36,10 +36,13 @@
 <!DOCTYPE html>
 <html lang="en">
 	<head>
-		<title>Sluz sandbox</title>
+		<title>Sluz v<?php print $s->version ?> sandbox</title>
 
 		<meta charset="utf-8">
 		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<meta name="description" content="Sluz sandbox — try templates live with JSON/YAML input">
+		<link rel="icon" href='data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"><text y="14" font-size="14">◈</text></svg>'>
+		<script>try{var k='sluz-theme';var t=localStorage.getItem(k)||'dark';document.documentElement.setAttribute('data-bs-theme',t);}catch(e){document.documentElement.setAttribute('data-bs-theme','dark');}</script>
 
 		<script type="text/javascript" src="../js/jquery.min.js"></script>
 		<script>
@@ -94,8 +97,6 @@ orders:
 				var tpl  = $("#sluz_input").val();
 				var json = $("#json_input").val();
 
-				var bad_color = 'rgb(46, 24, 28)';
-
 				try {
 					var data = { 'json': json, 'tpl': tpl, };
 					var out_text = $.ajax({
@@ -109,19 +110,19 @@ orders:
 
 							if (!ok) {
 								console.log('Unknown input');
-								$("#json_input").css('background', bad_color);
+								$("#json_input").addClass('is-invalid');
 							} else {
-								$("#json_input").css('background', 'inherit');
+								$("#json_input").removeClass('is-invalid');
 							}
 
 							$("#sluz_text").val(out_text);
 							$("#html_output").html(out_text);
-							$("#sluz_input").css('background', 'inherit');
+							$("#sluz_input").removeClass('is-invalid');
 						},
 						error : function(e) {
 							if (tpl) {
 								console.log('bad sluz');
-								$("#sluz_input").css('background', bad_color);
+								$("#sluz_input").addClass('is-invalid');
 							}
 						}
 					});
@@ -133,47 +134,79 @@ orders:
 		<link rel="stylesheet" type="text/css" media="screen" href="../css/bootstrap.min.css" />
 
 		<style>
+			:root { --sluz-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace; }
+			body { -webkit-font-smoothing: antialiased; }
+			textarea.form-control { font-family: var(--sluz-mono); font-size: .875rem; line-height: 1.5; }
+			textarea.form-control.is-invalid { border-color: var(--bs-danger); box-shadow: 0 0 0 .25rem rgba(var(--bs-danger-rgb), .25); }
+			.card { box-shadow: 0 1px 2px rgba(0,0,0,.06); }
+			#html_output { min-height: 6rem; }
+			.output-card .card-body { border-radius: 0 0 var(--bs-card-border-radius) var(--bs-card-border-radius); }
+			[data-bs-theme="dark"] #html_output { color: var(--bs-body-color); }
+			[data-bs-theme="dark"] #html_output a { color: #82aaff; }
 		</style>
 	</head>
 
-<body class="" data-bs-theme="dark">
-	<div class="container-fluid">
-		<div class="row">
-			<h2 class="col-10 bg-dark-subtle text-light p-2 ps-3">Sluz v<?PHP print $s->version ?> sandbox</h2>
-			<h2 class="col-2 text-end bg-dark-subtle text-light p-2 pe-3"><a href="#" title="Use sample data" id="use_defaults"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-brilliance" viewBox="0 0 16 16">
-  <path d="M8 16A8 8 0 1 1 8 0a8 8 0 0 1 0 16M1 8a7 7 0 0 0 7 7 3.5 3.5 0 1 0 0-7 3.5 3.5 0 1 1 0-7 7 7 0 0 0-7 7"/>
-</svg></a></h2>
-		</div>
-	</div>
-
-	<div class="container-fluid row">
-		<div class="col">
-			<div class="p-2">
-				<div class="mb-3">
-					JSON/YAML Input:
-					<textarea id="json_input" class="w-100" rows="9" placeholder="JSON/YAML input"></textarea>
-				</div>
-
-				<div class="mb-3">
-					Sluz template:
-					<textarea id="sluz_input" class="w-100" rows="9" placeholder="Sluz TPL input"></textarea>
-				</div>
-
-				<div class="mb-3">
-					Text Output:
-					<textarea id="sluz_text" class="font-monospace w-100" rows="9" placeholder="Text output"></textarea>
-				</div>
-
-				<button id="process" class="btn btn-primary">Process</button>
+<body>
+	<nav class="navbar sticky-top bg-body-tertiary border-bottom shadow-sm">
+		<div class="container-fluid d-flex align-items-center justify-content-between">
+			<div class="d-flex align-items-center gap-3">
+				<a href="../" class="btn btn-outline-secondary btn-sm" title="Back to docs">← Docs</a>
+				<span class="navbar-brand mb-0 h1">Sluz <span class="badge text-bg-secondary align-middle fw-normal" style="font-size:.55em; letter-spacing:.04em;">v<?php print $s->version ?></span> <span class="text-body-secondary fw-normal" style="font-size:.65em;">sandbox</span></span>
+			</div>
+			<div class="d-flex align-items-center gap-2">
+				<button data-theme-toggle class="btn btn-outline-secondary btn-sm" type="button" aria-label="Toggle theme" title="Toggle theme" style="width:3em;"><span data-theme-icon aria-hidden="true">☾</span></button>
+				<a href="#" id="use_defaults" class="btn btn-outline-secondary btn-sm" title="Load sample data">
+					<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-brilliance" viewBox="0 0 16 16" aria-hidden="true">
+						<path d="M8 16A8 8 0 1 1 8 0a8 8 0 0 1 0 16M1 8a7 7 0 0 0 7 7 3.5 3.5 0 1 0 0-7 3.5 3.5 0 1 1 0-7 7 7 0 0 0-7 7"/>
+					</svg>
+					<span class="d-none d-sm-inline ms-1">Sample</span>
+				</a>
+				<a href="https://github.com/scottchiefbaker/sluz" target="_blank" rel="noopener" class="btn btn-outline-secondary btn-sm d-none d-sm-inline">GitHub</a>
 			</div>
 		</div>
+	</nav>
 
-		<div class="col">
-			<div class="p-2">
-				<h3 class="alert alert-dark">HTML Output:</h3>
-				<div id="html_output"></div>
+	<div class="container-fluid mt-3 mb-4">
+		<div class="row g-4">
+			<div class="col-lg-6">
+				<div class="p-2">
+					<div class="mb-3">
+						<label for="json_input" class="form-label fw-semibold small text-body-secondary text-uppercase" style="letter-spacing:.04em;">JSON / YAML Input</label>
+						<textarea id="json_input" class="form-control w-100" rows="9" placeholder="JSON or YAML input"></textarea>
+					</div>
+
+					<div class="mb-3">
+						<label for="sluz_input" class="form-label fw-semibold small text-body-secondary text-uppercase" style="letter-spacing:.04em;">Sluz template</label>
+						<textarea id="sluz_input" class="form-control w-100" rows="9" placeholder="Sluz template input"></textarea>
+					</div>
+
+					<div class="mb-3">
+						<label for="sluz_text" class="form-label fw-semibold small text-body-secondary text-uppercase" style="letter-spacing:.04em;">Text output</label>
+						<textarea id="sluz_text" class="form-control font-monospace w-100" rows="9" placeholder="Text output" readonly></textarea>
+					</div>
+
+					<button id="process" class="btn btn-primary">Process</button>
+				</div>
+			</div>
+
+			<div class="col-lg-6">
+				<div class="p-2">
+					<div class="card output-card">
+						<div class="card-header fw-semibold d-flex align-items-center gap-2">
+							<span class="badge text-bg-warning">OUT</span> HTML Output
+							<span class="text-body-secondary fw-normal small ms-auto">live preview</span>
+						</div>
+						<div class="card-body">
+							<div id="html_output"></div>
+						</div>
+					</div>
+				</div>
 			</div>
 		</div>
+		<footer class="text-center text-body-secondary small mt-5 pt-3 border-top">
+			Sluz v<?php print $s->version ?> — <a href="https://github.com/scottchiefbaker/sluz" class="link-secondary" target="_blank" rel="noopener">GitHub</a> · <a href="../" class="link-secondary">Docs</a>
+		</footer>
 	</div>
+	<script src="../js/theme.js"></script>
 </body>
 </html>

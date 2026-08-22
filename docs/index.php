@@ -25,12 +25,23 @@ if (is_readable($tpl_file)) {
 	$tplc = '';
 }
 
+// Build the object for the left nav structure
 $doc_files = get_doc_file_list();
+$doc_nav   = [];
+foreach ($doc_files as $id) {
+	$doc_nav[] = [
+		'id'    => $id,
+		'label' => pretty_doc_label($id)
+	];
+}
+
+$doc_current = preg_replace('/\.php$/', '', $doc_file);
 
 $s->assign("doc_name", $doc_file);
+$s->assign("doc_current", $doc_current);
 $s->assign("php_contents", $phpc);
 $s->assign("tpl_contents", $tplc);
-$s->assign("doc_files", $doc_files);
+$s->assign("doc_files", $doc_nav);
 $s->assign('sluz_version', $s->version);
 
 print $s->fetch("tpls/read.stpl");
@@ -47,4 +58,10 @@ function get_doc_file_list() {
 	sort($files);
 
 	return $files;
+}
+
+function pretty_doc_label($id) {
+	$label = preg_replace('/^\d+_/', '', $id);
+	$label = str_replace('_', ' ', $label);
+	return ucwords($label);
 }
