@@ -1,32 +1,74 @@
 <!doctype html>
 <html lang="en">
 	<head>
-		<!-- Required meta tags -->
 		<meta charset="utf-8">
 		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<title>Sluz v{$sluz_version} — Simple PHP templating engine</title>
+		<meta name="description" content="Sluz v{$sluz_version} — Simple PHP templating engine with Smarty-like syntax">
+		<link rel="icon" href='data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"><text y="14" font-size="14">◈</text></svg>'>
 
-		<!-- Bootstrap CSS -->
 		<link href="docs/css/bootstrap.min.css" rel="stylesheet">
+		<script>{literal}try{var k='sluz-theme';var t=localStorage.getItem(k)||'dark';document.documentElement.setAttribute('data-bs-theme',t);}catch(e){document.documentElement.setAttribute('data-bs-theme','dark');}{/literal}</script>
 
-		<title>Sluz templating system</title>
+		{literal}
+		<style>
+			:root { --sluz-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace; }
+			body { -webkit-font-smoothing: antialiased; }
+			.navbar-brand { letter-spacing: .02em; font-weight: 700; }
+			.code_file pre { font-family: var(--sluz-mono); font-size: .875rem; line-height: 1.5; padding: .85rem 1rem; overflow-x: auto; background: transparent; }
+			.card { box-shadow: 0 1px 2px rgba(0,0,0,.06); }
+			.card-header { font-size: .85rem; letter-spacing: .01em; }
+			[data-bs-theme="dark"] .code_file pre { background: #1a1d20; color: #e6edf3; border-color: #30363d !important; }
+			[data-bs-theme="light"] .code_file pre { background: #f8f9fa; }
+			.section-heading { display:flex; align-items:center; gap:.6rem; font-size:1.05rem; font-weight:700; letter-spacing:.01em; padding:.6rem .85rem; margin-top:1.75rem; margin-bottom:.9rem; background:var(--bs-tertiary-bg); border:1px solid var(--bs-border-color); border-left-width:4px; border-radius:.45rem; box-shadow:0 1px 2px rgba(0,0,0,.05); scroll-margin-top:4.5rem; }
+			.section-heading:first-of-type { margin-top:0; }
+			.section-heading .sh-icon { flex:0 0 auto; width:1.15em; height:1.15em; opacity:.95; }
+			.section-heading .sh-text { flex:1 1 auto; }
+			.section-heading .sh-anchor { color:inherit; text-decoration:none; opacity:.35; font-weight:400; font-size:.85em; }
+			.section-heading:hover .sh-anchor { opacity:.85; }
+			.sh-what { border-left-color: var(--bs-primary) !important; }
+			.sh-req  { border-left-color: var(--bs-success) !important; }
+			.sh-start{ border-left-color: var(--bs-warning) !important; }
+			.sh-syntax{ border-left-color: var(--bs-info) !important; }
+			.sh-naming{ border-left-color: #a78bfa !important; }
+			[data-bs-theme="dark"] .section-heading { background:#1a1d20; border-color:#30363d; }
+			[data-bs-theme="dark"] .sh-what { border-left-color:#82aaff !important; }
+			[data-bs-theme="dark"] .sh-req { border-left-color:#7ec8a2 !important; }
+			[data-bs-theme="dark"] .sh-start { border-left-color:#ffcb6b !important; }
+			[data-bs-theme="dark"] .sh-syntax { border-left-color:#5eead4 !important; }
+			[data-bs-theme="dark"] .sh-naming { border-left-color:#c4b5fd !important; }
+		</style>
+		{/literal}
 	</head>
-	<body class="container-lg">
-		<div class="row mb-3">
-			<h1 class="col-9">Sluz templating system v{$sluz_version}</h1>
-			<h1 class="col-3 text-end"><a title="View on GitHub" href="https://github.com/scottchiefbaker/sluz"><img style="width: 1.2em;"src="tpls/github-logo.svg" /></a></h1>
+	<body>
+	<nav class="navbar sticky-top bg-body-tertiary border-bottom shadow-sm">
+		<div class="container-lg d-flex align-items-center justify-content-between">
+			<div class="d-flex align-items-center gap-3">
+				<span class="navbar-brand mb-0 h1">Sluz <span class="badge text-bg-secondary align-middle fw-normal" style="font-size:.55em; letter-spacing:.04em;">v{$sluz_version}</span></span>
+				<span class="text-body-secondary small d-none d-md-inline">Simple PHP templating engine</span>
+			</div>
+			<div class="d-flex align-items-center gap-2">
+				<button data-theme-toggle class="btn btn-outline-secondary btn-sm" type="button" aria-label="Toggle theme" title="Toggle theme" style="width: 3em;"><span data-theme-icon aria-hidden="true">☾</span></button>
+				<a href="docs/" class="btn btn-outline-secondary btn-sm" title="Documentation">Docs</a>
+				<a href="docs/sandbox/" class="btn btn-outline-secondary btn-sm d-none d-sm-inline" title="Test out Sluz syntax in our sandbox">Sandbox</a>
+				<a href="https://github.com/scottchiefbaker/sluz" target="_blank" rel="noopener" class="btn btn-outline-secondary btn-sm d-none d-sm-inline" title="Official GitHub project">GitHub</a>
+				<a href="https://www.sluz.org" target="_blank" rel="noopener" title="Project homepage" class="btn btn-outline-secondary btn-sm d-none d-sm-inline">Sluz.org</a>
+			</div>
 		</div>
+	</nav>
 
-		<h5 class="alert alert-secondary p-2 mb-2">What is Sluz?</h5>
+	<div class="container-lg mt-4 mb-4">
+		<h5 id="what-is-sluz" class="section-heading sh-what"><span class="sh-text">What is Sluz?</span><a href="#what-is-sluz" class="sh-anchor" aria-label="Permalink to What is Sluz">#</a></h5>
 
 		<p>Sluz is a minimalistic PHP templating engine with an emphasis on syntax similar to <a href="https://www.smarty.net/">Smarty</a>. This allows you to separate your logic (<code>.php</code>) and your presentation (<code>.stpl</code>) files.</p>
 
 		<p>The goal of Sluz is to be a <b>small</b>, single PHP source file, that emulates simple Smarty-like template syntax.</p>
 
-		<h5 class="alert alert-secondary p-2 mb-2">Requirements</h5>
+		<h5 id="requirements" class="section-heading sh-req"><span class="sh-text">Requirements</span><a href="#requirements" class="sh-anchor" aria-label="Permalink to Requirements">#</a></h5>
 
-		<p>Sluz requires PHP 8.0+. Sluz is a zero-dependency library. Only the <code>sluz.class.php</code> file is needed for the library to function.</p>
+		<p>Sluz requires PHP 8.x+. Sluz is a zero-dependency library. Only the <code>sluz.class.php</code> file is needed for the library to function.</p>
 
-		<h5 class="alert alert-secondary p-2 mt-4 mb-2">Getting started</h5>
+		<h5 id="getting-started" class="section-heading sh-start"><span class="sh-text">Getting started</span><a href="#getting-started" class="sh-anchor" aria-label="Permalink to Getting started">#</a></h5>
 
 		<p>Download Sluz from <a href="https://github.com/scottchiefbaker/sluz">GitHub</a> and extract on your server.</p>
 
@@ -50,7 +92,7 @@ print $s->fetch("tpls/script.stpl");</pre>
 			{/literal}
 		</div>
 
-		<h5 class="alert alert-secondary p-2 mt-4 mb-2">Template Syntax</h5>
+		<h5 id="template-syntax" class="section-heading sh-syntax"><span class="sh-text">Template Syntax</span><a href="#template-syntax" class="sh-anchor" aria-label="Permalink to Template Syntax">#</a></h5>
 
 		<div class="table-responsive">
 			<table class="table table-bordered table-striped table-sm">
@@ -83,16 +125,22 @@ print $s->fetch("tpls/script.stpl");</pre>
 			</table>
 		</div>
 
-		<h5 class="alert alert-secondary p-2 mb-2">Naming</h5>
+		<h5 id="naming" class="section-heading sh-naming"><span class="sh-text">Naming</span><a href="#naming" class="sh-anchor" aria-label="Permalink to Naming">#</a></h5>
 		<p>Sluz is pronounced "slooz". The name comes from the "S" in Smarty and "luz" which is Spanish for light. Sluz is a lite, Smarty-like templating system.</p>
 
 		<div class="row">
 			<div class="col">
-				<a href="docs/index.php?doc=001_basic_vars">More documentation</a>
 			</div>
 			<div class="col text-end">
 				<a href="unit_tests/tests.php">Run unit tests</a>
 			</div>
 		</div>
+
+		<footer class="text-center text-body-secondary small mt-5 pt-3 border-top">
+			sluz v{$sluz_version} — <a href="https://github.com/scottchiefbaker/sluz" class="link-secondary" target="_blank" rel="noopener">GitHub</a> · <a href="docs/" class="link-secondary">Docs</a> · <a href="docs/sandbox/" class="link-secondary">Sandbox</a> · <a href="https://www.sluz.org" class="link-secondary" target="_blank" rel="noopener">Sluz.org</a>
+		</footer>
+	</div>
+
+	<script src="docs/js/theme.js"></script>
 	</body>
 </html>
