@@ -222,12 +222,22 @@ class sluz {
 					// Between consecutive } characters, count open and close tags in that
 					// segment using substr_count with offset/length. Accumulating incrementally
 					// avoids rescanning the entire block on every }.
-					$j           = $i + 1;
-					$found_close = false;
+					$j                   = $i + 1;
+					$found_close         = false;
+					$first_literal_close = null; // For nested {literal} blocks
 
 					while ($j < $slen) {
 						$j = strpos($str, $rd, $j);
 						if ($j === false) break;
+
+						// Preserve the first literal close as a fallback when its payload
+						// contains raw {literal} text without a matching nested close.
+						if ($m === 'literal' && $first_literal_close === null) {
+							$tag_end = substr($str, $j - strlen($close_tag) + 1, strlen($close_tag));
+							if ($tag_end === $close_tag) {
+								$first_literal_close = $j;
+							}
+						}
 
 						$seg_len      = $j - $last_pos + 1;
 						$open_count  += substr_count($str, $open_tag_str, $last_pos, $seg_len);
@@ -253,7 +263,15 @@ class sluz {
 					// single unterminated block so it yields 45821 cleanly instead
 					// of a wrong-code error plus leaked trailing payload.
 					if (!$found_close) {
-						$block = substr($str, $start);
+						// A literal payload may itself begin with {literal} without a
+						// matching nested close. In that case its first close ends the
+						// outer literal; a missing close remains an unclosed-tag error.
+						if ($first_literal_close !== null) {
+							$block = substr($str, $start, $first_literal_close - $start + 1);
+							$found_close = true;
+						} else {
+							$block = substr($str, $start);
+						}
 					}
 				}
 
