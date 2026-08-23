@@ -137,7 +137,7 @@ print $s->fetch("tpls/script.stpl");</pre>
 		</div>
 
 		<footer class="text-center text-body-secondary small mt-5 pt-3 border-top">
-			sluz v{$sluz_version} — <a href="https://github.com/scottchiefbaker/sluz" class="link-secondary" target="_blank" rel="noopener">GitHub</a> · <a href="docs/" class="link-secondary">Docs</a> · <a href="docs/sandbox/" class="link-secondary">Sandbox</a> · <a href="https://www.sluz.org" class="link-secondary" target="_blank" rel="noopener">Sluz.org</a>
+			Sluz v{$sluz_version} — <a href="https://github.com/scottchiefbaker/sluz" class="link-secondary" target="_blank" rel="noopener">GitHub</a> · <a href="docs/" class="link-secondary">Docs</a> · <a href="docs/sandbox/" class="link-secondary">Sandbox</a> · <a href="https://www.sluz.org" class="link-secondary" target="_blank" rel="noopener">Sluz.org</a>
 		</footer>
 	</div>
 
