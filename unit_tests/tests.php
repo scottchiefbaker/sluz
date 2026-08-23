@@ -298,6 +298,8 @@ sluz_test("x{literal}\nfoo\n{/literal}"           , "x\nfoo"             , 'Lite
 sluz_test("{literal}\nfoo\n{/literal}y"           , "foo\ny"             , 'Literal #8 - Inline literal (close) keeps \\n, open alone strips');
 sluz_test(' { '                                   , ' { '                , 'Literal #9 - { with whitespace');
 sluz_test('{}'                                    , '{}'                 , 'Literal #10 - Raw {}');
+sluz_test('{literal}{literal}{/literal}'          , '{literal}'          , 'Literal #11 - Raw {literal}');
+sluz_test('{literal}{literal}{/literal}x'         , '{literal}x'         , 'Literal #12 - Raw {literal}x');
 
 sluz_test("{\$x}{\$x}"                                   , '77'           , 'Whitespace input/output #1');
 sluz_test("{\$x} {\$x}"                                  , '7 7'          , 'Whitespace input/output #2');
