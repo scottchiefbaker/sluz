@@ -2,7 +2,7 @@
 
 ///////////////////////////////////////////////////////////////////////////////
 // The escape modifier safely encodes output to prevent XSS.                 //
-// Supported types: 'html' (default), 'url', and 'js'.                      //
+// Supported types: 'html' (default), 'url', and 'js'.                       //
 ///////////////////////////////////////////////////////////////////////////////
 
 include("../sluz.class.php");
