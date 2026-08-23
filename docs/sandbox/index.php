@@ -41,7 +41,7 @@
 		<meta charset="utf-8">
 		<meta name="viewport" content="width=device-width, initial-scale=1">
 		<meta name="description" content="Sluz sandbox — try templates live with JSON/YAML input">
-		<link rel="icon" href='data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"><text y="14" font-size="14">◈</text></svg>'>
+		<link rel="icon" type="image/svg+xml" href="../img/favicon.svg">
 		<script>try{var k='sluz-theme';var t=localStorage.getItem(k)||'dark';document.documentElement.setAttribute('data-bs-theme',t);}catch(e){document.documentElement.setAttribute('data-bs-theme','dark');}</script>
 
 		<script type="text/javascript" src="../js/jquery.min.js"></script>
