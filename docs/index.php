@@ -25,13 +25,24 @@ if (is_readable($tpl_file)) {
 	$tplc = '';
 }
 
+// Ghetto way to indent some of the left nav
+$indent = [2, 31, 65, 85];
+
 // Build the object for the left nav structure
 $doc_files = get_doc_file_list();
 $doc_nav   = [];
 foreach ($doc_files as $id) {
+	$id_num = intval(substr($id, 0, 3));
+
+	$css_class = "";
+	if (in_array($id_num, $indent)) {
+		$css_class = "nav-indent";
+	}
+
 	$doc_nav[] = [
-		'id'    => $id,
-		'label' => pretty_doc_label($id)
+		'id'        => $id,
+		'label'     => pretty_doc_label($id),
+		'css_class' => $css_class,
 	];
 }
 

@@ -24,6 +24,7 @@
 		.tpl_file pre { font-family: var(--sluz-mono); font-size: .875rem; line-height: 1.5; padding: .85rem 1rem; overflow-x: auto; background: transparent; }
 		.card { box-shadow: 0 1px 2px rgba(0,0,0,.06); }
 		.card-header { font-size: .85rem; letter-spacing: .01em; }
+		.nav-indent { padding-left: 2em; }
 
 		/* highlight_string inline colors — light theme (defaults) */
 		[data-bs-theme="light"] .php_file span[style*="#0000BB"] { color: #0000BB !important; }
@@ -84,7 +85,7 @@
 					</div>
 					<div class="list-group list-group-flush" id="doc-nav">
 						{foreach $doc_files as $file}
-						<a href="?doc={$file.id}" class="list-group-item list-group-item-action {if $file.id == $doc_current}active{/if}" title="{$file.id}">{$file.label}</a>
+						<a href="?doc={$file.id}" class="list-group-item list-group-item-action {$file.css_class} {if $file.id == $doc_current}active{/if}" title="{$file.id}">{$file.label}</a>
 						{/foreach}
 					</div>
 				</div>
