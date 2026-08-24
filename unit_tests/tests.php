@@ -300,6 +300,8 @@ sluz_test(' { '                                   , ' { '                , 'Lite
 sluz_test('{}'                                    , '{}'                 , 'Literal #10 - Raw {}');
 sluz_test('{literal}{literal}{/literal}'          , '{literal}'          , 'Literal #11 - Raw {literal}');
 sluz_test('{literal}{literal}{/literal}x'         , '{literal}x'         , 'Literal #12 - Raw {literal}x');
+sluz_test('x{literal}{literal}{/literal}'         , 'x{literal}'         , 'Literal #13 - Raw x{literal}');
+sluz_test('x{literal}{literal}{/literal}x'        , 'x{literal}x'        , 'Literal #14 - Raw x{literal}x');
 
 sluz_test("{\$x}{\$x}"                                   , '77'           , 'Whitespace input/output #1');
 sluz_test("{\$x} {\$x}"                                  , '7 7'          , 'Whitespace input/output #2');
@@ -352,6 +354,9 @@ sluz_test(['{foreach $array as $i}{foreach $array as $i}x{/foreach}{/foreach}'],
 sluz_test(["{\$foo}\n{\$bar}"]                                                 , 3, 'Get blocks #12 - Only whitespace block');
 sluz_test(["{\$foo}\n\n{\$bar}"]                                               , 3, 'Get blocks #13 - Double whitespace block');
 sluz_test(['{* Comment *}']                                                    , 0, 'Get blocks #14 - Only comments');
+sluz_test(['x{literal}{literal}{/literal}x']                                   , 3, 'Get blocks #15 - Literal x{literal}x');
+sluz_test(['{literal}{literal}{/literal}']                                     , 1, 'Get blocks #16 - Literal {literal}');
+sluz_test(['{literal}{literal}{/literal}x']                                    , 2, 'Get blocks #17 - Literal {literal}x');
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // Fetch tests
