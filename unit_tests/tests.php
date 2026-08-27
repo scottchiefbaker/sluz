@@ -363,8 +363,8 @@ sluz_test(['{literal}{literal}{/literal}x']                                    ,
 //////////////////////////////////////////////////////////////////////////////////////////
 
 sluz_fetch_test(["tpls/extra.stpl"], "/extra.stpl/s"    , "Fetch #1 - Simple fetch");
-sluz_fetch_test(["tpls/child.stpl" , "tpls/parent.stpl"], "/0fd197af.*21c1a4c5/s", "Parent/Child #1 - Fetch with two params");
 sluz_fetch_test(["tpls/nonexistent.stpl"], "/ERROR-42280/", "Fetch #2 - Missing template file");
+sluz_fetch_test(["tpls/child.stpl" , "tpls/parent.stpl"], "/0fd197af.*21c1a4c5/s", "Parent/Child #1 - Fetch with two params");
 
 // Set and then reset the parent tpl
 $x = $sluz->parent_tpl("tpls/parent.stpl");
