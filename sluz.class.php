@@ -5,7 +5,7 @@
 define('SLUZ_INLINE', 'INLINE_TEMPLATE'); // Just a specific string
 
 class sluz {
-	public $version       = '0.9.7';
+	public $version       = '0.9.8';
 	public $tpl_file      = null;         // The path to the TPL file
 	public $inc_tpl_file  = null;         // The path to the {include} file
 	public $parent_tpl    = null;         // Path to parent TPL
