@@ -475,7 +475,11 @@ class sluz {
 		$inline_simple = $this->simple_mode && $this->get_inline_content($this->php_file);
 		$is_inline     = ($tpl_file === SLUZ_INLINE) || $inline_simple;
 
-		if ($this->php_file_dir) {
+		// Right now this only works on Linux. May need to updated to work on Windows
+		$is_absolute = is_string($tf) && str_starts_with($tf, '/');
+
+		// If we know the PHP file dir, and it's not an absolute path we prepend it
+		if ($this->php_file_dir && !$is_absolute) {
 			$tf  = $this->php_file_dir . "/$tf";
 		}
 
