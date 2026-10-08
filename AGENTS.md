@@ -85,7 +85,7 @@ $s->in_unit_test = true;                                // suppress error output
 
 ## Gotchas
 
-- Must be `error_reporting(E_ALL)` compliant — no `E_NOTICE` allowed.
+- **No PHP diagnostics.** On every supported PHP version (≥8.0), the library must not trigger any PHP-originated diagnostic (`E_NOTICE`, `E_WARNING`, `E_DEPRECATED`, etc.) under `error_reporting(E_ALL)`. All errors must be captured and handled by the library, and reported through its own numbered error codes where appropriate. The unit tests fail any test during which PHP raises such a diagnostic.
 - `foreach` loop vars do NOT persist after the loop block (tested explicitly).
 - `$__FOREACH_FIRST`/`$__FOREACH_LAST`/`$__FOREACH_INDEX` are reserved variable names inside `{foreach}`.
 - `.gitattributes` controls Packagist archive — see the file for excluded paths.

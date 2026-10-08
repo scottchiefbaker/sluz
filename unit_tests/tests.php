@@ -7,6 +7,32 @@ $dir = dirname(__FILE__);
 chdir($dir);
 include("$dir/../sluz.class.php");
 
+// Treat any PHP warning/notice/deprecation as a test failure
+error_reporting(E_ALL);
+$php_diags = [];
+
+set_error_handler(function ($errno, $errstr, $errfile, $errline) {
+	global $php_diags;
+	if (!(error_reporting() & $errno)) { return true; }
+
+	$names = [
+		E_WARNING         => 'E_WARNING',
+		E_NOTICE          => 'E_NOTICE',
+		E_DEPRECATED      => 'E_DEPRECATED',
+		E_USER_ERROR      => 'E_USER_ERROR',
+		E_USER_WARNING    => 'E_USER_WARNING',
+		E_USER_NOTICE     => 'E_USER_NOTICE',
+		E_USER_DEPRECATED => 'E_USER_DEPRECATED',
+	];
+
+	$name        = $names[$errno] ?? "E_$errno";
+	$php_diags[] = "PHP $name: $errstr ($errfile #$errline)";
+
+	return true;
+});
+
+////////////////////////////////////////////////////////
+
 $sluz               = new sluz;
 $sluz->debug        = 0;
 $sluz->in_unit_test = true;
@@ -441,6 +467,41 @@ if ($is_cli) {
 
 ////////////////////////////////////////////////////////
 
+// If PHP emitted any diagnostics during the test, turn the result into a failure
+function php_diag_apply(&$out) {
+	global $php_diags, $pass_count, $fail_count, $test_output, $fail_str, $is_cli, $simple;
+
+	if (!$php_diags) { return; }
+
+	$msg       = implode("; ", $php_diags);
+	$last      = count($test_output) - 1;
+	$name      = $test_output[$last][0];
+	$php_diags = [];
+
+	if ($test_output[$last][1] === 0) {
+		// Was a pass, now a failure
+		$pass_count--;
+		$fail_count++;
+
+		$test_output[$last][1] = htmlspecialchars($msg);
+
+		if ($is_cli) {
+			$out = preg_replace("/\\[.*\n$/s", "", $out);
+			if ($simple) {
+				$lead = "Test '$name' ";
+			} else {
+				$lead = $out;
+			}
+
+			$out = $lead . $fail_str . "\n";
+		}
+	} else {
+		$test_output[$last][1] .= "<br />" . htmlspecialchars($msg);
+	}
+
+	if ($is_cli) { $out .= "  * $msg\n"; }
+}
+
 function sluz_fetch_test($files, $pattern, $test_name) {
 	global $sluz;
 	global $pass_count;
@@ -469,6 +530,8 @@ function sluz_fetch_test($files, $pattern, $test_name) {
 	$child  = $files[0] ?? "";
 	$parent = $files[1] ?? null;
 
+	global $php_diags;
+	$php_diags = [];
 	$str = $sluz->fetch($child, $parent);
 
 	if (preg_match($pattern, $str)) {
@@ -487,6 +550,7 @@ function sluz_fetch_test($files, $pattern, $test_name) {
 		$test_output[] = [$test_name, "Expected $pattern"];
 	}
 
+	php_diag_apply($out);
 	print $out;
 }
 
@@ -503,6 +567,8 @@ function sluz_test($input, $expected, $test_name) {
 
 	if (!empty($filter) && !preg_match("/$filter/i", $test_name)) { return; }
 
+	global $php_diags;
+	$php_diags = [];
 	if (is_array($input)) {
 		$res  = $sluz->get_blocks($input[0]);
 		$html = count($res);
@@ -570,6 +636,7 @@ function sluz_test($input, $expected, $test_name) {
 		$fail_count++;
 	}
 
+	php_diag_apply($out);
 	print $out;
 }
 
@@ -587,6 +654,8 @@ function sluz_auto_escape_test($input, $expected, $test_name) {
 
 	if (!empty($filter) && !preg_match("/$filter/i", $test_name)) { return; }
 
+	global $php_diags;
+	$php_diags = [];
 	$html = $ae->parse_string($input);
 
 	$lead = "Test '$test_name' ";
@@ -637,6 +706,7 @@ function sluz_auto_escape_test($input, $expected, $test_name) {
 		$fail_count++;
 	}
 
+	php_diag_apply($out);
 	print $out;
 }
 
