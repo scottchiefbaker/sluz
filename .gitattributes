@@ -17,5 +17,6 @@
 # Exclude VCS and editor files
 /.gitignore export-ignore
 /.gitattributes export-ignore
+/.github export-ignore
 
 # Exclude anything else you don't want shipped
