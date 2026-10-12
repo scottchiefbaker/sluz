@@ -45,6 +45,9 @@ if (in_array('--simple', $argv ?? [])) {
 // Check if there is a filter at the command line
 $filter = $argv[1] ?? $_GET['filter'] ?? "";
 
+// HTML only: show failed tests and the summary (query string `simple=1`)
+$html_simple = !empty($_GET['simple']);
+
 // If we passed `--simple` we don't want to set that as the filter
 if (str_starts_with($filter, '--')) {
 	$filter = '';
@@ -465,6 +468,13 @@ if ($is_cli) {
 	$sluz->assign("fail_count", $fail_count);
 	$sluz->assign("pass_count", $pass_count);
 	$sluz->assign("total", $total);
+
+	// In simple mode, keep only failed rows. Passes are stored as [name, 0];
+	// failures store a message string in index 1.
+	if ($html_simple) {
+		$is_failure  = function ($row) { return $row[1] !== 0; };
+		$test_output = array_values(array_filter($test_output, $is_failure));
+	}
 
 	// If the first word of this test, and the last test are NOT
 	// the same it's a new section.
