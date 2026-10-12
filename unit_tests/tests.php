@@ -397,6 +397,28 @@ $x = $sluz->parent_tpl("tpls/parent.stpl");
 sluz_fetch_test(["tpls/child.stpl"], "/0fd197af.*21c1a4c5/s", "Parent/Child #2 - Fetch with preset parent");
 $sluz->parent_tpl = "";
 
+// Inline/simple mode: the calling PHP file has a __halt_compiler() section
+$inline_sluz = new sluz();
+$inline_sluz->in_unit_test = true;
+$inline_sluz->enable_simple_mode(__DIR__ . "/inline_fixture.php");
+$inline_sluz->assign('name', 'Inline');
+
+$saved_sluz = $sluz;
+$sluz       = $inline_sluz;
+sluz_fetch_test([SLUZ_INLINE], "/INLINE-SECTION-OK Inline/", "Inline #1 - SLUZ_INLINE returns halt_compiler section");
+sluz_fetch_test([], "/INLINE-SECTION-OK Inline/", "Inline #2 - Simple default uses inline section");
+sluz_fetch_test(["tpls/extra.stpl"], "/extra.stpl/s", "Inline #3 - Explicit file wins over inline section");
+$sluz = $saved_sluz;
+
+// Simple mode with no inline section: no-arg fetch() loads the guessed tpls/[name].stpl
+$guess_sluz = new sluz();
+$guess_sluz->in_unit_test = true;
+$guess_sluz->enable_simple_mode(__DIR__ . "/tests.php");
+
+$sluz = $guess_sluz;
+sluz_fetch_test([], "/<!doctype html>/", "Inline #4 - Simple default without inline section uses guessed tpl");
+$sluz = $saved_sluz;
+
 //////////////////////////////////////////////////////////////////////////////////////////
 // Alternate delimiter tests ([ / ])
 //////////////////////////////////////////////////////////////////////////////////////////
