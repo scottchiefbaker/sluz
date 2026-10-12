@@ -439,8 +439,11 @@ ob_start();
 unset($inline_sluz, $guess_sluz);
 ob_end_clean();
 
+//////////////////////////////////////////////////////////////////////////////////////////
 // Inline mode edge cases. Each case uses its own instance, so the shared $sluz is untouched.
 // Every instance calls fetch() in the same expression, so it never auto-prints on destruct.
+//////////////////////////////////////////////////////////////////////////////////////////
+
 function inline_instance($fixture) {
 	$s = new sluz();
 	$s->in_unit_test = true;
@@ -451,9 +454,50 @@ function inline_instance($fixture) {
 
 // Marker detection
 sluz_output_test(inline_instance('inline_upper_fixture.php')->fetch(SLUZ_INLINE), '/UPPER-OK N/', 'Inline #6 - Upper-case __HALT_COMPILER marker is accepted');
-sluz_output_test(inline_instance('inline_space_fixture.php')->fetch(SLUZ_INLINE), '/SPACE-LOADS/', 'Inline #7 - Whitespace inside the marker parentheses is accepted (as PHP does)');
+sluz_output_test(inline_instance('inline_space_fixture.php')->fetch(SLUZ_INLINE), '/SPACE-LOADS/', 'Inline #7 - Spaces inside marker parentheses are accepted');
 sluz_output_test(inline_instance('inline_empty_fixture.php')->fetch(SLUZ_INLINE), '/^$/', 'Inline #8 - Marker at end of file gives an empty inline section');
 sluz_output_test(inline_instance('inline_comment_fixture.php')->fetch(SLUZ_INLINE), '/^\s*REAL-SECTION$/', 'Inline #9 - Marker text in a comment or string is ignored');
+
+// Cache behavior
+$ie_cache  = inline_instance('inline_fixture.php');
+$ie_first  = $ie_cache->fetch(SLUZ_INLINE);
+$ie_second = $ie_cache->fetch(SLUZ_INLINE);
+sluz_output_test($ie_first === $ie_second ? 'SAME' : 'DIFF', '/^SAME$/', 'Inline #10 - Repeated fetch(SLUZ_INLINE) returns the same content');
+
+$ie_switch = inline_instance('inline_fixture.php');
+$ie_a      = $ie_switch->fetch(SLUZ_INLINE);
+$ie_switch->enable_simple_mode(__DIR__ . '/inline_upper_fixture.php');
+$ie_b      = $ie_switch->fetch(SLUZ_INLINE);
+sluz_output_test("$ie_a|$ie_b", '/INLINE-SECTION-OK N\s*\|\s*UPPER-OK N/', 'Inline #11 - enable_simple_mode() on new file reloads inline section');
+
+// Known limitation: the section is cached per instance, so a file edited on disk after the
+// first read still returns the old text on that instance. A new instance sees the change.
+$ie_tmp = tempnam(sys_get_temp_dir(), 'sluz');
+$ie_marker = "__halt_compiler();";
+file_put_contents($ie_tmp, "<?php\n$ie_marker\nVERSION-ONE");
+$ie_disk = new sluz();
+$ie_disk->in_unit_test = true;
+$ie_disk->enable_simple_mode($ie_tmp);
+$ie_v1 = $ie_disk->fetch(SLUZ_INLINE);
+file_put_contents($ie_tmp, "<?php\n$ie_marker\nVERSION-TWO");
+$ie_v1_again = $ie_disk->fetch(SLUZ_INLINE);
+$ie_fresh = new sluz();
+$ie_fresh->in_unit_test = true;
+$ie_fresh->enable_simple_mode($ie_tmp);
+$ie_fresh_out = $ie_fresh->fetch(SLUZ_INLINE);
+unlink($ie_tmp);
+sluz_output_test("$ie_v1|$ie_v1_again|$ie_fresh_out", '/VERSION-ONE\s*\|\s*VERSION-ONE\s*\|\s*VERSION-TWO/', 'Inline #12 - Section cached per instance, ignores on-disk edits');
+
+// Parent/child
+sluz_output_test(inline_instance('inline_parent_fixture.php')->fetch('tpls/child.stpl', SLUZ_INLINE), '/<h1>inline-header<\/h1>child\.stpl: 21c1a4c5.*<h1>inline-footer<\/h1>/s', 'Inline #13 - Inline parent includes a file child');
+sluz_output_test(inline_instance('inline_fixture.php')->fetch(SLUZ_INLINE, 'tpls/parent.stpl'), '/ERROR-18485/', 'Inline #14 - Inline child in file parent gives ERROR-18485 (limitation)');
+
+// Section content: custom delimiters, blocks, and errors
+$ie_delim = inline_instance('inline_delim_fixture.php');
+$ie_delim->set_delimiters('[', ']');
+sluz_output_test($ie_delim->fetch(SLUZ_INLINE), '/ALT N \{\$name\}/', 'Inline #15 - Custom delimiters apply to the inline section');
+sluz_output_test(inline_instance('inline_blocks_fixture.php')->fetch(SLUZ_INLINE), '/\[1\]\[2\]ON/', 'Inline #16 - foreach and if blocks render in the inline section');
+sluz_output_test(inline_instance('inline_blocks_fixture.php')->fetch(SLUZ_INLINE), "/Unknown escape type 'bogus' #65491/", 'Inline #17 - Modifier error inside the inline section is reported');
 
 // Line numbers are relative to the template text (for an inline section, the text after the
 // marker). The inline section and the file hold the same text, so both must report line 4.
@@ -469,7 +513,7 @@ if (function_exists('shell_exec')) {
 	};
 	$ie_inline_out = $ie_run(__DIR__ . '/inline_lines_fixture.php', 'inline');
 	$ie_file_out   = $ie_run(__DIR__ . '/inline_lines_fixture.php', __DIR__ . '/tpls/lines.stpl');
-	sluz_output_test('inline=' . $ie_line_of($ie_inline_out) . ' file=' . $ie_line_of($ie_file_out), '/^inline=4 file=4$/', 'Inline #18 - Error line number in inline section matches the same text in a file');
+	sluz_output_test('inline=' . $ie_line_of($ie_inline_out) . ' file=' . $ie_line_of($ie_file_out), '/^inline=4 file=4$/', 'Inline #18 - Inline error line matches the same text in a file');
 } else {
 	print "Inline #18 skipped: shell_exec() is not available\n";
 }
