@@ -527,13 +527,43 @@ class sluz {
 		}
 
 		$str    = file_get_contents($file);
-		$offset = stripos($str, '__halt_compiler();');
+		$offset = $this->find_inline_offset($str);
 
-		if ($offset !== false) {
-			$this->inline_str = substr($str, $offset + 18);
+		if ($offset !== null) {
+			$this->inline_str = substr($str, $offset);
 		}
 
 		return $this->inline_str;
+	}
+
+	// Byte offset just past the "__halt_compiler();" in PHP source, or null if there is
+	// none. The tokenizer is used so the marker is only recognised as real code: text in
+	// comments or strings is ignored, and whitespace is allowed where PHP allows it.
+	// Falls back to a plain case-insensitive search if the tokenizer extension is missing.
+	private function find_inline_offset($str) {
+		if (!function_exists('token_get_all')) {
+			$pos = stripos($str, '__halt_compiler();');
+			return $pos === false ? null : $pos + 18;
+		}
+
+		$pos      = 0;
+		$after_hc = false;
+		foreach (token_get_all($str) as $t) {
+			$text = is_array($t) ? $t[1] : $t;
+			$pos += strlen($text);
+
+			if (!$after_hc) {
+				$after_hc = is_array($t) && $t[0] === T_HALT_COMPILER;
+				continue;
+			}
+
+			// Only whitespace and the "()" may sit between the keyword and the ";"
+			if (is_array($t) && $t[0] === T_WHITESPACE) { continue; }
+			if ($t === ';') { return $pos; }
+			if ($t !== '(' && $t !== ')') { $after_hc = false; }
+		}
+
+		return null;
 	}
 
 	// Find the include TPL in the {include} string

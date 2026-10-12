@@ -439,6 +439,22 @@ ob_start();
 unset($inline_sluz, $guess_sluz);
 ob_end_clean();
 
+// Inline mode edge cases. Each case uses its own instance, so the shared $sluz is untouched.
+// Every instance calls fetch() in the same expression, so it never auto-prints on destruct.
+function inline_instance($fixture) {
+	$s = new sluz();
+	$s->in_unit_test = true;
+	$s->enable_simple_mode(__DIR__ . "/$fixture");
+	$s->assign(['name' => 'N', 'y' => [1, 2], 'debug' => 1]);
+	return $s;
+}
+
+// Marker detection
+sluz_output_test(inline_instance('inline_upper_fixture.php')->fetch(SLUZ_INLINE), '/UPPER-OK N/', 'Inline #6 - Upper-case __HALT_COMPILER marker is accepted');
+sluz_output_test(inline_instance('inline_space_fixture.php')->fetch(SLUZ_INLINE), '/SPACE-LOADS/', 'Inline #7 - Whitespace inside the marker parentheses is accepted (as PHP does)');
+sluz_output_test(inline_instance('inline_empty_fixture.php')->fetch(SLUZ_INLINE), '/^$/', 'Inline #8 - Marker at end of file gives an empty inline section');
+sluz_output_test(inline_instance('inline_comment_fixture.php')->fetch(SLUZ_INLINE), '/^\s*REAL-SECTION$/', 'Inline #9 - Marker text in a comment or string is ignored');
+
 // Line numbers are relative to the template text (for an inline section, the text after the
 // marker). The inline section and the file hold the same text, so both must report line 4.
 // Needs a subprocess (error output calls exit()).
