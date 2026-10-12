@@ -19,6 +19,8 @@ class sluz {
 	private $php_file_dir   = null;       // Path to the calling PHP directory
 	private $simple_mode    = false;      // Are we in simple mode
 	private $fetch_called   = false;      // Used in simple if fetch has been called
+	private $inline_file    = null;       // PHP file the cached inline content belongs to
+	private $inline_str     = null;       // Cached text after __halt_compiler() (null if none)
 	private $char_pos       = -1;         // Character offset in the TPL
 	private $escape_html    = false;      // Auto-escape HTML in variable output
 	private $left_delim     = '{';        // Left/opening delimiter
@@ -400,18 +402,23 @@ class sluz {
 			$this->php_file_dir = dirname($this->php_file);
         }
 
+		// The source to load. Differs from $tpl_file only when the simple-mode
+		// default resolves to the inline section of the calling PHP file.
 		// We use ABSOLUTE paths here because this may be called in the destructor which has a cwd() of '/'
+		$source = $tpl_file;
 		if (!$tpl_file) {
 			$tpl_file = $this->guess_tpl_file($this->php_file);
+			// Simple mode with no explicit file: use the inline section if the PHP file has one
+			$source   = ($this->simple_mode && $this->get_inline_content() !== null) ? SLUZ_INLINE : $tpl_file;
 		}
 
 		$parent_tpl = $parent ?? $this->parent_tpl;
 		if (!empty($parent_tpl)) {
 			$this->assign("__CHILD_TPL", $tpl_file);
-			$tpl_file = $parent_tpl;
+			$source = $tpl_file = $parent_tpl;
 		}
 
-		$str    = $this->get_tpl_content($tpl_file);
+		$str    = $this->get_tpl_content($source);
 		$blocks = $this->get_blocks($str);
 		$html   = $this->process_blocks($blocks);
 
@@ -469,11 +476,13 @@ class sluz {
 
 	// Load the template file into a string
 	private function get_tpl_content($tpl_file) {
-		$tf = $this->tpl_file = $tpl_file;
+		// The SLUZ_INLINE marker selects the __halt_compiler() section of the PHP file
+		if ($tpl_file === SLUZ_INLINE) {
+			$this->tpl_file = SLUZ_INLINE;
+			return $this->get_inline_content() ?? "";
+		}
 
-		// If we're in simple mode and we have a __halt_compiler() we can assume inline mode
-		$inline_simple = $this->simple_mode && $this->get_inline_content($this->php_file);
-		$is_inline     = ($tpl_file === SLUZ_INLINE) || $inline_simple;
+		$tf = $this->tpl_file = $tpl_file;
 
 		// Right now this only works on Linux. May need to updated to work on Windows
 		$is_absolute = is_string($tf) && str_starts_with($tf, '/');
@@ -483,9 +492,7 @@ class sluz {
 			$tf  = $this->php_file_dir . "/$tf";
 		}
 
-		if ($is_inline) {
-			$str = $this->get_inline_content($this->php_file);
-		} elseif ($tf && !is_readable($tf)) {
+		if ($tf && !is_readable($tf)) {
 			return $this->error_out("Unable to load template file <code>$tf</code>",42280);
 		} elseif ($tf) {
 			$str = file_get_contents($tf);
@@ -496,18 +503,29 @@ class sluz {
 		return $str;
 	}
 
-	// Get the text after __halt_compiler()
-	private function get_inline_content($file) {
-		$str    = file_get_contents($file);
-		$offset = stripos($str, '__halt_compiler();');
+	// Get the text after __halt_compiler() in the calling PHP file. The result is
+	// cached per PHP file, so the file is read at most once per instance.
+	private function get_inline_content() {
+		if ($this->inline_file === $this->php_file) {
+			return $this->inline_str;
+		}
 
-		if ($offset === false) {
+		$this->inline_file = $this->php_file;
+		$this->inline_str  = null;
+
+		$file = $this->php_file;
+		if (!$file || !is_file($file) || !is_readable($file)) {
 			return null;
 		}
 
-		$ret = substr($str, $offset + 18);
+		$str    = file_get_contents($file);
+		$offset = stripos($str, '__halt_compiler();');
 
-		return $ret;
+		if ($offset !== false) {
+			$this->inline_str = substr($str, $offset + 18);
+		}
+
+		return $this->inline_str;
 	}
 
 	// Find the include TPL in the {include} string
