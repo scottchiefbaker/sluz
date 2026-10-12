@@ -306,8 +306,10 @@ class sluz {
 					$block = $ltag . $inner . $rtag;
 				}
 
+				// Record the block's start, not $i (which is the closing delim or next opener),
+				// so error line numbers point at the opening of the block.
 				if ($block) {
-					$blocks[] = [$block, $i];
+					$blocks[] = [$block, $start];
 				}
 
 				$prev_was_comment = false; // Non-comment block consumed, reset flag
@@ -343,7 +345,7 @@ class sluz {
 			}
 
 			if ($block) {
-				$blocks[] = [$block, $i];
+				$blocks[] = [$block, $start];
 			}
 		}
 

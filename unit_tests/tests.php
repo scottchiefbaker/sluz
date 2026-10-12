@@ -439,6 +439,25 @@ ob_start();
 unset($inline_sluz, $guess_sluz);
 ob_end_clean();
 
+// Line numbers are relative to the template text (for an inline section, the text after the
+// marker). The inline section and the file hold the same text, so both must report line 4.
+// Needs a subprocess (error output calls exit()).
+if (function_exists('shell_exec')) {
+	$ie_php   = (PHP_SAPI === 'cli') ? PHP_BINARY : 'php';
+	$ie_probe = __DIR__ . '/line_probe.php';
+	$ie_run   = function ($file, $target) use ($ie_php, $ie_probe) {
+		return shell_exec(escapeshellarg($ie_php) . ' ' . escapeshellarg($ie_probe) . ' ' . escapeshellarg($file) . ' ' . escapeshellarg($target) . ' 2>&1') ?? '';
+	};
+	$ie_line_of = function ($out) {
+		return preg_match('/on line #(\d+)/', $out, $m) ? $m[1] : 'none';
+	};
+	$ie_inline_out = $ie_run(__DIR__ . '/inline_lines_fixture.php', 'inline');
+	$ie_file_out   = $ie_run(__DIR__ . '/inline_lines_fixture.php', __DIR__ . '/tpls/lines.stpl');
+	sluz_output_test('inline=' . $ie_line_of($ie_inline_out) . ' file=' . $ie_line_of($ie_file_out), '/^inline=4 file=4$/', 'Inline #18 - Error line number in inline section matches the same text in a file');
+} else {
+	print "Inline #18 skipped: shell_exec() is not available\n";
+}
+
 //////////////////////////////////////////////////////////////////////////////////////////
 // Simple mode tests (destructor auto-print and the global sluz() function)
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -841,7 +860,7 @@ function sluz_output_test($str, $pattern, $test_name) {
 	if (!empty($filter) && !preg_match("/$filter/i", $test_name)) { return; }
 
 	$lead = "Test '$test_name' ";
-	$pad  = str_repeat(" ", 80 - (strlen($lead)));
+	$pad  = str_repeat(" ", max(1, 80 - (strlen($lead))));
 
 	$out = "";
 	if ($is_cli) {
