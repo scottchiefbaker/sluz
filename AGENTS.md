@@ -82,6 +82,7 @@ $s->in_unit_test = true;                                // suppress error output
 | 73467 | Bare word / unknown block         |
 | 79134 | Exception in modifier call        |
 | 65491 | Unknown escape type in `escape`   |
+| 78135 | No inline template found          |
 
 ## Gotchas
 

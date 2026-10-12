@@ -479,7 +479,13 @@ class sluz {
 		// The SLUZ_INLINE marker selects the __halt_compiler() section of the PHP file
 		if ($tpl_file === SLUZ_INLINE) {
 			$this->tpl_file = SLUZ_INLINE;
-			return $this->get_inline_content() ?? "";
+			$inline         = $this->get_inline_content();
+
+			if ($inline === null) {
+				return $this->error_out("No inline template found in <code>$this->php_file</code>", 78135);
+			}
+
+			return $inline;
 		}
 
 		$tf = $this->tpl_file = $tpl_file;

@@ -413,13 +413,24 @@ sluz_fetch_test([], "/INLINE-SECTION-OK Inline/", "Inline #2 - Simple default us
 sluz_fetch_test(["tpls/extra.stpl"], "/extra.stpl/s", "Inline #3 - Explicit file wins over inline section");
 $sluz = $saved_sluz;
 
+// Explicit SLUZ_INLINE with no inline section (PHP file missing) reports error 78135
+$noinline_sluz = new sluz();
+$noinline_sluz->in_unit_test = true;
+$noinline_sluz->enable_simple_mode(__DIR__ . "/no_such_inline_file.php");
+$sluz = $noinline_sluz;
+sluz_fetch_test([SLUZ_INLINE], "/^ERROR-78135$/", "Inline #4 - SLUZ_INLINE with no inline section reports ERROR-78135");
+$sluz = $saved_sluz;
+ob_start();
+unset($noinline_sluz);
+ob_end_clean();
+
 // Simple mode with no inline section: no-arg fetch() loads the guessed tpls/[name].stpl
 $guess_sluz = new sluz();
 $guess_sluz->in_unit_test = true;
 $guess_sluz->enable_simple_mode(__DIR__ . "/tests.php");
 
 $sluz = $guess_sluz;
-sluz_fetch_test([], "/<!doctype html>/", "Inline #4 - Simple default without inline section uses guessed tpl");
+sluz_fetch_test([], "/<!doctype html>/", "Inline #5 - Simple default without inline section uses guessed tpl");
 $sluz = $saved_sluz;
 
 // A filter can skip the fetch() calls above, leaving these simple-mode instances to
