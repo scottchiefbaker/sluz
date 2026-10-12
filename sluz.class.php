@@ -2,7 +2,7 @@
 
 ////////////////////////////////////////////////////////
 
-define('SLUZ_INLINE', 'INLINE_TEMPLATE'); // Just a specific string
+define('SLUZ_INLINE', '__INLINE_TEMPLATE__'); // Just a specific string
 
 class sluz {
 	public $version       = '0.9.9';
