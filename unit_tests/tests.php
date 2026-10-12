@@ -422,6 +422,79 @@ $sluz = $guess_sluz;
 sluz_fetch_test([], "/<!doctype html>/", "Inline #4 - Simple default without inline section uses guessed tpl");
 $sluz = $saved_sluz;
 
+// A filter can skip the fetch() calls above, leaving these simple-mode instances to
+// auto-print on destruct. Discard that output so filtered runs stay clean.
+ob_start();
+unset($inline_sluz, $guess_sluz);
+ob_end_clean();
+
+//////////////////////////////////////////////////////////////////////////////////////////
+// Simple mode tests (destructor auto-print and the global sluz() function)
+//////////////////////////////////////////////////////////////////////////////////////////
+
+// Destructor auto-prints the template when fetch() was never called
+$dtor = new sluz();
+$dtor->in_unit_test = true;
+$dtor->enable_simple_mode(__DIR__ . "/inline_fixture.php");
+$dtor->assign('name', 'Dtor');
+ob_start();
+unset($dtor);
+$printed = ob_get_clean();
+sluz_output_test($printed, "/INLINE-SECTION-OK Dtor/", "Simple #1 - Destructor auto-prints when fetch not called");
+
+// Destructor stays silent once fetch() has been called; fetch() itself must not print
+$dtor = new sluz();
+$dtor->in_unit_test = true;
+$dtor->enable_simple_mode(__DIR__ . "/inline_fixture.php");
+$dtor->assign('name', 'Dtor');
+ob_start();
+$fetched = $dtor->fetch();
+$fetch_printed = ob_get_clean();
+ob_start();
+unset($dtor);
+$printed = ob_get_clean();
+sluz_output_test($fetch_printed . $printed, "/^$/", "Simple #2 - fetch() and destructor print nothing after explicit fetch()");
+
+// fetch() returns the rendered template in simple mode
+sluz_output_test($fetched, "/INLINE-SECTION-OK Dtor/", "Simple #3 - fetch() returns rendered template in simple mode");
+
+// Non-simple instances never auto-print on destruct
+$plain = new sluz();
+$plain->in_unit_test = true;
+$plain->assign('name', 'Plain');
+ob_start();
+unset($plain);
+$printed = ob_get_clean();
+sluz_output_test($printed, "/^$/", "Simple #4 - Non-simple instance does not auto-print");
+
+// Simple mode with a missing guessed template reports the error on auto-print
+$missing = new sluz();
+$missing->in_unit_test = true;
+$missing->enable_simple_mode(__DIR__ . "/no_such_script.php");
+ob_start();
+unset($missing);
+$printed = ob_get_clean();
+sluz_output_test($printed, "/ERROR-42280/", "Simple #5 - Missing guessed template reports error on auto-print");
+
+// Global sluz() function: run in a subprocess (singleton is static, auto-prints on shutdown)
+// PHP_BINARY is php-cgi when the suite runs under a web server, and that emits CGI headers,
+// so the subprocess always uses the CLI binary. shell_exec may be disabled by php.ini.
+$fixture     = __DIR__ . "/simple_fixture.php";
+$php_cli     = (PHP_SAPI === 'cli') ? PHP_BINARY : 'php';
+$fixture_out = function_exists('shell_exec')
+	? (shell_exec(escapeshellarg($php_cli) . " " . escapeshellarg($fixture) . " 2>&1") ?? "")
+	: null;
+
+if ($fixture_out === null) {
+	// Cannot run the subprocess here, so these tests are skipped rather than failed
+	print "Simple #6-#9 skipped: shell_exec() is not available\n";
+} else {
+	sluz_output_test($fixture_out, "/^SAME\n/", "Simple #6 - Global sluz() returns the same singleton on each call");
+	sluz_output_test($fixture_out, "/Hello World, count 3/", "Simple #7 - Global sluz() assigns and auto-prints inline template");
+	sluz_output_test((string) substr_count($fixture_out, "Hello World"), "/^1$/", "Simple #8 - Global sluz() auto-prints exactly once");
+	sluz_output_test($fixture_out, "/^(?!.*(Warning|Notice|Deprecated))/s", "Simple #9 - Global sluz() emits no PHP diagnostics");
+}
+
 //////////////////////////////////////////////////////////////////////////////////////////
 // Alternate delimiter tests ([ / ])
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -736,6 +809,50 @@ function sluz_auto_escape_test($input, $expected, $test_name) {
 		}
 		$test_output[] = [$test_name,"Expected <code>$expected</code> but got <code>$html</code><br />(from: $file #$line)"];
 		$fail_count++;
+	}
+
+	php_diag_apply($out);
+	print $out;
+}
+
+// Test helper for output captured from simple mode (auto-print on destruct, or a subprocess).
+// The pattern is matched with preg_match() directly, so flags like /s are supported.
+function sluz_output_test($str, $pattern, $test_name) {
+	global $pass_count;
+	global $fail_count;
+	global $ok_str;
+	global $fail_str;
+	global $filter;
+	global $is_cli;
+	global $test_output;
+	global $simple;
+
+	if (!empty($filter) && !preg_match("/$filter/i", $test_name)) { return; }
+
+	$lead = "Test '$test_name' ";
+	$pad  = str_repeat(" ", 80 - (strlen($lead)));
+
+	$out = "";
+	if ($is_cli) {
+		$out = "$lead $pad";
+	}
+
+	global $php_diags;
+	if (preg_match($pattern, $str)) {
+		$pass_count++;
+		$test_output[] = [$test_name,0];
+		if ($is_cli) {
+			$out .= $ok_str . "\n";
+		}
+		if ($simple) { $out = ''; }
+	} else {
+		if ($is_cli) {
+			$out .= $fail_str . "\n";
+			$out .= "  * Expected $pattern but got " . var_export($str, true) . "\n";
+		}
+		if ($simple) { $out = ''; }
+		$fail_count++;
+		$test_output[] = [$test_name, "Expected <code>$pattern</code> but got <code>" . htmlspecialchars(var_export($str, true)) . "</code>"];
 	}
 
 	php_diag_apply($out);
