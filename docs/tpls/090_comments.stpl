@@ -1,0 +1,18 @@
+<h1>Comments</h1>
+
+{* This line is a comment and will not appear in the output *}
+
+<p>Hello {$name}!{* this comment is removed inline *}</p>
+
+{*
+  Multi-line comments are useful for
+  temporarily disabling blocks of template code:
+
+  <p>{$name}</p>
+*}
+
+{* Variables inside comments are not evaluated: {$name} *}
+
+{* Comments {* can be *} nested *}
+
+<p>Everything above this line is comments, so none of it reaches the output.</p>
