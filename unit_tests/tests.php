@@ -620,7 +620,7 @@ $delim_cases = [['ab', '}'], ['{', '{']];
 $delim_idx = 11; // AltDelim #11 was the last named test above
 foreach ($delim_cases as $args) {
 	$delim_idx++;
-	$dname = "AltDelim #$delim_idx - set_delimiters rejects " . var_export($args, true);
+	$dname = "AltDelim #$delim_idx - set_delimiters rejects " . implode(', ', $args);
 	if (!empty($filter) && !preg_match("/$filter/i", $dname)) { continue; }
 	try {
 		$sluz->set_delimiters($args[0], $args[1]);
@@ -628,14 +628,16 @@ foreach ($delim_cases as $args) {
 	} catch (\InvalidArgumentException $e) {
 		$ok = true;
 	}
+	$lead = "Test '$dname' ";
+	$pad  = str_repeat(" ", 80 - (strlen($lead)));
 	if ($ok) {
 		$pass_count++;
 		$test_output[] = [$dname, 0];
-		if ($is_cli) { print "$ok_str\n"; }
+		if ($is_cli) { print "$lead $pad$ok_str\n"; }
 	} else {
 		$fail_count++;
 		$test_output[] = [$dname, "expected InvalidArgumentException"];
-		if ($is_cli) { print "$fail_str\n"; }
+		if ($is_cli) { print "$lead $pad$fail_str\n"; }
 	}
 	// Delimiters are unchanged on throw, so '{'/'}' remains active here.
 }
