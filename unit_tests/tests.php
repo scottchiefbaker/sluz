@@ -210,6 +210,7 @@ sluz_test("{\$y|join_comma:\"\t\"}"                , "2\t4\t6"    , 'Custom func
 sluz_test('{$word|truncate:"abc"}'                 , 'ERROR-58200', 'Custom function #11 - TypeError in modifier');
 sluz_test('{$word|nonexistent_func}'               , 'ERROR-47204', 'Custom function #12 - Unknown modifier function');
 sluz_test('{$word|throws_exception}'               , 'ERROR-79134', 'Custom function #13 - Exception in modifier');
+sluz_test('{$word|throws_value_error}'             , 'ERROR-79134', 'Custom function #14 - ValueError (non-Exception Error) in modifier');
 
 // Bare functions must return a string
 sluz_test('{hello_world()}' , "Hello world", 'Function #1 - Hello world');
@@ -1006,6 +1007,10 @@ function return_null() {
 
 function throws_exception($x) {
 	throw new Exception("Test exception");
+}
+
+function throws_value_error($x) {
+	throw new ValueError("Test value error");
 }
 
 // vim: tabstop=4 shiftwidth=4 noexpandtab autoindent softtabstop=4
