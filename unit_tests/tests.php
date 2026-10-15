@@ -91,6 +91,7 @@ $sluz->assign('null'        , null);
 $sluz->assign('true'        , true);
 $sluz->assign('false'       , false);
 $sluz->assign('single'      , ['only']);
+$sluz->assign('obj'         , (object)['a' => 1, 'b' => 2]);
 $sluz->assign('tpl_path'    , 'tpls/extra.stpl');
 $sluz->assign('conf'		, [ 'main' => true, 'debug' => false ]);
 $sluz->assign('deep'        , ['a' => ['b' => ['c' => 'deepval']]]);
@@ -157,6 +158,9 @@ sluz_test('{$deep.a.b.x|default:"dflt"}'          , 'dflt'        , 'Basic #54 -
 sluz_test('{$bogus_var|default:"a:b"}'            , 'a:b'         , 'Basic #55 - Default with colon inside quotes');
 sluz_test('{$php_version}'                        , phpversion()  , 'Basic #56 - php_version assigned and asserted');
 sluz_test('{$sluz_version}'                       , $sluz->version, 'Basic #57 - sluz_version assigned and asserted');
+sluz_test('{$empty|count}'                        , '0'           , 'Basic #58 - PHP Modifier array count on empty');
+sluz_test('{$bogus_var|default:}'                 , ''            , 'Basic #59 - Default with empty value');
+sluz_test('{$deep.a.b.x}'                         , ''            , 'Basic #60 - Multi-level dot path missing key');
 
 
 // Escape modifier (XSS prevention)
@@ -281,6 +285,8 @@ sluz_test('{if $x == $x}YES{/if}'                                             , 
 sluz_test("{if \$first == 'Scott'}YES{else}NO{/if}"                           , 'YES'     , 'If #49 - Single-quoted string comparison');
 sluz_test('{if $bogus_var}{elseif $cust.first}X{/if}'                         , 'X'       , 'If #50 - Elseif with dotted variable');
 sluz_test('{if $bogus}{elseif $subarr.one.0}Y{/if}'                           , 'Y'       , 'If #51 - Elseif with multi-level dotted variable');
+sluz_test('{if 1}YES{/if}'                                                    , 'YES'     , 'If #52 - Numeric literal condition true');
+sluz_test('{if 0}YES{/if}'                                                    , ''        , 'If #53 - Numeric literal condition false');
 
 sluz_test('{foreach $array as $num}{$num}{/foreach}'                         , 'onetwothree'            , 'Foreach #1 - Simple');
 sluz_test("{foreach \$array as \$num}\n{\$num}\n{/foreach}"                  , "one\ntwo\nthree\n"      , 'Foreach #2 - Simple with whitespace');
@@ -309,6 +315,7 @@ sluz_test('{foreach $array as $x}{$x}{if $__FOREACH_LAST}LAST{/if}{/foreach}'   
 sluz_test('{foreach $array as $x}{$x}{$__FOREACH_INDEX}{/foreach}'              , 'one0two1three2'         , 'Foreach #21 - Foreach index');
 sluz_test('{foreach $single as $x}{$__FOREACH_FIRST}{$__FOREACH_LAST}{/foreach}', '11'                     , 'Foreach #22 - Single element FIRST/LAST both true');
 sluz_test('{foreach $cust as $k => $v}{$k}:{$v},{/foreach}'                     , 'first:Scott,last:Baker,', 'Foreach #23 - String keys');
+sluz_test('{foreach $obj as $v}{$v}{/foreach}'                                 , '12'                   , 'Foreach #24 - Object source');
 
 sluz_test('Scott'           , 'Scott'           , 'Plain text #1 - Static text');
 sluz_test('<div>Scott</div>', '<div>Scott</div>', 'Plain text #2 - HTML');
@@ -606,6 +613,31 @@ sluz_test('[$first'                                 , 'ERROR-45821' , 'AltDelim 
 $sluz->set_delimiters('{', '}');
 
 sluz_test('{$first}', 'Scott', 'AltDelim #11 - Default delimiters restored');
+
+// set_delimiters() must reject invalid arguments (throws, not error_out)
+$delim_cases = [['ab', '}'], ['{', '{']];
+$delim_idx = 11; // AltDelim #11 was the last named test above
+foreach ($delim_cases as $args) {
+	$delim_idx++;
+	$dname = "AltDelim #$delim_idx - set_delimiters rejects " . var_export($args, true);
+	if (!empty($filter) && !preg_match("/$filter/i", $dname)) { continue; }
+	try {
+		$sluz->set_delimiters($args[0], $args[1]);
+		$ok = false;
+	} catch (\InvalidArgumentException $e) {
+		$ok = true;
+	}
+	if ($ok) {
+		$pass_count++;
+		$test_output[] = [$dname, 0];
+		if ($is_cli) { print "$ok_str\n"; }
+	} else {
+		$fail_count++;
+		$test_output[] = [$dname, "expected InvalidArgumentException"];
+		if ($is_cli) { print "$fail_str\n"; }
+	}
+	// Delimiters are unchanged on throw, so '{'/'}' remains active here.
+}
 
 //////////////////////////////////////////////////////////////////////////////////////////
 
