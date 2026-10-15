@@ -902,6 +902,10 @@ class sluz {
 					} catch (TypeError $e) {
 						$msg = "TypeError: " . $e->getMessage();
 						return $this->error_out($msg, 58200);
+					} catch (\Error $e) {
+						// Other engine errors (e.g. ValueError) are reported as exceptions
+						$msg = "Exception: " . $e->getMessage();
+						return $this->error_out($msg, 79134);
 					}
 				}
 			}
@@ -1225,12 +1229,18 @@ class sluz {
 		$payload = $this->ltrim_one($payload, "\n"); // Input -> Output \n parity
 		$blocks  = $this->get_blocks($payload);
 
-		// If $src isn't an array we convert it to one so foreach doesn't barf
-		if (isset($src) && !is_array($src)) {
+		// If $src isn't an array we convert it to one so foreach doesn't barf.
+		// Objects are not wrapped: they iterate over their properties instead.
+		if (isset($src) && !is_array($src) && !is_object($src)) {
 			$src = [$src];
 		// This prevents an E_WARNING on null (but doesn't output anything)
 		} elseif (is_null($src)) {
 			$src = [];
+		}
+
+		// Cast objects to arrays so count() and the foreach below work uniformly
+		if (is_object($src)) {
+			$src = (array) $src;
 		}
 
 		// Save the current values so we can restore them later
