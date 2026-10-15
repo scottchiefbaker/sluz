@@ -586,7 +586,7 @@ class sluz {
 		return $ret;
 	}
 
-	// Extract data from an array in the form of $foo.key.baz
+	// Extract data from arrays and objects in the form of $foo.key.baz
 	public function array_dive(string $needle, array $haystack) {
 		// Do a simple hash lookup first before we dive deep (we may get lucky)
 		$x = $haystack[$needle] ?? null;
@@ -604,10 +604,16 @@ class sluz {
 		// Split at the periods
 		$parts = explode(".", $needle);
 
-		// Loop through each level of the hash looking for elem
+		// Loop through each level of the hash/object looking for elem
 		$arr = $haystack;
 		foreach ($parts as $elem) {
-			$arr = $arr[$elem] ?? null;
+			if (is_array($arr)) {
+				$arr = $arr[$elem] ?? null;
+			} elseif (is_object($arr)) {
+				$arr = $arr->$elem ?? null;
+			} else {
+				$arr = null;
+			}
 
 			// If we don't find anything stop looking
 			if ($arr === null) {
@@ -615,9 +621,9 @@ class sluz {
 			}
 		}
 
-		// If we find a scalar it's the end of the line, anything else is just
-		// another branch, so it doesn't count as finding something
-		if (is_scalar($arr) || is_array($arr)) {
+		// If we find a scalar it's the end of the line, arrays and objects may
+		// contain another branch, anything else does not count as finding something.
+		if (is_scalar($arr) || is_array($arr) || is_object($arr)) {
 			$ret = $arr;
 		} else {
 			$ret = null;
@@ -913,6 +919,14 @@ class sluz {
 			$ret = $pre;
 		} else {
 			$ret = $this->array_dive($str, $this->tpl_vars) ?? "";
+		}
+
+		// Objects cannot be rendered as scalar template output. Require explicit
+		// property access (e.g. {$user.name}) or iteration instead.
+		if (is_object($ret)) {
+			list($line, $col, $file) = $this->get_char_location($this->char_pos, $this->tpl_file);
+			$msg = "Cannot output an object directly; access a property or iterate it in <code>$file</code> on line #$line";
+			return $this->error_out($msg, 18933);
 		}
 
 		// Array used as a scalar should silently convert to a string

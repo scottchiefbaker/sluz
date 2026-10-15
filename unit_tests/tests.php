@@ -316,7 +316,10 @@ sluz_test('{foreach $array as $x}{$x}{if $__FOREACH_LAST}LAST{/if}{/foreach}'   
 sluz_test('{foreach $array as $x}{$x}{$__FOREACH_INDEX}{/foreach}'              , 'one0two1three2'         , 'Foreach #21 - Foreach index');
 sluz_test('{foreach $single as $x}{$__FOREACH_FIRST}{$__FOREACH_LAST}{/foreach}', '11'                     , 'Foreach #22 - Single element FIRST/LAST both true');
 sluz_test('{foreach $cust as $k => $v}{$k}:{$v},{/foreach}'                     , 'first:Scott,last:Baker,', 'Foreach #23 - String keys');
-sluz_test('{foreach $obj as $v}{$v}{/foreach}'                                 , '12'                   , 'Foreach #24 - Object source');
+sluz_test('{foreach $obj as $v}{$v}{/foreach}'                                  , '12'                     , 'Foreach #24 - Object source');
+sluz_test('{foreach $obj as $k => $v}{$k}:{$v},{/foreach}'                      , 'a:1,b:2,'               , 'Foreach #25 - Object key/value source');
+sluz_test('{$obj.a}:{$obj.b}'                                                   , '1:2'                    , 'Object #1 - Property lookup');
+sluz_test('{$obj}'                                                              , 'ERROR-18933'            , 'Object #2 - Direct object output rejected');
 
 sluz_test('Scott'           , 'Scott'           , 'Plain text #1 - Static text');
 sluz_test('<div>Scott</div>', '<div>Scott</div>', 'Plain text #2 - HTML');
