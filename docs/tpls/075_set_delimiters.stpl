@@ -1,0 +1,5 @@
+{
+  "name": "<$name>",
+  "age": <$age>,
+  "tags": [<foreach $tags as $tag>"<$tag>"<if !$__FOREACH_LAST>, </if></foreach>]
+}
