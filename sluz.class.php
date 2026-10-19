@@ -47,6 +47,7 @@ class sluz {
 	private $if_simple_pattern = null;
 	private $tokens_pattern    = null;
 	private $newline_pattern   = null;
+	private $empty_if_pattern  = null;
 
 	public function __construct() {
 		$this->var_prefix_str = '$' . $this->var_prefix . '_';
@@ -372,6 +373,13 @@ class sluz {
 			// ends with \n — otherwise the \n is content, not formatting.
 			if ($cur_is_if && (str_contains($str, $this->close_if) || str_contains($str, $this->close_foreach))) {
 				$cur_is_if = boolval(preg_match($this->newline_pattern, $str));
+
+				// An {if} block with an empty payload has no newline of its own,
+				// but its closing tag still sits on a line of its own, so the
+				// newline that follows it is structural and gets swallowed.
+				if (!$cur_is_if && str_starts_with($str, $if_prefix)) {
+					$cur_is_if = boolval(preg_match($this->empty_if_pattern, $str));
+				}
 			}
 
 			if ($prev_is_if) {
@@ -1415,6 +1423,10 @@ class sluz {
 		$this->if_simple_pattern = '/'   . $ldre . 'if (.+?)' . $rdre . '(.+)' . $ldre . '\/if' . $rdre . '/s';
 		$this->tokens_pattern    = '/('  . $ldre . '[^' . $rdre . ']+' . $rdre . ')/';
 		$this->newline_pattern   = '/\n' . $ldre . '\/\w+' . $rdre . '$/s';
+
+		// An {if} block with no content at all, e.g. {if $x}{/if} or
+		// {if $x}{else}{/if}. The tags are adjacent so there is no payload.
+		$this->empty_if_pattern  = '/^' . $ldre . 'if [^' . $rdre . ']*' . $rdre . '(' . $ldre . 'else' . $rdre . '|' . $ldre . 'elseif [^' . $rdre . ']*' . $rdre . ')*' . $ldre . '\/if' . $rdre . '$/s';
 	}
 
 	// Enable/disable auto-escaping of HTML in variable output
