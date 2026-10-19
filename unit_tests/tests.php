@@ -289,6 +289,17 @@ sluz_test('{if $bogus}{elseif $subarr.one.0}Y{/if}'                           , 
 sluz_test('{if 1}YES{/if}'                                                    , 'YES'     , 'If #52 - Numeric literal condition true');
 sluz_test('{if 0}YES{/if}'                                                    , ''        , 'If #53 - Numeric literal condition false');
 
+// Inline {if} blocks: the newline that ends their line is content and
+// must survive. Block-style blocks swallow it (their content already
+// ends with a newline of its own).
+sluz_test("Two:{if \$debug}YES - {\$key}{/if}\nThree: end\n" , "Two:YES - val\nThree: end\n", 'If #54 - Inline if keeps the trailing newline');
+sluz_test("Two:{if \$zero}YES{else}NO{/if}\nThree: end\n"    , "Two:NO\nThree: end\n"       , 'If #55 - Inline if/else keeps the trailing newline');
+sluz_test("A{if \$debug}B{if \$debug}C{/if}D{/if}E\n"        , "ABCDE\n"                    , 'If #56 - Nested inline if keeps the trailing newline');
+sluz_test("{if \$debug}\nYES\n{/if}\nThree: end\n"           , "YES\nThree: end\n"          , 'If #57 - Block style if swallows the trailing newline');
+sluz_test("{if \$zero}\nYES\n{else}\nNO\n{/if}\nThree: end\n", "NO\nThree: end\n"           , 'If #58 - Block style if/else swallows the trailing newline');
+sluz_test("{if \$debug}{/if}\nThree: end\n"                  , "Three: end\n"               , 'If #59 - Empty if payload swallows the trailing newline');
+sluz_test("Two:{if \$debug}YES{/if}"                         , "Two:YES"                    , 'If #60 - Inline if at end of template');
+
 sluz_test('{foreach $array as $num}{$num}{/foreach}'                         , 'onetwothree'            , 'Foreach #1 - Simple');
 sluz_test("{foreach \$array as \$num}\n{\$num}\n{/foreach}"                  , "one\ntwo\nthree\n"      , 'Foreach #2 - Simple with whitespace');
 sluz_test('{foreach $members as $x}{$x.first}{/foreach}'                     , 'ScottJason'             , 'Foreach #3 - Hash');
