@@ -159,8 +159,18 @@ sluz_test('{$bogus_var|default:"a:b"}'            , 'a:b'         , 'Basic #55 -
 sluz_test('{$php_version}'                        , phpversion()  , 'Basic #56 - php_version assigned and asserted');
 sluz_test('{$sluz_version}'                       , $sluz->version, 'Basic #57 - sluz_version assigned and asserted');
 sluz_test('{$empty|count}'                        , '0'           , 'Basic #58 - PHP Modifier array count on empty');
-sluz_test('{$bogus_var|default:}'                 , ''            , 'Basic #59 - Default with empty value');
+sluz_test('{$bogus_var|default:}'                 , 'ERROR-31558' , 'Basic #59 - Default with empty value is invalid');
 sluz_test('{$deep.a.b.x}'                         , ''            , 'Basic #60 - Multi-level dot path missing key');
+
+// Default values must be quoted strings or numeric literals
+sluz_test('{$bogus_var|default:foo}'              , 'ERROR-31558' , 'Default #1 - Unquoted bare word (empty var)');
+sluz_test('{$first|default:foo}'                  , 'ERROR-31558' , 'Default #2 - Unquoted bare word (non-empty var)');
+sluz_test('{$bogus_var|default:foo|strtoupper}'   , 'ERROR-31558' , 'Default #3 - Unquoted bare word chained with modifier');
+sluz_test('{$bogus_var|default:$first}'           , 'ERROR-31558' , 'Default #4 - Variable as default is invalid');
+sluz_test('{$bogus_var|default:0}'                , '0'           , 'Default #6 - Unquoted zero is numeric');
+sluz_test('{$bogus_var|default:-1}'               , '-1'          , 'Default #7 - Negative number');
+sluz_test('{$bogus_var|default:1.5}'              , '1.5'         , 'Default #8 - Float');
+sluz_test('{$bogus_var|default:"say \"hi\""}'     , 'say "hi"'    , 'Default #9 - Escaped quote inside double quotes');
 
 
 // Escape modifier (XSS prevention)
