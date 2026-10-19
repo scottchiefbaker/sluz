@@ -211,6 +211,11 @@ sluz_test('{$word|truncate:"abc"}'                 , 'ERROR-58200', 'Custom func
 sluz_test('{$word|nonexistent_func}'               , 'ERROR-47204', 'Custom function #12 - Unknown modifier function');
 sluz_test('{$word|throws_exception}'               , 'ERROR-79134', 'Custom function #13 - Exception in modifier');
 sluz_test('{$word|throws_value_error}'             , 'ERROR-79134', 'Custom function #14 - ValueError (non-Exception Error) in modifier');
+sluz_test('{$y|join_comma:;}'                      , 'ERROR-31558', 'Custom function #15 - Invalid function param');
+sluz_test('{$y|join_comma:abc}'                    , 'ERROR-31558', 'Custom function #16 - Unquoted word param');
+sluz_test('{$y|join_comma:0}'                      , '20406'      , 'Custom function #17 - Unquoted zero param');
+sluz_test('{$y|join_comma:-1}'                     , '2-14-16'    , 'Custom function #18 - Unquoted negative int param');
+sluz_test('{$y|join_comma:1.5}'                    , '21.541.56'  , 'Custom function #19 - Unquoted float param');
 
 // Bare functions must return a string
 sluz_test('{hello_world()}' , "Hello world", 'Function #1 - Hello world');
