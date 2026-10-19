@@ -893,11 +893,23 @@ class sluz {
 					$param_str = $x[1] ?? "";
 					$params    = [$pre];
 
-					if ($param_str) {
-						// Split a string by commas only when they are not inside quotation marks
-						$new    = preg_split('/,(?=(?:[^"]*"[^"]*")*[^"]*$)/', $param_str);
-						$new    = array_map([$this, 'peval'], $new);
-						$params = array_merge($params, $new);
+					if ($param_str !== "") {
+						// Split on commas, but only those NOT inside double quotes.
+						$new = preg_split('/,(?=(?:[^"]*"[^"]*")*[^"]*$)/', $param_str);
+
+						foreach ($new as $raw_param) {
+							$err   = 0;
+							$value = $this->peval($raw_param, $err);
+
+							// Non-numeric, unquoted params are not valid PHP expressions
+							if ($err) {
+								list($line, $col, $file) = $this->get_char_location($this->char_pos, $this->tpl_file);
+								$msg = "Unquoted function parameter <code>$raw_param</code> in <code>$file</code> on line #$line";
+								return $this->error_out($msg, 31558);
+							}
+
+							$params[] = $value;
+						}
 					}
 
 					//k([$str, $parts, $func, $new, $params]);

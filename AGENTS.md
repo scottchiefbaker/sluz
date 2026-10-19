@@ -75,6 +75,7 @@ $s->in_unit_test = true;                                // suppress error output
 | 18933 | Bad function/expression           |
 | 42280 | Unable to load template file      |
 | 45821 | Unclosed tag                      |
+| 31558 | Unquoted function parameter       |
 | 47204 | Unknown function call in modifier |
 | 50981 | Whitespace next to delimiters     |
 | 58200 | TypeError in modifier call        |
