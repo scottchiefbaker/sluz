@@ -647,7 +647,7 @@ foreach ($delim_cases as $args) {
 	if ($ok) {
 		$pass_count++;
 		$test_output[] = [$dname, 0];
-		if ($is_cli) { print "$lead $pad$ok_str\n"; }
+		if ($is_cli && !$simple) { print "$lead $pad$ok_str\n"; }
 	} else {
 		$fail_count++;
 		$test_output[] = [$dname, "expected InvalidArgumentException"];
