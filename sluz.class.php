@@ -866,7 +866,26 @@ class sluz {
 				$dval        = $p[1] ?? "";
 				$pattern     = '/\|(?![^"]*"(?:(?:[^"]*"){2})*[^"]*$)/';
 				$dparts      = preg_split($pattern, $dval, 2);
-				$default_val = $this->peval($dparts[0] ?? "");
+				$raw_default = trim($dparts[0] ?? "");
+
+				// The default must be a quoted string literal or a numeric literal.
+				// Anything else (bare words, empty, variables, expressions) is invalid.
+				$is_quoted_str = preg_match('/^(["\']).*\1$/s', $raw_default) === 1;
+				$is_numeric    = is_numeric($raw_default);
+
+				if (!$is_quoted_str && !$is_numeric) {
+					list($line, $col, $file) = $this->get_char_location($this->char_pos, $this->tpl_file);
+					$msg = "Unquoted default value <code>$raw_default</code> in <code>$file</code> on line #$line";
+					return $this->error_out($msg, 31558);
+				}
+
+				$err         = 0;
+				$default_val = $this->peval($raw_default, $err);
+				if ($err) {
+					list($line, $col, $file) = $this->get_char_location($this->char_pos, $this->tpl_file);
+					$msg = "Invalid default value <code>$raw_default</code> in <code>$file</code> on line #$line";
+					return $this->error_out($msg, 31558);
+				}
 
 				if ($is_nothing) {
 					$pre = $default_val;

@@ -4,7 +4,8 @@
 // A variable that is: null, empty string, or not assign() can be given      //
 // a default value in the template.                                          //
 //                                                                           //
-// Note: The default value must be a scalar (not a variable)                 //
+// Note: The default value must be a quoted string or a number (not a        //
+// variable or bare word)                                                    //
 ///////////////////////////////////////////////////////////////////////////////
 
 include("../sluz.class.php");
