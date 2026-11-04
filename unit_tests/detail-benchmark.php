@@ -36,8 +36,9 @@ if (!$brief) {
     print "$line\n";
 }
 
-$total_time = 0;
-$results    = [];
+$total_time  = 0;
+$error_count = 0;
+$results     = [];
 
 foreach ($templates as $name => $t) {
     $tpl  = $t['tpl'];
@@ -45,6 +46,13 @@ foreach ($templates as $name => $t) {
 
     if ($filter && !preg_match("/$filter/i", $name) && !preg_match("/$filter/i", $desc)) {
         continue;
+    }
+
+    // Verify the template renders without an error code, so timings measure real output
+    $output = $sluz->parse_string($tpl);
+    if (preg_match('/ERROR-\d+/', $output, $m)) {
+        fwrite(STDERR, "WARNING: '$name' rendered $m[0]: $output\n");
+        $error_count++;
     }
 
     // Warmup
@@ -72,6 +80,9 @@ if ($brief) {
 } else {
     print "$line\n";
     printf("%-30s %8s %10d\n", "TOTAL", "", $total_time);
+    if ($error_count) {
+        print "$error_count scenario(s) rendered errors (see warnings above)\n";
+    }
 }
 
 ################################################################################
@@ -114,11 +125,11 @@ function get_templates() {
         ],
         'modifiers' => [
             'desc' => "Variable modifiers",
-            'tpl'  => '{$name|uc} {$name|lc} {$name|ucfirst} {$name|substr:0,5}',
+            'tpl'  => '{$name|strtoupper} {$name|strtolower} {$name|ucfirst} {$name|substr:0,5}',
         ],
         'modifiers_chained' => [
             'desc' => "Chained modifiers",
-            'tpl'  => '{$name|lc|ucfirst} {$name|uc|substr:0,5}',
+            'tpl'  => '{$name|strtolower|ucfirst} {$name|strtoupper|substr:0,5}',
         ],
         'modifiers_default' => [
             'desc' => "Default modifier",
@@ -170,14 +181,14 @@ function get_templates() {
         ],
         'expression' => [
             'desc' => "Expression/function blocks",
-            'tpl'  => 'Count: {$items|count} Joined: {$items|join:"-"}',
+            'tpl'  => 'Count: {$items|count} Joined: {$items|join_with:"-"}',
         ],
         'mixed' => [
             'desc' => "Mixed template features",
             'tpl'  => '<div class="user-list">' . "\n"
                     . '{* Display each user *}' . "\n"
                     . '{foreach $users as $u}' . "\n"
-                    . '  <div class="user {if $u.role eq "admin"}admin{else}regular{/if}">' . "\n"
+                    . '  <div class="user {if $u.role == "admin"}admin{else}regular{/if}">' . "\n"
                     . '    <span class="name">{$u.name|ucfirst}</span>' . "\n"
                     . '    <span class="age">({$u.age})</span>' . "\n"
                     . '    {if $u.age > 28}' . "\n"
@@ -192,6 +203,10 @@ function get_templates() {
             'tpl'  => '{foreach $big_list as $i}{$i} {/foreach}',
         ],
     ];
+}
+
+function join_with(array $items, string $sep) {
+    return implode($sep, $items);
 }
 
 function millis() {
