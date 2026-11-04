@@ -161,6 +161,13 @@ sluz_test('{$sluz_version}'                       , $sluz->version, 'Basic #57 -
 sluz_test('{$empty|count}'                        , '0'           , 'Basic #58 - PHP Modifier array count on empty');
 sluz_test('{$bogus_var|default:}'                 , 'ERROR-31558' , 'Basic #59 - Default with empty value is invalid');
 sluz_test('{$deep.a.b.x}'                         , ''            , 'Basic #60 - Multi-level dot path missing key');
+sluz_test('0'                                     , '0'           , 'Basic #61 - Standalone zero text block');
+sluz_test('{$first}0{$last}'                      , 'Scott0Baker' , 'Basic #62 - Standalone zero text block between variables');
+sluz_test('0{$first}'                             , '0Scott'      , 'Basic #63 - Leading zero text block before variable');
+sluz_test('{$first}0'                             , 'Scott0'      , 'Basic #64 - Trailing zero text block after variable');
+sluz_test('{if $number}0{/if}'                    , '0'           , 'Basic #65 - Zero text block inside if');
+sluz_test('x0'                                    , 'x0'          , 'Basic #66 - Text ending in zero is kept');
+sluz_test('00'                                    , '00'          , 'Basic #67 - Text of two zeros is kept');
 
 // Default values must be quoted strings or numeric literals
 sluz_test('{$bogus_var|default:foo}'              , 'ERROR-31558' , 'Default #1 - Unquoted bare word (empty var)');
