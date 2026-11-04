@@ -184,7 +184,7 @@ class sluz {
 					$prev_was_comment = false;
 				}
 
-				if ($block) {
+				if ($block !== "") {
 					$blocks[] = [$block, $i];
 				}
 			// If it's a "}" it's a closing block that starts at $start
@@ -309,7 +309,7 @@ class sluz {
 
 				// Record the block's start, not $i (which is the closing delim or next opener),
 				// so error line numbers point at the opening of the block.
-				if ($block) {
+				if ($block !== "") {
 					$blocks[] = [$block, $start];
 				}
 
@@ -345,7 +345,7 @@ class sluz {
 				$prev_was_comment = false;
 			}
 
-			if ($block) {
+			if ($block !== "") {
 				$blocks[] = [$block, $start];
 			}
 		}
@@ -476,7 +476,7 @@ class sluz {
 				$char_pos  = $x[1];
 				$html     .= $this->process_block($block, $char_pos);
 			// It's a static text block so we just append it
-			} elseif ($block) {
+			} elseif ($block !== "") {
 				$html .= $block;
 			}
 		}
@@ -499,6 +499,7 @@ class sluz {
 		}
 
 		$tf = $this->tpl_file = $tpl_file;
+		$str = "";
 
 		// Right now this only works on Linux. May need to updated to work on Windows
 		$is_absolute = is_string($tf) && str_starts_with($tf, '/');
@@ -514,7 +515,7 @@ class sluz {
 			$str = file_get_contents($tf);
 		}
 
-		if (empty($str)) { $str = ""; }
+		if ($str === false) { $str = ""; }
 
 		return $str;
 	}
