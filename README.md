@@ -127,7 +127,7 @@ Sluz requires PHP 8.0+, and is a zero-dependency library. **Only** the
 
 Sluz has an extensive test suite that is used to verify compatibility
 across PHP versions. As of this writing Sluz passes all unit tests on
-PHP versions: 8.0, 8.1, 8.2, 8.3, 8.4, and 8.5.
+all supported PHP versions (8.2+).
 
 To run the tests issue this command at the CLI:
 
