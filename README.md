@@ -61,7 +61,7 @@ $s->set_delimiters('[', ']');
 With the above, all template tags use `[` and `]`:
 
 ```
-[{$name}]
+[$name]
 [if $admin]Hello admin[/if]
 [foreach $items as $item][/foreach]
 [* this is a comment *]
