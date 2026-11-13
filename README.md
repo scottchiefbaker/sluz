@@ -47,7 +47,6 @@ File: `tpls/script.stpl`
 | `{include file='...'}`               | `{include file='header.stpl'}`                   | —                   |
 | `{literal}…{/literal}`               | `{literal}function foo() { {/literal}`           | `function foo() { ` |
 | `{* comment *}`                      | `{* hidden *}`                                   | *(empty)*           |
-| `{function()}`                       | `{count($array)}`                                | `3`                 |
 
 ## 🏷️ Alternate Delimiters
 
@@ -109,8 +108,7 @@ $s->setEscapeHtml(true);
 ```
 
 **Note:** Auto-escaping only applies to `{$var}` variable blocks.
-Expression blocks like `{$x + 3}` and function calls like
-`{count($array)}` are not auto-escaped.
+Expression blocks like `{$x + 3}` are not auto-escaped.
 
 ## 🤵 Composer
 
