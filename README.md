@@ -8,6 +8,19 @@ so Smarty users will feel at home.
 Sluz is a single PHP source file with no dependencies, which keeps it
 small and easy to drop into any project.
 
+## 📐 Requirements
+
+Sluz requires PHP 8.0+, and is a zero-dependency library. **Only** the
+`sluz.class.php` file is needed for the library to function.
+
+## 🤵 Composer
+
+If you are a composer user you can install Sluz with this command:
+
+```text
+composer require sluz/sluz
+```
+
 ## 📦 Getting started
 
 File: `script.php`
@@ -38,11 +51,11 @@ File: `tpls/script.stpl`
 | `{$var\|mod:params}`                 | `{$greet\|substr:0,3}`                           | `Hel`               |
 | `{$var\|mod1\|mod2}`                 | `{$word\|strtolower\|ucfirst}`                   | `Crazy`             |
 | `{$var\|default:"val"}`              | `{$null\|default:"?"}`                           | `?`                 |
-| `{$var\|escape}`                     | `{$name\|escape}`                                | `&lt;script&gt;`   |
+| `{$var\|escape}`                     | `{$name\|escape}`                                | `&lt;script&gt;`    |
 | `{$expr}`                            | `{$number + 3}`                                  | `18`                |
 | `{if}…{elseif}…{else}…{/if}`         | `{if $x}yes{else}no{/if}`                        | `yes`               |
-| `{foreach $a as $v}`                 | `{foreach $items as $x}{$x}{/foreach}`           | `onetwothree`       |
-| `{foreach $a as $k => $v}`           | `{foreach $m as $idx => $z}{$idx}{/foreach}`     | `012`               |
+| `{foreach $array as $v}`             | `{foreach $items as $x}{$x}{/foreach}`           | `onetwothree`       |
+| `{foreach $array as $k => $v}`       | `{foreach $data as $idx => $z}{$idx}{/foreach}`  | `012`               |
 | `$__FOREACH_FIRST/LAST/INDEX`        | `{if $__FOREACH_FIRST}…{/if}`                    | —                   |
 | `{include file='...'}`               | `{include file='header.stpl'}`                   | —                   |
 | `{literal}…{/literal}`               | `{literal}function foo() { {/literal}`           | `function foo() { ` |
@@ -109,19 +122,6 @@ $s->setEscapeHtml(true);
 
 **Note:** Auto-escaping only applies to `{$var}` variable blocks.
 Expression blocks like `{$x + 3}` are not auto-escaped.
-
-## 🤵 Composer
-
-If you are a composer user you can install Sluz with this command:
-
-```text
-composer require sluz/sluz
-```
-
-## 📐 Requirements
-
-Sluz requires PHP 8.0+, and is a zero-dependency library. **Only** the
-`sluz.class.php` file is needed for the library to function.
 
 ## 🥽 Testing
 
