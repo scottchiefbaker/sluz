@@ -1,12 +1,12 @@
 # 📰 Sluz PHP templating system
 
-Sluz is a minimalistic PHP templating engine with an emphasis on
-syntax similar to [Smarty](https://www.smarty.net/). This allows
-you to separate your logic (`.php`) and your presentation (`.stpl`)
-files.
+Sluz is a lightweight PHP templating engine. It lets you keep your
+logic in `.php` files and your presentation in `.stpl` template files.
+The template syntax is similar to [Smarty](https://www.smarty.net/),
+so Smarty users will feel at home.
 
-The goal of Sluz is to be a **small**, single PHP source file, that
-emulates simple Smarty-like syntax.
+Sluz is a single PHP source file with no dependencies, which keeps it
+small and easy to drop into any project.
 
 ## 📦 Getting started
 
@@ -25,7 +25,7 @@ File: `tpls/script.stpl`
 ```
 <h1>Hello {$name}</h1>
 
-<div>Welcome to Sluz version: {$version}</div>
+<div>Welcome to MyScript version: {$version}</div>
 ```
 
 ## 🧩 Template syntax
