@@ -25,6 +25,7 @@ composer require sluz/sluz
 
 File: `script.php`
 ```php
+<?php
 include('/path/to/sluz/sluz.class.php');
 $s = new sluz();
 
