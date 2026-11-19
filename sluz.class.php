@@ -52,6 +52,10 @@ class sluz {
 	private $newline_pattern   = null;
 	private $empty_if_pattern  = null;
 
+	// Syntax-only cache; values are still evaluated on every render.
+	private $block_cache       = [];
+	private $block_cache_limit = 128;
+
 	public function __construct() {
 		$this->var_prefix_str = '$' . $this->var_prefix . '_';
 		$this->rebuild_delim_cache();
@@ -123,6 +127,12 @@ class sluz {
 
 	// Break the text up in to tokens/blocks to process by process_block()
 	public function get_blocks($str) {
+		// Parsing depends only on the template text, not the assigned values.
+		$cache_key = $str;
+		if (isset($this->block_cache[$cache_key])) {
+			return $this->block_cache[$cache_key];
+		}
+
 		$start  = 0;
 		$blocks = [];
 		$slen   = strlen($str);
@@ -391,6 +401,12 @@ class sluz {
 
 			$prev_is_if = $cur_is_if;
 		}
+
+		// Keep repeated renders cheap without allowing the cache to grow forever.
+		if (count($this->block_cache) >= $this->block_cache_limit) {
+			$this->block_cache = [];
+		}
+		$this->block_cache[$cache_key] = $blocks;
 
 		return $blocks;
 	}
@@ -1484,6 +1500,7 @@ class sluz {
 
 		$this->left_delim  = $left;
 		$this->right_delim = $right;
+		$this->block_cache = []; // Parsed block boundaries depend on the delimiters.
 
 		$this->rebuild_delim_cache();
 	}
