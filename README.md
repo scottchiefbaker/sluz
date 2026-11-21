@@ -124,6 +124,26 @@ $s->setEscapeHtml(true);
 **Note:** Auto-escaping only applies to `{$var}` variable blocks.
 Expression blocks like `{$x + 3}` are not auto-escaped.
 
+### 📜 Trusted templates
+
+Sluz treats **template files as trusted code**. Only let people who are
+allowed to run PHP on the server write or edit `.stpl` files.
+
+This is because Sluz evaluates template expressions with `eval()` and
+lets modifiers call any PHP function that is callable. For example:
+
+```
+{getcwd()}                    {* runs PHP code *}
+{$x|shell_exec}               {* any callable function can be used as a modifier *}
+```
+
+Sluz does not sandbox or whitelist functions. Do not load templates from
+user uploads, databases, or other untrusted sources. Template content is
+also not escaped, so a template can output anything it contains.
+
+Treat template files like PHP source files: keep them under version
+control, deploy them with your code, and restrict write access to them.
+
 ## 🥽 Testing
 
 Sluz has an extensive test suite that is used to verify compatibility
