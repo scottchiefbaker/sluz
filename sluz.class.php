@@ -172,8 +172,18 @@ class sluz {
 
 			// Check to see if it's a real {} block
 			if ($is_open) {
-				$prev_c = $str[$i - 1];
-				$next_c = $str[$i + 1];
+				// Bounds-safe neighbors: missing chars outside the string are
+				// treated as empty (not whitespace), so a leading or trailing
+				// delimiter is still parsed as a block.
+				$prev_c = '';
+				if ($i > 0) {
+					$prev_c = $str[$i - 1];
+				}
+
+				$next_c = '';
+				if ($i + 1 < $slen) {
+					$next_c = $str[$i + 1];
+				}
 
 				// If the { is surrounded by whitespace it's not a block.
 				if (ctype_space($prev_c) && ctype_space($next_c)) {
