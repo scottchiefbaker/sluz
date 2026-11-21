@@ -93,7 +93,7 @@ class sluz {
 		} elseif (str_starts_with($str, $this->if_space_tag) && str_ends_with($str, $this->close_if)) {
 			$ret = $this->if_block($str);
 		// Foreach {foreach $foo as $x}{/foreach}
-		} elseif (str_starts_with($str, $this->foreach_tag . ' ') && preg_match($this->foreach_pattern, $str, $m)) {
+		} elseif (str_starts_with($str, $this->foreach_tag) && preg_match($this->foreach_pattern, $str, $m)) {
 			$ret = $this->foreach_block($m);
 		// Include {include file='my.stpl' number='99'}
 		} elseif (str_starts_with($str, $ld . 'include ')) {
@@ -1478,7 +1478,7 @@ class sluz {
 		$this->comment_close = '*' . $rd;
 
 		$this->var_pattern       = '/^'  . $ldre . '\$(\w[\w.]*(?:\|.*)?)' . $rdre . '$/';
-		$this->foreach_pattern   = '/^'  . $ldre . 'foreach (\$\w[\w.]*) as \$(\w+)( => \$(\w+))?' . $rdre . '(.+)' . $ldre . '\/foreach' . $rdre . '$/s';
+		$this->foreach_pattern   = '/^'  . $ldre . 'foreach\s+(\$\w[\w.]*)\s+as\s+\$(\w+)(\s*=>\s*\$(\w+))?\s*' . $rdre . '(.+)' . $ldre . '\/foreach' . $rdre . '$/s';
 		$this->literal_pattern   = '/^'  . $ldre . 'literal' . $rdre . '(.+)' . $ldre . '\/literal' . $rdre . '$/s';
 		$this->catchall_pattern  = '/^'  . $ldre . '(.+)' . $rdre . '$/s';
 		$this->if_simple_pattern = '/'   . $ldre . 'if (.+?)' . $rdre . '(.+)' . $ldre . '\/if' . $rdre . '/s';

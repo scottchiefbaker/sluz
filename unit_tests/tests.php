@@ -354,6 +354,12 @@ sluz_test('{foreach $single as $x}{$__FOREACH_FIRST}{$__FOREACH_LAST}{/foreach}'
 sluz_test('{foreach $cust as $k => $v}{$k}:{$v},{/foreach}'                     , 'first:Scott,last:Baker,', 'Foreach #23 - String keys');
 sluz_test('{foreach $obj as $v}{$v}{/foreach}'                                  , '12'                     , 'Foreach #24 - Object source');
 sluz_test('{foreach $obj as $k => $v}{$k}:{$v},{/foreach}'                      , 'a:1,b:2,'               , 'Foreach #25 - Object key/value source');
+sluz_test('{foreach $cust as $k=>$v}{$k}:{$v},{/foreach}'                       , 'first:Scott,last:Baker,', 'Foreach #26 - No spaces around =>');
+sluz_test('{foreach  $array  as  $num}{$num}{/foreach}'                         , 'onetwothree'            , 'Foreach #27 - Multiple spaces');
+sluz_test('{foreach $cust  as  $k  =>  $v}{$k}:{$v},{/foreach}'                 , 'first:Scott,last:Baker,', 'Foreach #28 - Multiple spaces around =>');
+sluz_test("{foreach\n\$array\nas\n\$num}{\$num}{/foreach}"                      , 'onetwothree'            , 'Foreach #29 - Newlines between parts');
+sluz_test("{foreach\t\$array\tas\t\$num}{\$num}{/foreach}"                      , 'onetwothree'            , 'Foreach #30 - Tabs between parts');
+sluz_test('{foreach $array as $num }{$num}{/foreach}'                           , 'onetwothree'            , 'Foreach #31 - Trailing space before close');
 sluz_test('{$obj.a}:{$obj.b}'                                                   , '1:2'                    , 'Object #1 - Property lookup');
 sluz_test('{$obj}'                                                              , 'ERROR-18933'            , 'Object #2 - Direct object output rejected');
 
