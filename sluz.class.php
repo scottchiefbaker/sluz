@@ -626,17 +626,15 @@ class sluz {
 
 	// Extract data from arrays and objects in the form of $foo.key.baz
 	public function array_dive(string $needle, array $haystack) {
-		// Do a simple hash lookup first before we dive deep (we may get lucky)
-		$x = $haystack[$needle] ?? null;
-		if ($x) {
-			return $x;
+		// A flat key matching the whole name (e.g. "a.b") always wins when it
+		// exists, regardless of its value. Otherwise fall through to nested lookup.
+		if (array_key_exists($needle, $haystack)) {
+			return $haystack[$needle];
 		}
 
 		// Fast path: no dots means the direct lookup above was the only option.
-		// Return whatever it found (even falsy values like 0, "", false) without
-		// the overhead of explode() + loop.
 		if (!str_contains($needle, '.')) {
-			return $haystack[$needle] ?? null;
+			return null;
 		}
 
 		// Split at the periods

@@ -105,6 +105,28 @@ sluz_test('{$bogus_var}'                             , ''           , 'Basic #3 
 sluz_test('{$animal|strtoupper}'                     , 'KITTEN'     , 'Basic #4 - PHP Modifier');
 sluz_test('{$cust.first}'                            , 'Scott'      , 'Basic #5 - Hash Lookup');
 sluz_test('{$array.1}'                               , 'two'        , 'Basic #6 - Array Lookup');
+
+// Dot-notation precedence: a flat key matching the whole name wins when it exists
+$dot_cases = [
+	[['a.b' => 0]     , '0'     , 'Dot #1 - Flat falsy 0 beats nested']     ,
+	[['a.b' => '']    , ''      , 'Dot #2 - Flat empty string beats nested'],
+	[['a.b' => false] , ''      , 'Dot #3 - Flat false beats nested']       ,
+	[['a.b' => null]  , ''      , 'Dot #4 - Flat null beats nested']        ,
+	[['a.b' => 'flat'], 'flat'  , 'Dot #5 - Flat truthy beats nested']      ,
+	[[]               , 'nested', 'Dot #6 - No flat key uses nested']       ,
+];
+
+foreach ($dot_cases as [$vars, $expected, $name]) {
+	$dot_sluz = new sluz;
+	$dot_sluz->in_unit_test = true;
+	$dot_sluz->assign($vars + ['a' => ['b' => 'nested']]);
+	$sluz_saved = $sluz;
+	$sluz       = $dot_sluz;
+
+	sluz_test('{$a.b}', $expected, $name);
+	$sluz = $sluz_saved;
+}
+
 sluz_test('{$array|count}'                           , '3'          , 'Basic #7 - PHP Modifier array');
 sluz_test('{$number + 3}'                            , '18'         , 'Basic #8 - Addition');
 sluz_test('{$number * $debug}'                       , '15'         , 'Basic #9 - Multiplication of two vars');
