@@ -1457,6 +1457,25 @@ class sluz {
 		return $str;
 	}
 
+	// Convert an object to an array of its PUBLIC properties only.
+	// A raw (array) cast exposes private ("\0Class\0prop") and protected
+	// ("\0*\0prop") values with NUL-mangled keys, which a template could
+	// then iterate and print. Both visibility markers contain a NUL byte,
+	// which cannot appear in a normal property name, so any key holding
+	// one is dropped. This is visibility-correct for every class, so it
+	// also holds when a sluz instance itself is iterated.
+	private function object_to_array_public($obj) {
+		$ret = [];
+
+		foreach ((array) $obj as $k => $v) {
+			if (!str_contains((string) $k, "\0")) {
+				$ret[$k] = $v;
+			}
+		}
+
+		return $ret;
+	}
+
 	// Parse a foreach block
 	private function foreach_block($m) {
 		// Resolve simple and dotted sources directly instead of using peval().
@@ -1468,7 +1487,7 @@ class sluz {
 		$blocks  = $this->get_blocks($payload);
 
 		// If $src isn't an array we convert it to one so foreach doesn't barf.
-		// Objects are not wrapped: they iterate over their properties instead.
+		// Objects are not wrapped: they iterate over their public properties.
 		if (isset($src) && !is_array($src) && !is_object($src)) {
 			$src = [$src];
 		// This prevents an E_WARNING on null (but doesn't output anything)
@@ -1476,9 +1495,10 @@ class sluz {
 			$src = [];
 		}
 
-		// Cast objects to arrays so count() and the foreach below work uniformly
+		// Convert objects to an array of public properties so count() and
+		// the foreach below work uniformly without exposing internals
 		if (is_object($src)) {
-			$src = (array) $src;
+			$src = $this->object_to_array_public($src);
 		}
 
 		// Save the current values so we can restore them later

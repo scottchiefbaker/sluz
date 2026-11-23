@@ -482,8 +482,23 @@ sluz_test('{foreach $cust  as  $k  =>  $v}{$k}:{$v},{/foreach}'                 
 sluz_test("{foreach\n\$array\nas\n\$num}{\$num}{/foreach}"                      , 'onetwothree'            , 'Foreach #29 - Newlines between parts');
 sluz_test("{foreach\t\$array\tas\t\$num}{\$num}{/foreach}"                      , 'onetwothree'            , 'Foreach #30 - Tabs between parts');
 sluz_test('{foreach $array as $num }{$num}{/foreach}'                           , 'onetwothree'            , 'Foreach #31 - Trailing space before close');
-sluz_test('{$obj.a}:{$obj.b}'                                                   , '1:2'                    , 'Object #1 - Property lookup');
-sluz_test('{$obj}'                                                              , 'ERROR-18933'            , 'Object #2 - Direct object output rejected');
+
+// {foreach} over an object only ever sees PUBLIC properties (item 41).
+// A raw (array) cast used to expose private/protected values with
+// NUL-mangled keys; the conversion now drops those entries.
+$objviz = new sluz();
+$objviz->in_unit_test = true;
+$objviz->assign('wallet', new sluz_test_wallet());
+$objviz->assign('fly'   , (object)['live' => 'x', 'dyn' => 'y']);
+
+sluz_test('{foreach $wallet as $k => $v}{$k}={$v};{/foreach}'                 , 'name=public;visible=ok;', 'Foreach #32 - Object exposes only public properties'     , $objviz);
+sluz_test('{foreach $wallet as $v}[{$v}]{/foreach}'                           , '[public][ok]'           , 'Foreach #33 - Private/protected values never iterate'    , $objviz);
+sluz_test('{foreach $wallet as $v}{$v}{if $__FOREACH_LAST}LAST{/if}{/foreach}', 'publicokLAST'           , 'Foreach #34 - FOREACH_LAST counts public properties only', $objviz);
+sluz_test('{foreach $fly as $k => $v}{$k}{$v}{/foreach}'                      , 'livexdyny'              , 'Foreach #35 - stdClass public props still iterate'       , $objviz);
+sluz_test('{$wallet.name}:{$wallet.pin}'                                      , 'public:'                , 'Foreach #36 - Dot lookup ignores private property'       , $objviz);
+
+sluz_test('{$obj.a}:{$obj.b}', '1:2'        , 'Object #1 - Property lookup');
+sluz_test('{$obj}'           , 'ERROR-18933', 'Object #2 - Direct object output rejected');
 
 sluz_test('Scott'           , 'Scott'           , 'Plain text #1 - Static text');
 sluz_test('<div>Scott</div>', '<div>Scott</div>', 'Plain text #2 - HTML');
@@ -1197,6 +1212,15 @@ function sluz_output_test($str, $pattern, $test_name) {
 
 	php_diag_apply($out);
 	print $out;
+}
+
+// Fixture for the {foreach} object-visibility tests (Foreach #32-#34):
+// private and protected members must never reach template iteration.
+class sluz_test_wallet {
+	public    $name    = 'public';
+	private   $pin     = '4321';
+	protected $balance = '999999';
+	public    $visible = 'ok';
 }
 
 // This is just to test user functions/modifiers
