@@ -55,6 +55,8 @@ $s->parse('tpls/file.stpl');                            // alias for fetch()
 $s->parent_tpl('tpls/parent.stpl');                     // get/set parent template
 $s->set_delimiters('[', ']');                           // custom delimiters (default { / })
 $s->setEscapeHtml(true);                                // auto-escape all {$var} output
+$s->setSafeMode(true);                                  // never eval(), never call modifiers (placeholder: 'safe mode enabled')
+$s->setTemplateRoot('/path/to/tpls');                   // {include} base dir + security fence (both modes)
 $s->debug = 1;                                          // verbose debug output
 $s->in_unit_test = true;                                // suppress error output during testing
 // Global helper functions usable in templates:
@@ -84,11 +86,14 @@ $s->in_unit_test = true;                                // suppress error output
 | 79134 | Exception in modifier call        |
 | 65491 | Unknown escape type in `escape`   |
 | 78135 | No inline template found          |
+| 52893 | Include path not allowed          |
+| 52894 | Circular include                  |
 
 ## Gotchas
 
 - **No PHP diagnostics.** On every supported PHP version (≥8.0), the library must not trigger any PHP-originated diagnostic (`E_NOTICE`, `E_WARNING`, `E_DEPRECATED`, etc.) under `error_reporting(E_ALL)`. All errors must be captured and handled by the library, and reported through its own numbered error codes where appropriate. The unit tests fail any test during which PHP raises such a diagnostic.
 - `foreach` loop vars do NOT persist after the loop block (tested explicitly).
 - `$__FOREACH_FIRST`/`$__FOREACH_LAST`/`$__FOREACH_INDEX` are reserved variable names inside `{foreach}`.
+- **Safe mode** (`setSafeMode(true)`): nothing is `eval()`'d and no modifier runs — both become the literal string `safe mode enabled`. Complex `{if}` conditions fail closed (the branch is skipped; `{else}` still renders). `{include}` must resolve inside the include root (`setTemplateRoot()` pins it and resolves relative names against it, Smarty-style; otherwise resolution is CWD or the simple-mode script dir); absolute, `..`, null-byte, and symlink-escape paths are rejected (52893) before the file is read. Circular includes are rejected in BOTH modes (52894). `|escape`/`|raw` are blocked in safe mode — use `setEscapeHtml(true)`.
 - `.gitattributes` controls Packagist archive — see the file for excluded paths.
 - `.gitignore` excludes scratch files `x.php`, `tpls/x.stpl`, `tpls/child.stpl`, `tpls/parent.stpl`.

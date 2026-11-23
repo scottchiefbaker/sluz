@@ -238,6 +238,87 @@ sluz_auto_escape_test('{$array}'                          , 'Array'             
 sluz_auto_escape_test('{$empty_string|default:"<b>x</b>"}', '&lt;b&gt;x&lt;/b&gt;'                   , 'Auto Escape #10 - Default value is escaped');
 sluz_auto_escape_test('{$bogus_var|default:"<b>...</b>"}' , '&lt;b&gt;...&lt;/b&gt;'                 , 'Auto Escape #11 - Default escapes even when var empty');
 
+// Safe mode tests (separate sluz instance with setSafeMode enabled).
+// Nothing is ever eval()'d and no modifier function is ever called — both
+// become the literal placeholder 'safe mode enabled'. Complex {if}/{elseif}
+// conditions the fast path can't handle fail closed (branch skipped).
+$sm = new sluz();
+$sm->in_unit_test = true;
+$sm->setSafeMode(true);
+$sm->assign('first'   , 'Scott');
+$sm->assign('cust'    , ['name' => ['first' => 'Scott']]);
+$sm->assign('items'   , ['a', 'b', 'c']);
+$sm->assign('count'   , 5);
+$sm->assign('flag_a'  , 1);
+$sm->assign('flag_b'  , 1);
+$sm->assign('cmd'     , 'echo hi');
+$sm->assign('tpl_path', 'tpls/extra.stpl');
+
+// Plain variables, dot-notation, foreach, and literal never touch eval()
+sluz_test('{$first}'                                    , 'Scott'             , 'Safe Mode #1 - Plain variable still renders', $sm);
+sluz_test('{$cust.name.first}'                          , 'Scott'             , 'Safe Mode #2 - Dotted variable still renders', $sm);
+sluz_test('{foreach $items as $item}-{$item}{/foreach}' , '-a-b-c'            , 'Safe Mode #3 - foreach still renders', $sm);
+sluz_test('{literal}{$x}{/literal}'                     , '{$x}'              , 'Safe Mode #4 - literal passes through', $sm);
+
+// Simple {if} conditions are handled by the fast path (no eval) and still work
+sluz_test('{if $first}YES{/if}'                         , 'YES'               , 'Safe Mode #5 - Simple truthy condition', $sm);
+sluz_test('{if $count == 5}FIVE{/if}'                   , 'FIVE'              , 'Safe Mode #6 - Simple comparison', $sm);
+sluz_test('{if $count == 4}A{else}B{/if}'               , 'B'                 , 'Safe Mode #7 - Simple comparison falls to else', $sm);
+
+// Complex conditions fail CLOSED — the branch is skipped, never eval()'d,
+// even though both flags are truthy
+sluz_test('{if $flag_a && $flag_b}NEVER{/if}'           , ''                  , 'Safe Mode #8 - Complex condition fails closed', $sm);
+sluz_test('{if $flag_a && $flag_b}NEVER{else}FB{/if}'   , 'FB'                , 'Safe Mode #9 - Complex condition falls to else', $sm);
+sluz_test('{if $flag_a && $flag_b}N{elseif $count == 5}E{else}L{/if}', 'E'    , 'Safe Mode #10 - Falls through to evaluable elseif', $sm);
+
+// ALL modifiers are blocked — no function is ever invoked
+sluz_test('{$first|strtoupper}'                         , 'safe mode enabled' , 'Safe Mode #11 - Modifier blocked', $sm);
+sluz_test('{$bogus_var|default:"fallback"}'             , 'safe mode enabled' , 'Safe Mode #12 - default is blocked too', $sm);
+sluz_test('{$first|strtoupper|escape}'                 , 'safe mode enabled' , 'Safe Mode #13 - Chained modifiers blocked', $sm);
+sluz_test('{$cmd|shell_exec}'                           , 'safe mode enabled' , 'Safe Mode #14 - shell_exec never runs', $sm);
+
+// Expression blocks never eval()
+sluz_test('{$count + 3}'                                , 'safe mode enabled' , 'Safe Mode #15 - Arithmetic expression blocked', $sm);
+sluz_test('{3 + 4}'                                     , 'safe mode enabled' , 'Safe Mode #16 - Literal arithmetic blocked', $sm);
+sluz_test('{"a" . "b"}'                                 , 'safe mode enabled' , 'Safe Mode #17 - String concatenation blocked', $sm);
+
+// Code execution attempts become the placeholder, nothing runs
+sluz_test('{getcwd()}'                                  , 'safe mode enabled' , 'Safe Mode #18 - Function call blocked', $sm);
+sluz_test('{system("id")}'                              , 'safe mode enabled' , 'Safe Mode #19 - system() blocked', $sm);
+
+// Literal includes still load; variable include paths fail (documented quirk)
+sluz_test("{include file='tpls/extra.stpl'}"             , '/e1ab49cf/'        , 'Safe Mode #20 - Literal include still loads', $sm);
+sluz_test("{include file='tpls/extra.stpl' secret='sm1'}", '/sm1/'             , 'Safe Mode #21 - Include with literal extra var', $sm);
+sluz_test('{include file="$tpl_path"}'                   , 'ERROR-18485'       , 'Safe Mode #22 - Variable include path fails (documented quirk)', $sm);
+
+// Safe mode + auto-escape: plain vars still escape, |escape is blocked
+$sm_esc = new sluz();
+$sm_esc->in_unit_test = true;
+$sm_esc->setSafeMode(true);
+$sm_esc->setEscapeHtml(true);
+$sm_esc->assign('user_input', '<script>alert(1)</script>');
+
+sluz_test('{$user_input}'                                , '&lt;script&gt;alert(1)&lt;/script&gt;', 'Safe Mode #23 - Auto-escape still applies to plain vars', $sm_esc);
+sluz_test('{$user_input|escape}'                        , 'safe mode enabled' , 'Safe Mode #24 - |escape blocked, placeholder not escaped', $sm_esc);
+
+// {include} in safe mode: paths must resolve inside the root (CWD here).
+// Absolute, traversal, and Windows-drive names are rejected outright —
+// before the file is ever read.
+sluz_test('{include file="/etc/hostname"}'           , 'ERROR-52893'      , 'Safe Mode #25 - Absolute include path rejected', $sm);
+sluz_test('{include file="../../../../etc/passwd"}'  , 'ERROR-52893'      , 'Safe Mode #26 - Traversal rejected', $sm);
+sluz_test('{include file="..\..\etc\passwd"}'         , 'ERROR-52893'      , 'Safe Mode #27 - Backslash traversal rejected', $sm);
+sluz_test("{include file='C:\\boot.ini'}"             , 'ERROR-52893'      , 'Safe Mode #28 - Windows drive path rejected', $sm);
+sluz_test("{include file='tpls/extra.stpl\0'}"        , 'ERROR-52893'      , 'Safe Mode #29 - Null byte rejected with no PHP diagnostic', $sm);
+sluz_test("{include file='tpls/loop.stpl'}"           , 'LOOP-ERROR-52894' , 'Safe Mode #30 - Circular include rejected', $sm);
+
+// Symlink escape: a clean name inside the root pointing outside is caught
+// by realpath containment. Skipped silently where symlinks can't be made.
+$sm_link = 'tpls/symtest.stpl';
+if (@symlink(dirname(__FILE__) . '/../sluz.class.php', $sm_link)) {
+	sluz_test("{include file='$sm_link'}", 'ERROR-52893', 'Safe Mode #31 - Symlink escape rejected', $sm);
+	@unlink($sm_link);
+}
+
 // User defined functions
 sluz_test('{$word|truncate:3}'                     , 'cRa'        , 'Custom function #1 - Modifier with param');
 sluz_test('{$last|truncate:4|truncate:2}'          , 'Ba'         , 'Custom function #2 - Two modifiers with params');
@@ -443,6 +524,50 @@ sluz_test('{include file="$tpl_path"}'                       , '/e1ab49cf/' , 'I
 $sluz->assign('secret', 'OUTER');
 sluz_test("{include file='tpls/extra.stpl' secret='INNER'}{\$secret}", '/(?s)INNER.*OUTER\'/', 'Include #8 - Var set inside include does not leak to outer scope');
 $sluz->assign('secret', '');
+
+// Include path safety: null bytes crash PHP filesystem functions, so they
+// are rejected in every mode; circular includes are a crash, not a policy.
+sluz_test("{include file='tpls/extra.stpl\0'}", 'ERROR-52893', 'Include #9 - Null byte in filename rejected in default mode');
+sluz_test("{include file='tpls/loop.stpl'}"    , 'LOOP-ERROR-52894', 'Include #10 - Circular include rejected in default mode');
+
+// setTemplateRoot(): when set, the root is a Smarty-style base dir —
+// relative names resolve against it — AND a fence: nothing outside it
+// can be read. Enforced in BOTH modes (calling it is opt-in).
+$rooted = new sluz();
+$rooted->in_unit_test = true;
+$rooted->setTemplateRoot('tpls');
+
+sluz_test("{include file='extra.stpl'}"     , '/e1ab49cf/' , 'Include Root #1 - Relative name resolves against the root', $rooted);
+sluz_test("{include file='tpls/extra.stpl'}", 'ERROR-18485', 'Include Root #2 - CWD-relative names no longer apply with a root set', $rooted);
+sluz_test("{include file='../tests.php'}"   , 'ERROR-52893', 'Include Root #3 - Traversal out of the root rejected', $rooted);
+sluz_test("{include file='/etc/hostname'}"  , 'ERROR-52893', 'Include Root #4 - Absolute path rejected with a root set', $rooted);
+
+// setTemplateRoot() must reject invalid arguments (throws, not error_out)
+$root_cases = ['/nonexistent/dir/xyz', 'tests.php', ''];
+$root_idx = 4; // Include Root #4 was the last named test above
+foreach ($root_cases as $bad_root) {
+	$root_idx++;
+	$rname = "Include Root #$root_idx - setTemplateRoot rejects " . var_export($bad_root, true);
+	if (!empty($filter) && !preg_match("/$filter/i", $rname)) { continue; }
+	try {
+		$rooted->setTemplateRoot($bad_root);
+		$ok = false;
+	} catch (\InvalidArgumentException $e) {
+		$ok = true;
+	}
+	$lead = "Test '$rname' ";
+	$pad  = str_repeat(" ", 80 - (strlen($lead)));
+	if ($ok) {
+		$pass_count++;
+		$test_output[] = [$rname, 0];
+		if ($is_cli && !$simple) { print "$lead $pad$ok_str\n"; }
+	} else {
+		$fail_count++;
+		$test_output[] = [$rname, "expected InvalidArgumentException"];
+		if ($is_cli) { print "$lead $pad$fail_str\n"; }
+	}
+	// The root is unchanged on throw, so unit_tests/tpls remains active here.
+}
 
 sluz_test(['{$a}{$b}{$c}']                                                     , 3, 'Get blocks #1 - Basic variables');
 sluz_test(['{if $a}{$a}{/if}']                                                 , 1, 'Get blocks #2 - Basic variables');
@@ -851,7 +976,7 @@ function sluz_fetch_test($files, $pattern, $test_name) {
 	print $out;
 }
 
-function sluz_test($input, $expected, $test_name) {
+function sluz_test($input, $expected, $test_name, $sluz_obj = null) {
 	global $sluz;
 	global $pass_count;
 	global $fail_count;
@@ -864,13 +989,17 @@ function sluz_test($input, $expected, $test_name) {
 
 	if (!empty($filter) && !preg_match("/$filter/i", $test_name)) { return; }
 
+	// When a sluz instance is passed as the 4th arg (e.g. the safe-mode
+	// tests), render through it instead of the shared global instance.
+	$render = $sluz_obj ?: $sluz;
+
 	global $php_diags;
 	$php_diags = [];
 	if (is_array($input)) {
-		$res  = $sluz->get_blocks($input[0]);
+		$res  = $render->get_blocks($input[0]);
 		$html = count($res);
 	} else {
-		$html = $sluz->parse_string($input);
+		$html = $render->parse_string($input);
 	}
 
 	$lead = "Test '$test_name' ";

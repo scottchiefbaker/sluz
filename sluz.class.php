@@ -8,6 +8,9 @@
 define('SLUZ_INLINE', '__INLINE_TEMPLATE__'); // Just a specific string
 
 class sluz {
+	// Output substituted when safe mode blocks something
+	private const SAFE_MODE_PLACEHOLDER = 'safe mode enabled';
+
 	public $version       = '0.9.9';
 	public $tpl_file      = null;         // The path to the TPL file
 	public $inc_tpl_file  = null;         // The path to the {include} file
@@ -26,6 +29,9 @@ class sluz {
 	private $inline_str     = null;       // Cached text after __halt_compiler() (null if none)
 	private $char_pos       = -1;         // Character offset in the TPL
 	private $escape_html    = false;      // Auto-escape HTML in variable output
+	private $safe_mode      = false;      // Safe mode: never eval(), never call modifiers
+	private $template_root  = null;       // Optional include root (realpath'd) — enforced when set
+	private $include_stack  = [];         // Active {include} chain — circular-include detection
 	private $left_delim     = '{';        // Left/opening delimiter
 	private $right_delim    = '}';        // Right/closing delimiter
 
@@ -846,6 +852,11 @@ class sluz {
 			return $x;
 		}
 
+		// Safe mode: nothing is ever eval()'d.
+		if ($this->safe_mode) {
+			return self::SAFE_MODE_PLACEHOLDER;
+		}
+
 		extract($this->tpl_vars, EXTR_PREFIX_ALL, $this->var_prefix);
 
 		$ret = '';
@@ -880,6 +891,11 @@ class sluz {
 		// If it has a '|' it's either a function call or 'default'
 		$ppos = strpos($str, '|');
 		if ($ppos !== false) {
+			// Safe mode: ALL modifiers are blocked ('default', 'escape', 'raw', etc)
+			if ($this->safe_mode) {
+				return self::SAFE_MODE_PLACEHOLDER;
+			}
+
 			$key = substr($str, 0, $ppos);
 			$mod = substr($str, $ppos + 1);
 
@@ -1143,6 +1159,9 @@ class sluz {
 			$fast = $this->try_fast_condition($cond);
 			if ($fast !== null) {
 				$pass = $fast;
+			} elseif ($this->safe_mode) {
+				// Safe mode: conditions the fast path can't handle fail closed
+				$pass = false;
 			} else {
 				$err  = 0;
 				$pass = $this->peval($this->convert_variables_in_string($cond), $err);
@@ -1211,6 +1230,9 @@ class sluz {
 						$fast = $this->try_fast_condition((string) $cur_cond);
 						if ($fast !== null) {
 							$passed = $fast;
+						} elseif ($this->safe_mode) {
+							// Safe mode: fail closed — skip this branch.
+							$passed = false;
 						} else {
 							$err    = 0;
 							$passed = (bool) $this->peval($this->convert_variables_in_string((string) $cur_cond), $err);
@@ -1240,6 +1262,70 @@ class sluz {
 		return "";
 	}
 
+	// The effective include root for containment checks: an explicit
+	// setTemplateRoot() always wins; otherwise safe mode falls back to the
+	// base that include paths already resolve against (the calling PHP
+	// script's dir in simple mode, CWD otherwise). Null means no containment.
+	private function include_root_realpath() {
+		if ($this->template_root !== null) {
+			return $this->template_root;
+		}
+
+		if (!$this->safe_mode) {
+			return null;
+		}
+
+		$base = $this->php_file_dir ?: getcwd();
+
+		if ($base === false) {
+			return null;
+		}
+
+		return realpath($base);
+	}
+
+	// Validate a template-supplied include name. $raw_name is the filename
+	// as written in the template (before any base-dir prefix); $real is the
+	// pre-computed realpath() of the fully resolved path (false when the
+	// file doesn't exist yet). Returns true when allowed, or an error code.
+	private function include_path_check(string $raw_name, $real) {
+		// Null bytes make PHP filesystem functions throw a ValueError;
+		// reject them in every mode (the no-PHP-diagnostics rule).
+		if (str_contains($raw_name, "\0")) {
+			return 52893;
+		}
+
+		// Containment applies in safe mode, or whenever an explicit
+		// template root has been set via setTemplateRoot().
+		$root = $this->include_root_realpath();
+		if ($root === null) {
+			return true;
+		}
+
+		// Cheap syntactic early-outs on the template-supplied name. They
+		// also cover nonexistent paths, so {include file='/etc/bogus'}
+		// reports "not allowed" rather than "unable to load".
+		$norm = str_replace('\\', '/', $raw_name);
+
+		// Absolute: leading '/' (also UNC '//server/...'), or a 'C:' drive.
+		if (str_starts_with($norm, '/') || preg_match('/^[A-Za-z]:/', $norm)) {
+			return 52893;
+		}
+
+		// Any '..' segment is traversal, even one that stays inside the root.
+		if (in_array('..', explode('/', $norm), true)) {
+			return 52893;
+		}
+
+		// realpath containment — the backstop that catches symlink escapes:
+		// a link stored inside the root but pointing outside is rejected here.
+		if ($real !== false && $real !== $root && !str_starts_with($real, $root . DIRECTORY_SEPARATOR)) {
+			return 52893;
+		}
+
+		return true;
+	}
+
 	// Parse an include block
 	private function include_block($str) {
 		// Include blocks may modify tpl vars, so we save them here
@@ -1254,8 +1340,49 @@ class sluz {
 			return $inc_tpl;
 		}
 
-		if ($this->php_file_dir) {
+		// The filename as written in the template, before any base-dir
+		// prefix. Syntactic rules apply to the ask; containment to the
+		// resolution (the prefix would otherwise make every simple-mode
+		// include look "absolute").
+		$raw_name = $inc_tpl;
+
+		// An explicit setTemplateRoot() is a Smarty-style base directory:
+		// relative names resolve against it (and must stay inside it).
+		// Without one, resolution is unchanged — the calling script's dir
+		// in simple mode, CWD otherwise.
+		$is_abs = preg_match('~^(?:/|[A-Za-z]:)~', str_replace('\\', '/', $raw_name));
+
+		if ($this->template_root !== null && !$is_abs) {
+			$inc_tpl = $this->template_root . "/$inc_tpl";
+		} elseif ($this->php_file_dir) {
 			$inc_tpl = $this->php_file_dir . "/$inc_tpl";
+		}
+
+		// Null bytes crash realpath() and the filesystem functions with a
+		// ValueError, so they must never be passed through. When present,
+		// skip the realpath entirely; include_path_check() rejects the
+		// name with 52893 right after.
+		$real = false;
+		if (!str_contains($inc_tpl, "\0")) {
+			$real = realpath($inc_tpl);
+		}
+
+		// A template that includes itself (directly or via a cycle) would
+		// recurse forever. Reject exact repeats on the active chain — in
+		// BOTH modes, because this is a crash rather than a policy choice.
+		if ($real !== false && in_array($real, $this->include_stack, true)) {
+			$this->inc_tpl_file = null;
+			list($line, $col, $file) = $this->get_char_location($this->char_pos, $this->tpl_file);
+			return $this->error_out("Circular include <code>$inc_tpl</code> in <code>$file</code> on line #$line", 52894);
+		}
+
+		// In safe mode (or with an explicit template root set via
+		// setTemplateRoot()) the include must resolve inside the root.
+		$check = $this->include_path_check($raw_name, $real);
+		if ($check !== true) {
+			$this->inc_tpl_file = null;
+			list($line, $col, $file) = $this->get_char_location($this->char_pos, $this->tpl_file);
+			return $this->error_out("Include path not allowed <code>$inc_tpl</code> in <code>$file</code> on line #$line", $check);
 		}
 
 		// Extra variables to include sub templates
@@ -1282,7 +1409,12 @@ class sluz {
 
 		$str    = file_get_contents($inc_tpl);
 		$blocks = $this->get_blocks($str);
+
+		// Track the active include chain so the cycle check above can
+		// reject repeats further down the chain.
+		$this->include_stack[] = $real;
 		$ret    = $this->process_blocks($blocks);
+		array_pop($this->include_stack);
 
 		// Restore the TPL vars to pre 'include' state
 		$this->tpl_vars     = $save;
@@ -1491,6 +1623,38 @@ class sluz {
 	// Enable/disable auto-escaping of HTML in variable output
 	public function setEscapeHtml($enable = true) {
 		$this->escape_html = (bool) $enable;
+
+		return $this;
+	}
+
+	// Enable/disable safe mode. When on, nothing is ever eval()'d and no
+	// modifier function is ever called: both become the placeholder string
+	// 'safe mode enabled'. Complex {if}/{elseif} conditions that the fast
+	// path can't handle fail closed (the branch is skipped). {include}
+	// paths must resolve inside the include root (see setTemplateRoot()).
+	public function setSafeMode($enable = true) {
+		$this->safe_mode = (bool) $enable;
+
+		return $this;
+	}
+
+	// Set the directory that {include} paths must resolve inside. When set
+	// this is enforced in BOTH modes — calling it is opt-in, so templates
+	// behave exactly as before until you do. Safe mode enforces containment
+	// even without this, using the calling script's dir (simple mode) or
+	// CWD as the root. The root is realpath()'d once, up front, so symlink
+	// tricks can't move the goalposts later.
+	public function setTemplateRoot($dir) {
+		$real = false;
+		if (is_string($dir) && $dir !== '') {
+			$real = realpath($dir);
+		}
+
+		if ($real === false || !is_dir($real)) {
+			throw new \InvalidArgumentException("Template root must be a readable directory");
+		}
+
+		$this->template_root = $real;
 
 		return $this;
 	}

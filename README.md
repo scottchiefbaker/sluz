@@ -144,6 +144,50 @@ also not escaped, so a template can output anything it contains.
 Treat template files like PHP source files: keep them under version
 control, deploy them with your code, and restrict write access to them.
 
+### 🔒 Safe mode
+
+`setSafeMode(true)` closes both code-execution channels described above.
+When enabled, no template content can execute PHP code:
+
+- **Nothing is ever `eval()`'d.** Anything that would have been evaluated —
+  expression blocks (`{$x + 3}`, `{"a" . "b"}`) and function calls
+  (`{getcwd()}`) — becomes the literal string `safe mode enabled`.
+- **No modifier function is ever called.** `{$var|strtoupper}`,
+  `{$cmd|shell_exec}`, and any other `|modifier` block — including
+  `default`, `escape`, and `raw` — returns `safe mode enabled`.
+  Chained modifiers never start.
+- **Complex `{if}` conditions fail closed.** Simple conditions
+  (`{if $x}`, `{if $x == 5}`) are evaluated without `eval()` and keep
+  working. Conditions the fast path can't handle (`&&`, arithmetic,
+  function calls) skip their branch; `{elseif}`/`{else}` branches still
+  render.
+- **`{include}` is contained.** Include paths must resolve *inside* an
+  include root — the calling script's directory (simple mode) or the
+  current working directory.
+
+You can pin the include root yourself, in either mode:
+
+```php
+$s->setTemplateRoot('/var/www/app/templates'); // realpath enforced always
+```
+
+With a root set it does two things, even with safe mode **off**: relative
+include names resolve against it (like Smarty's template directory), and
+nothing outside it can be read. Calling `setTemplateRoot()` is opt-in, so
+templates behave exactly as before until you do.
+
+**What safe mode does not do:**
+
+- Variables still render their assigned values, so escaping still matters
+  — and `|escape` is itself a modifier, so it is blocked. Use
+  `setEscapeHtml(true)` together with safe mode.
+- `{include file="$dynamic"}` fails with error 18485 because the
+  placeholder string is used as the filename.
+
+Safe mode trades functionality for hard guarantees: no template content
+executes PHP, and includes cannot read outside your root. It does not by
+itself make untrusted templates safe to render.
+
 ## 🥽 Testing
 
 Sluz has an extensive test suite that is used to verify compatibility
