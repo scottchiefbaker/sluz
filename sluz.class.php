@@ -5,14 +5,16 @@
 // https://www.sluz.org/
 ////////////////////////////////////////////////////////
 
-define('SLUZ_INLINE', '__INLINE_TEMPLATE__'); // Just a specific string
+if (!defined('SLUZ_INLINE')) {
+	define('SLUZ_INLINE', '__INLINE_TEMPLATE__');
+}
 
+if (!class_exists('sluz', false)) {
 class sluz {
 	// Output substituted when safe mode blocks something
 	private const SAFE_MODE_PLACEHOLDER = 'safe mode enabled';
 
-	// Built-in modifiers that may run in safe mode: functions this file
-	// defines and can vouch for as pure. 'default' is not listed — it is
+	// Built-in modifiers that may run in safe mode. 'default' is not listed — it is
 	// template syntax handled before the modifier loop, never a call.
 	private const SAFE_MODE_MODIFIERS = ['escape', 'raw'];
 
@@ -952,8 +954,7 @@ class sluz {
 				$pattern = '/\|(?![^"]*"(?:(?:[^"]*"){2})*[^"]*$)/';
 				$parts   = preg_split($pattern, $mod);
 
-				// Safe mode: only built-in modifiers (escape, raw — the
-				// functions defined in this file) may ever be called. Check
+				// Safe mode: only built-in modifiers (escape, raw) may be called. Check
 				// the whole chain up front: one non-built-in link blocks
 				// everything, so no template-supplied name can ever reach
 				// a function call. Names are matched case-insensitively,
@@ -975,7 +976,8 @@ class sluz {
 					$param_str = $x[1] ?? "";
 					$params    = [$pre];
 
-					$mod_names[] = strtolower($func);
+					$modifier = strtolower($func);
+					$mod_names[] = $modifier;
 
 					if ($param_str !== "") {
 						// Split on commas, but only those NOT inside double quotes.
@@ -999,13 +1001,19 @@ class sluz {
 					//k([$str, $parts, $func, $new, $params]);
 					//printf("Calling: %s([%s])<br />\n", $func, join(", ", $params[0]));
 
-					if (!is_callable($func)) {
+					if ($modifier === 'escape' || $modifier === 'raw') {
+						$callable = [self::class, $modifier . '_modifier'];
+					} else {
+						$callable = $func;
+					}
+
+					if (!is_callable($callable)) {
 						list($line, $col, $file) = $this->get_char_location($this->char_pos, $this->tpl_file);
 						return $this->error_out("Unknown function call <code>$func</code> in <code>$file</code> on line #$line", 47204);
 					}
 
 					try {
-						$pre = call_user_func_array($func, $params);
+						$pre = call_user_func_array($callable, $params);
 					} catch (Exception $e) {
 						$msg = "Exception: " . $e->getMessage();
 						return $this->error_out($msg, 79134);
@@ -1724,36 +1732,46 @@ class sluz {
 
 		$this->rebuild_delim_cache();
 	}
+
+	// Safely encode a value to prevent XSS.
+	public static function escape_modifier($str, $type = 'html') {
+		// Match variable_block()'s array-as-scalar policy without a diagnostic.
+		$str = is_array($str) ? 'Array' : (string) $str;
+
+		if ($type === 'html') {
+			return htmlspecialchars($str, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+		} elseif ($type === 'url') {
+			return rawurlencode($str);
+		} elseif ($type === 'js') {
+			return json_encode($str, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP);
+		} else {
+			return "Unknown escape type '$type' #65491";
+		}
+	}
+
+	public static function raw_modifier($str) {
+		return $str;
+	}
+}
 }
 
 // Safely encode a value to prevent XSS. Supports 'html' (default), 'url', and 'js'.
-function escape($str, $type = 'html') {
-	// Arrays can't be cast to string without a PHP diagnostic; follow the
-	// same array-as-scalar policy as variable_block() ('Array').
-	if (is_array($str)) {
-		$str = 'Array';
-	} else {
-		$str = (string) $str;
-	}
-
-	if ($type === 'html') {
-		return htmlspecialchars($str, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
-	} elseif ($type === 'url') {
-		return rawurlencode($str);
-	} elseif ($type === 'js') {
-		return json_encode($str, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP);
-	} else {
-		return "Unknown escape type '$type' #65491";
+if (!function_exists('escape')) {
+	function escape($str, $type = 'html') {
+		return sluz::escape_modifier($str, $type);
 	}
 }
 
 // Return value unchanged — used with setEscapeHtml() to opt out of auto-escaping
-function raw($str) {
-	return $str;
+if (!function_exists('raw')) {
+	function raw($str) {
+		return sluz::raw_modifier($str);
+	}
 }
 
 // This function is *OUTSIDE* of the class so it can be called separately without
 // instantiating the class
+if (!function_exists('sluz')) {
 function sluz($one, $two = null) {
 	static $s;
 
@@ -1769,6 +1787,7 @@ function sluz($one, $two = null) {
 	$s->assign($one, $two);
 
 	return $s;
+}
 }
 
 // vim: tabstop=4 shiftwidth=4 noexpandtab autoindent softtabstop=4

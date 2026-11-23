@@ -819,6 +819,17 @@ if ($fixture_out === null) {
 	sluz_output_test($fixture_out, "/^(?!.*(Warning|Notice|Deprecated))/s", "Simple #9 - Global sluz() emits no PHP diagnostics");
 }
 
+// Global declarations must coexist with existing definitions and repeated includes.
+if (function_exists('shell_exec')) {
+	$fixture = __DIR__ . '/global_collision_fixture.php';
+	foreach (['none', 'escape', 'raw', 'sluz', 'constant', 'all', 'class'] as $scenario) {
+		$out = shell_exec(escapeshellarg($php_cli) . ' ' . escapeshellarg($fixture) . ' ' . escapeshellarg($scenario) . ' 2>&1') ?? '';
+		sluz_output_test($out, '/^OK\n$/', "Globals - $scenario collision and repeated include");
+	}
+} else {
+	print "Globals tests skipped: shell_exec() is not available\n";
+}
+
 //////////////////////////////////////////////////////////////////////////////////////////
 // Alternate delimiter tests ([ / ])
 //////////////////////////////////////////////////////////////////////////////////////////

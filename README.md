@@ -104,6 +104,12 @@ By default `escape` uses PHP's `htmlspecialchars()` with `ENT_QUOTES |
 ENT_SUBSTITUTE` and UTF-8 encoding, which converts `<`, `>`, `"`, and
 `'` to their HTML entity equivalents.
 
+Sluz preserves existing global `escape()`, `raw()`, and `sluz()` functions,
+the `SLUZ_INLINE` constant, and the `sluz` class when loading. Template
+`|escape` and `|raw` modifiers use Sluz's own implementations even if global
+functions with those names already exist. A pre-existing `sluz` class is not
+replaced and must be compatible with Sluz's API.
+
 ### 🛡️ Auto-escape
 
 For stricter safety you can enable automatic HTML escaping of all
