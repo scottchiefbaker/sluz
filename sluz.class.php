@@ -11,6 +11,11 @@ class sluz {
 	// Output substituted when safe mode blocks something
 	private const SAFE_MODE_PLACEHOLDER = 'safe mode enabled';
 
+	// Built-in modifiers that may run in safe mode: functions this file
+	// defines and can vouch for as pure. 'default' is not listed — it is
+	// template syntax handled before the modifier loop, never a call.
+	private const SAFE_MODE_MODIFIERS = ['escape', 'raw'];
+
 	public $version       = '0.9.9';
 	public $tpl_file      = null;         // The path to the TPL file
 	public $inc_tpl_file  = null;         // The path to the {include} file
@@ -29,7 +34,7 @@ class sluz {
 	private $inline_str     = null;       // Cached text after __halt_compiler() (null if none)
 	private $char_pos       = -1;         // Character offset in the TPL
 	private $escape_html    = false;      // Auto-escape HTML in variable output
-	private $safe_mode      = false;      // Safe mode: never eval(), never call modifiers
+	private $safe_mode      = false;      // Safe mode: never eval(); only built-in modifiers run
 	private $template_root  = null;       // Optional include root (realpath'd) — enforced when set
 	private $include_stack  = [];         // Active {include} chain — circular-include detection
 	private $left_delim     = '{';        // Left/opening delimiter
@@ -887,15 +892,13 @@ class sluz {
 
 	// parse a simple variable
 	private function variable_block($str) {
-
 		// If it has a '|' it's either a function call or 'default'
-		$ppos = strpos($str, '|');
-		if ($ppos !== false) {
-			// Safe mode: ALL modifiers are blocked ('default', 'escape', 'raw', etc)
-			if ($this->safe_mode) {
-				return self::SAFE_MODE_PLACEHOLDER;
-			}
+		// $mod_names collects the lowercased names of modifiers that actually
+		// ran — the auto-escape opt-out compares these, never raw chain text.
+		$mod_names = [];
+		$ppos      = strpos($str, '|');
 
+		if ($ppos !== false) {
 			$key = substr($str, 0, $ppos);
 			$mod = substr($str, $ppos + 1);
 
@@ -949,12 +952,30 @@ class sluz {
 				$pattern = '/\|(?![^"]*"(?:(?:[^"]*"){2})*[^"]*$)/';
 				$parts   = preg_split($pattern, $mod);
 
+				// Safe mode: only built-in modifiers (escape, raw — the
+				// functions defined in this file) may ever be called. Check
+				// the whole chain up front: one non-built-in link blocks
+				// everything, so no template-supplied name can ever reach
+				// a function call. Names are matched case-insensitively,
+				// like is_callable() itself.
+				if ($this->safe_mode) {
+					foreach ($parts as $safe_part) {
+						$safe_x    = preg_split('/:/', $safe_part);
+						$safe_name = strtolower($safe_x[0] ?? "");
+						if (!preg_match('/^\w+$/', $safe_name) || !in_array($safe_name, self::SAFE_MODE_MODIFIERS, true)) {
+							return self::SAFE_MODE_PLACEHOLDER;
+						}
+					}
+				}
+
 				// Loop through each modifier (chaining)
 				foreach ($parts as $mod) {
 					$x         = preg_split("/:/", $mod);
 					$func      = $x[0] ?? "";
 					$param_str = $x[1] ?? "";
 					$params    = [$pre];
+
+					$mod_names[] = strtolower($func);
 
 					if ($param_str !== "") {
 						// Split on commas, but only those NOT inside double quotes.
@@ -1017,10 +1038,14 @@ class sluz {
 			return 'Array';
 		}
 
-		// Auto-escape HTML unless the modifier chain already contains escape or raw
+		// Auto-escape HTML unless a modifier that ran already escaped the
+		// value (escape) or explicitly opted out (raw). Compare parsed names
+		// of executed modifiers — never raw chain text — so parameters
+		// containing "raw"/"escape" can't bypass escaping, and a modifier
+		// chained after escape can't trigger double-escaping.
 		if ($this->escape_html) {
-			$has_escape = ($ppos !== false) && (str_contains($mod, 'escape') || str_contains($mod, 'raw'));
-			if (!$has_escape) {
+			$opted_out = in_array('escape', $mod_names, true) || in_array('raw', $mod_names, true);
+			if (!$opted_out) {
 				$ret = htmlspecialchars((string) $ret, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
 			}
 		}
@@ -1627,11 +1652,14 @@ class sluz {
 		return $this;
 	}
 
-	// Enable/disable safe mode. When on, nothing is ever eval()'d and no
-	// modifier function is ever called: both become the placeholder string
-	// 'safe mode enabled'. Complex {if}/{elseif} conditions that the fast
-	// path can't handle fail closed (the branch is skipped). {include}
-	// paths must resolve inside the include root (see setTemplateRoot()).
+	// Enable/disable safe mode. When on, nothing is ever eval()'d and only
+	// built-in modifiers may run: 'default' substitutes a literal value
+	// (evaluated without eval()), and 'escape'/'raw' — the functions defined
+	// in this file — are the only modifier calls ever made. Any other
+	// modifier, and anything that would have been eval()'d, becomes the
+	// placeholder string 'safe mode enabled'. Complex {if}/{elseif} conditions
+	// that the fast path can't handle fail closed (the branch is skipped).
+	// {include} paths must resolve inside the include root (see setTemplateRoot()).
 	public function setSafeMode($enable = true) {
 		$this->safe_mode = (bool) $enable;
 
@@ -1680,7 +1708,13 @@ class sluz {
 
 // Safely encode a value to prevent XSS. Supports 'html' (default), 'url', and 'js'.
 function escape($str, $type = 'html') {
-	$str = (string) $str;
+	// Arrays can't be cast to string without a PHP diagnostic; follow the
+	// same array-as-scalar policy as variable_block() ('Array').
+	if (is_array($str)) {
+		$str = 'Array';
+	} else {
+		$str = (string) $str;
+	}
 
 	if ($type === 'html') {
 		return htmlspecialchars($str, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');

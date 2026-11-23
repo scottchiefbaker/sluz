@@ -152,10 +152,12 @@ When enabled, no template content can execute PHP code:
 - **Nothing is ever `eval()`'d.** Anything that would have been evaluated —
   expression blocks (`{$x + 3}`, `{"a" . "b"}`) and function calls
   (`{getcwd()}`) — becomes the literal string `safe mode enabled`.
-- **No modifier function is ever called.** `{$var|strtoupper}`,
-  `{$cmd|shell_exec}`, and any other `|modifier` block — including
-  `default`, `escape`, and `raw` — returns `safe mode enabled`.
-  Chained modifiers never start.
+- **Only built-in modifiers may run.** `default`, `escape`, and `raw` —
+  all defined by the library itself, all pure — keep working, so safe
+  mode templates can still escape output and supply fallbacks. Every
+  other modifier (`{$var|strtoupper}`, `{$cmd|shell_exec}`) returns
+  `safe mode enabled`, and a chain that mixes built-ins with anything
+  else is blocked as a whole.
 - **Complex `{if}` conditions fail closed.** Simple conditions
   (`{if $x}`, `{if $x == 5}`) are evaluated without `eval()` and keep
   working. Conditions the fast path can't handle (`&&`, arithmetic,
@@ -178,9 +180,10 @@ templates behave exactly as before until you do.
 
 **What safe mode does not do:**
 
-- Variables still render their assigned values, so escaping still matters
-  — and `|escape` is itself a modifier, so it is blocked. Use
-  `setEscapeHtml(true)` together with safe mode.
+- Variables still render their assigned values, so escaping still matters.
+  `|escape` works in safe mode, but `setEscapeHtml(true)` is still the
+  stronger choice — it escapes every `{$var}` by default instead of
+  relying on each call site to opt in.
 - `{include file="$dynamic"}` fails with error 18485 because the
   placeholder string is used as the filename.
 

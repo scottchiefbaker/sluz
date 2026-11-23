@@ -216,6 +216,7 @@ sluz_test('{$xss|escape:"js"}'                   , '"\u003Cscript\u003Ealert(1)\
 sluz_test('{$null|default:"safe"|escape}'        , 'safe'                                            , 'Escape #6 - Default chained with escape');
 sluz_test('{$empty_string|default:"text"|escape}', 'text'                                            , 'Escape #7 - Default with escape on empty');
 sluz_test('{$first|escape:"invalid"}'            , "Unknown escape type 'invalid' #65491"            , 'Escape #8 - Invalid escape type');
+sluz_test('{$array|escape}'                      , 'Array'                                           , 'Escape #9 - Array input, no PHP diagnostic');
 
 // Auto-escape tests (separate sluz instance with setEscapeHtml enabled)
 $ae = new sluz();
@@ -225,6 +226,7 @@ $ae->assign('xss'  , '<script>alert(1)</script>');
 $ae->assign('first', 'Scott');
 $ae->assign('safe' , 'hello');
 $ae->assign('array', ['one', 'two', 'three']);
+$ae->assign('pad'  , '<b>');
 
 sluz_auto_escape_test('{$xss}'                            , '&lt;script&gt;alert(1)&lt;/script&gt;'  , 'Auto Escape #1 - Variable auto-escaped');
 sluz_auto_escape_test('{$xss|escape}'                     , '&lt;script&gt;alert(1)&lt;/script&gt;'  , 'Auto Escape #2 - Explicit escape, no double-escape');
@@ -237,11 +239,14 @@ sluz_auto_escape_test('{$x + 3}'                          , '3'                 
 sluz_auto_escape_test('{$array}'                          , 'Array'                                  , 'Auto Escape #9 - Array as scalar under auto-escape');
 sluz_auto_escape_test('{$empty_string|default:"<b>x</b>"}', '&lt;b&gt;x&lt;/b&gt;'                   , 'Auto Escape #10 - Default value is escaped');
 sluz_auto_escape_test('{$bogus_var|default:"<b>...</b>"}' , '&lt;b&gt;...&lt;/b&gt;'                 , 'Auto Escape #11 - Default escapes even when var empty');
+sluz_auto_escape_test('{$pad|str_pad:10,"raw"}'            , '&lt;b&gt;rawrawr'                      , 'Auto Escape #12 - Param containing raw does not opt out');
+sluz_auto_escape_test('{$xss|escape|strtoupper}'          , '&LT;SCRIPT&GT;ALERT(1)&LT;/SCRIPT&GT;' , 'Auto Escape #13 - No double-escape when chained after escape');
 
 // Safe mode tests (separate sluz instance with setSafeMode enabled).
-// Nothing is ever eval()'d and no modifier function is ever called — both
-// become the literal placeholder 'safe mode enabled'. Complex {if}/{elseif}
-// conditions the fast path can't handle fail closed (branch skipped).
+// Nothing is ever eval()'d and only the built-in modifiers (default, escape,
+// raw) may run — everything else becomes the literal placeholder
+// 'safe mode enabled'. Complex {if}/{elseif} conditions the fast path can't
+// handle fail closed (branch skipped).
 $sm = new sluz();
 $sm->in_unit_test = true;
 $sm->setSafeMode(true);
@@ -271,10 +276,10 @@ sluz_test('{if $flag_a && $flag_b}NEVER{/if}'           , ''                  , 
 sluz_test('{if $flag_a && $flag_b}NEVER{else}FB{/if}'   , 'FB'                , 'Safe Mode #9 - Complex condition falls to else', $sm);
 sluz_test('{if $flag_a && $flag_b}N{elseif $count == 5}E{else}L{/if}', 'E'    , 'Safe Mode #10 - Falls through to evaluable elseif', $sm);
 
-// ALL modifiers are blocked — no function is ever invoked
-sluz_test('{$first|strtoupper}'                         , 'safe mode enabled' , 'Safe Mode #11 - Modifier blocked', $sm);
-sluz_test('{$bogus_var|default:"fallback"}'             , 'safe mode enabled' , 'Safe Mode #12 - default is blocked too', $sm);
-sluz_test('{$first|strtoupper|escape}'                 , 'safe mode enabled' , 'Safe Mode #13 - Chained modifiers blocked', $sm);
+// Only the library's built-in modifiers may run; anything else stays blocked
+sluz_test('{$first|strtoupper}'                         , 'safe mode enabled' , 'Safe Mode #11 - Non-built-in modifier blocked', $sm);
+sluz_test('{$bogus_var|default:"fallback"}'             , 'fallback'          , 'Safe Mode #12 - default allowed with literal value', $sm);
+sluz_test('{$first|strtoupper|escape}'                  , 'safe mode enabled' , 'Safe Mode #13 - Chain blocked by non-built-in link', $sm);
 sluz_test('{$cmd|shell_exec}'                           , 'safe mode enabled' , 'Safe Mode #14 - shell_exec never runs', $sm);
 
 // Expression blocks never eval()
@@ -291,7 +296,7 @@ sluz_test("{include file='tpls/extra.stpl'}"             , '/e1ab49cf/'        ,
 sluz_test("{include file='tpls/extra.stpl' secret='sm1'}", '/sm1/'             , 'Safe Mode #21 - Include with literal extra var', $sm);
 sluz_test('{include file="$tpl_path"}'                   , 'ERROR-18485'       , 'Safe Mode #22 - Variable include path fails (documented quirk)', $sm);
 
-// Safe mode + auto-escape: plain vars still escape, |escape is blocked
+// Safe mode + auto-escape: plain vars still escape, |escape now runs
 $sm_esc = new sluz();
 $sm_esc->in_unit_test = true;
 $sm_esc->setSafeMode(true);
@@ -299,7 +304,7 @@ $sm_esc->setEscapeHtml(true);
 $sm_esc->assign('user_input', '<script>alert(1)</script>');
 
 sluz_test('{$user_input}'                                , '&lt;script&gt;alert(1)&lt;/script&gt;', 'Safe Mode #23 - Auto-escape still applies to plain vars', $sm_esc);
-sluz_test('{$user_input|escape}'                        , 'safe mode enabled' , 'Safe Mode #24 - |escape blocked, placeholder not escaped', $sm_esc);
+sluz_test('{$user_input|escape}'                        , '&lt;script&gt;alert(1)&lt;/script&gt;', 'Safe Mode #24 - |escape allowed, no double-escape', $sm_esc);
 
 // {include} in safe mode: paths must resolve inside the root (CWD here).
 // Absolute, traversal, and Windows-drive names are rejected outright —
@@ -318,6 +323,20 @@ if (@symlink(dirname(__FILE__) . '/../sluz.class.php', $sm_link)) {
 	sluz_test("{include file='$sm_link'}", 'ERROR-52893', 'Safe Mode #31 - Symlink escape rejected', $sm);
 	@unlink($sm_link);
 }
+
+// Built-in modifiers (escape, raw) are pure library functions — safe mode
+// lets them run. Everything else stays the placeholder, and a chain is
+// blocked as a whole if any link is not a built-in.
+sluz_test('{$first|escape}'                             , 'Scott'                                    , 'Safe Mode #32 - escape allowed', $sm);
+sluz_test('{$first|raw}'                                , 'Scott'                                    , 'Safe Mode #33 - raw allowed', $sm);
+sluz_test('{$first|escape:"url"}'                       , 'Scott'                                    , 'Safe Mode #34 - escape with literal param', $sm);
+sluz_test('{$first|escape:"bogus"}'                     , "Unknown escape type 'bogus' #65491"       , 'Safe Mode #35 - Unknown escape type reports normally', $sm);
+sluz_test('{$first|ESCAPE}'                             , 'Scott'                                    , 'Safe Mode #36 - Built-in name is case-insensitive', $sm);
+sluz_test('{$first|escape|raw}'                         , 'Scott'                                    , 'Safe Mode #37 - Chained built-ins run', $sm);
+sluz_test('{$first|raw|strtoupper}'                     , 'safe mode enabled'                        , 'Safe Mode #38 - Good link then blocked link', $sm);
+sluz_test('{$bogus_var|default:"$first"}'               , 'safe mode enabled'                        , 'Safe Mode #39 - Non-literal default degrades to placeholder', $sm);
+sluz_test('{$user_input|raw}'                           , '<script>alert(1)</script>'                , 'Safe Mode #40 - raw opts out of auto-escape', $sm_esc);
+sluz_test('{$bogus_var|default:"<b>x</b>"}'              , '&lt;b&gt;x&lt;/b&gt;'                      , 'Safe Mode #41 - default value is auto-escaped', $sm_esc);
 
 // User defined functions
 sluz_test('{$word|truncate:3}'                     , 'cRa'        , 'Custom function #1 - Modifier with param');
