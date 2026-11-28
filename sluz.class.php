@@ -933,7 +933,7 @@ class sluz {
 				}
 
 				$err         = 0;
-				$default_val = $this->peval($raw_default, $err);
+				$default_val = $this->peval($this->convert_variables_in_string($raw_default), $err);
 				if ($err) {
 					list($line, $col, $file) = $this->get_char_location($this->char_pos, $this->tpl_file);
 					$msg = "Invalid default value <code>$raw_default</code> in <code>$file</code> on line #$line";

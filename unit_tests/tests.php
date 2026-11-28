@@ -214,6 +214,27 @@ sluz_test('{$bogus_var|default:-1}'               , '-1'          , 'Default #7 
 sluz_test('{$bogus_var|default:1.5}'              , '1.5'         , 'Default #8 - Float');
 sluz_test('{$bogus_var|default:"say \"hi\""}'     , 'say "hi"'    , 'Default #9 - Escaped quote inside double quotes');
 
+// Default applies only to null/missing/""; false, 0 are real values
+$def_sluz = new sluz();
+$def_sluz->in_unit_test = true;
+$def_sluz->assign([
+	'f' => false,
+	'n' => null,
+	'z' => 0,
+	'e' => '',
+	'x' => 'XV',
+]);
+
+sluz_test('{$f|default:"off"}'        , ''     , 'Default #10 - false is a real value, not replaced', $def_sluz);
+sluz_test('{$n|default:"none"}'       , 'none' , 'Default #11 - null uses the default', $def_sluz);
+sluz_test('{$z|default:"zero"}'       , '0'    , 'Default #12 - 0 is a real value, not replaced', $def_sluz);
+sluz_test('{$e|default:"empty"}'      , 'empty', 'Default #13 - empty string uses the default', $def_sluz);
+sluz_test('{$missing|default:"miss"}' , 'miss' , 'Default #14 - missing variable uses the default', $def_sluz);
+sluz_test('{$missing|default:"$x"}'   , 'XV'   , 'Default #15 - default interpolates a set variable', $def_sluz);
+sluz_test('{$missing|default:"<$x>"}' , '<XV>' , 'Default #16 - default interpolation inside literal text', $def_sluz);
+sluz_test('{$e|default:"$x"}'         , 'XV'   , 'Default #17 - interpolated default on empty string', $def_sluz);
+sluz_test('{$f|default:"$x"}'         , ''     , 'Default #18 - false still not replaced by interpolated default', $def_sluz);
+
 
 // Escape modifier (XSS prevention)
 $sluz->assign('xss', '<script>alert(1)</script>');
