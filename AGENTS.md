@@ -7,7 +7,7 @@ Single-file PHP templating engine with Smarty-like syntax. Zero dependencies, PH
 - Class: `sluz` (lowercase) in `sluz.class.php`
 - Composer autoload: `"files": ["sluz.class.php"]` — no PSR-4 namespace
 - Template extension: `.stpl`
-- Version string: `$sluz->version` (current `0.9.7`)
+- Version string: `$sluz->version` (see `public $version` in `sluz.class.php`)
 
 ## Versioning
 
