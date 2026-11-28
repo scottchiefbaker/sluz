@@ -1471,6 +1471,10 @@ class sluz {
 	// one is dropped. This is visibility-correct for every class, so it
 	// also holds when a sluz instance itself is iterated.
 	private function object_to_array_public($obj) {
+		if ($obj instanceof Traversable) {
+			return iterator_to_array($obj);
+		}
+
 		$ret = [];
 
 		foreach ((array) $obj as $k => $v) {

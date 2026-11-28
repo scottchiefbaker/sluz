@@ -528,6 +528,16 @@ sluz_test('{foreach $wallet as $v}{$v}{if $__FOREACH_LAST}LAST{/if}{/foreach}', 
 sluz_test('{foreach $fly as $k => $v}{$k}{$v}{/foreach}'                      , 'livexdyny'              , 'Foreach #35 - stdClass public props still iterate'       , $objviz);
 sluz_test('{$wallet.name}:{$wallet.pin}'                                      , 'public:'                , 'Foreach #36 - Dot lookup ignores private property'       , $objviz);
 
+// Traversables (item 14): iterated via iterator_to_array(), keys preserved
+function sluz_test_gen() { yield 'a'; yield 'b'; }
+function sluz_test_kgen() { yield 'k1' => 'x'; yield 'k2' => 'y'; }
+$trav = new sluz();
+$trav->in_unit_test = true;
+$trav->assign(['g' => sluz_test_gen(), 'kg' => sluz_test_kgen(), 'it' => new ArrayIterator(['p' => 1, 'q' => 2])]);
+sluz_test('{foreach $g as $v}<{$v}>{/foreach}'                  , '<a><b>', 'Foreach #37 - Generator values iterate', $trav);
+sluz_test('{foreach $kg as $k => $v}{$k}={$v};{/foreach}'        , 'k1=x;k2=y;', 'Foreach #38 - Generator keys preserved', $trav);
+sluz_test('{foreach $it as $k => $v}{$k}={$v};{/foreach}'        , 'p=1;q=2;', 'Foreach #39 - ArrayIterator keys preserved', $trav);
+
 sluz_test('{$obj.a}:{$obj.b}', '1:2'        , 'Object #1 - Property lookup');
 sluz_test('{$obj}'           , 'ERROR-18933', 'Object #2 - Direct object output rejected');
 
