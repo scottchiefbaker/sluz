@@ -194,6 +194,16 @@ sluz_test('{'                                     , 'ERROR-45821'      , 'Basic 
 sluz_test('hello {'                               , 'hello ERROR-45821', 'Basic #69 - Text then unclosed block at end');
 sluz_test('{ foo '                                , 'ERROR-45821'      , 'Basic #70 - Leading block not disabled by trailing whitespace');
 
+// assign() key handling: bulk arrays keep integer keys, bad keys hard-fail
+$assign_sluz = new sluz();
+$assign_sluz->in_unit_test = true;
+$assign_sluz->assign([5 => 'five', 'k' => 'v']);
+sluz_test('{$5}{$k}', 'fivev', 'Assign #1 - Bulk assign keeps integer keys', $assign_sluz);
+$assign_sluz->assign(['k' => 'new']);
+sluz_test('{$k}', 'new', 'Assign #2 - Bulk assign overwrites on collision', $assign_sluz);
+sluz_test('{$5}', 'five', 'Assign #3 - Integer key survives a later bulk assign', $assign_sluz);
+sluz_test(strval($assign_sluz->assign(['x'], 'v')), 'ERROR-88201', 'Assign #4 - Non-scalar key reports error 88201');
+
 // Default values must be quoted strings or numeric literals
 sluz_test('{$bogus_var|default:foo}'              , 'ERROR-31558' , 'Default #1 - Unquoted bare word (empty var)');
 sluz_test('{$first|default:foo}'                  , 'ERROR-31558' , 'Default #2 - Unquoted bare word (non-empty var)');

@@ -81,12 +81,18 @@ class sluz {
 
 	// Assign variables to pass to the TPL
 	public function assign($key, $val = null) {
-		// Single item call (assign array at once)
-		if (is_null($val) && is_array($key)) {
-			$this->tpl_vars = array_merge($this->tpl_vars, $key);
-		} else {
-			$this->tpl_vars[$key] = $val;
+		// Bulk assign (array alone); array_replace keeps integer keys and overwrites on collision
+		if (is_array($key) && is_null($val)) {
+			$this->tpl_vars = array_replace($this->tpl_vars, $key);
+			return null;
 		}
+
+		if (!is_string($key) && !is_int($key)) {
+			return $this->error_out("assign() key must be a string or int", 88201);
+		}
+
+		$this->tpl_vars[$key] = $val;
+		return null;
 	}
 
 	// Convert template blocks in to output strings

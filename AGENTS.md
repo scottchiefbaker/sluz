@@ -88,6 +88,7 @@ $s->in_unit_test = true;                                // suppress error output
 | 78135 | No inline template found          |
 | 52893 | Include path not allowed          |
 | 52894 | Circular include                  |
+| 88201 | Invalid key passed to `assign()`  |
 
 ## Gotchas
 
